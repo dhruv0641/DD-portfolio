@@ -1,8 +1,9 @@
 import React from 'react';
 import ThoughtWave from '@/components/ThoughtWave';
-import CodeComparer from '@/components/CodeComparer';
+import AIPipelineViz from '@/components/AIPipelineViz';
 import Certifications from '@/components/Certifications';
 import ContactForm from '@/components/ContactForm';
+import CoreBeliefs from '@/components/CoreBeliefs';
 import Link from 'next/link';
 import { settingsService } from '@/services/settingsService';
 import { projectService } from '@/services/projectService';
@@ -112,29 +113,7 @@ export default async function Page() {
           </div>
 
           {/* Core Beliefs Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32">
-            <div className="bg-[#09090b] border border-[var(--grid-line)] rounded-xl p-8 hover:border-gray-800 transition-colors">
-              <span className="font-mono text-xs text-[var(--accent)] mb-4 block">[ 01 ]</span>
-              <h3 className="text-lg mb-3 text-white font-medium">Human first, model second</h3>
-              <p className="text-xs text-[var(--text-muted)] leading-relaxed font-light">
-                AI should elevate and extend human capability, not replace or simulate it. We construct software to empower human intent, not to create automated noise.
-              </p>
-            </div>
-            <div className="bg-[#09090b] border border-[var(--grid-line)] rounded-xl p-8 hover:border-gray-800 transition-colors">
-              <span className="font-mono text-xs text-[var(--accent)] mb-4 block">[ 02 ]</span>
-              <h3 className="text-lg mb-3 text-white font-medium">Deterministic guardrails</h3>
-              <p className="text-xs text-[var(--text-muted)] leading-relaxed font-light">
-                Stochastic models produce unpredictable results. We wrap intelligence in mathematical guardrails, ensuring reliability in high-stakes environments.
-              </p>
-            </div>
-            <div className="bg-[#09090b] border border-[var(--grid-line)] rounded-xl p-8 hover:border-gray-800 transition-colors">
-              <span className="font-mono text-xs text-[var(--accent)] mb-4 block">[ 03 ]</span>
-              <h3 className="text-lg mb-3 text-white font-medium">Performance is respect</h3>
-              <p className="text-xs text-[var(--text-muted)] leading-relaxed font-light">
-                Lag is cognitive drag. Orchestration, retrieval, and interface rendering are optimized for zero latency, respecting the flow state of the operator.
-              </p>
-            </div>
-          </div>
+          <CoreBeliefs />
         </div>
       </section>
 
@@ -251,31 +230,6 @@ export default async function Page() {
             </div>
           </div>
 
-          {/* Technical Diagram */}
-          <div className="bg-[#09090b] border border-[var(--grid-line)] rounded-xl py-16 px-6 lg:px-16 flex justify-center items-center overflow-x-auto">
-            <svg className="min-w-[800px] w-full max-w-[800px] h-auto" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect className="diag-node" x="10" y="40" width="105" height="40" rx="4"/>
-              <text className="diag-text bold" x="62.5" y="64">MANUAL PROCESS</text>
-              <path className="diag-line" d="M115 60H135"/>
-              <rect className="diag-node" x="135" y="40" width="115" height="40" rx="4"/>
-              <text className="diag-text bold" x="192.5" y="64">PROMPT ENG</text>
-              <path className="diag-line" d="M250 60H270"/>
-              <rect className="diag-node" x="270" y="40" width="130" height="40" rx="4"/>
-              <text className="diag-text bold" x="335" y="64">PROMPT EVAL (A/B)</text>
-              <path className="diag-line" d="M400 60H420"/>
-              <rect className="diag-node accented" x="420" y="40" width="125" height="40" rx="4"/>
-              <text className="diag-text bold" x="482.5" y="64">OUTPUT VALIDATION</text>
-              <path className="diag-line accented" d="M545 60H565"/>
-              <rect className="diag-node" x="565" y="40" width="125" height="40" rx="4"/>
-              <text className="diag-text bold" x="627.5" y="64">REST API INTEGRATION</text>
-              <path className="diag-line accented" d="M690 60H710"/>
-              <rect className="diag-node accented" x="710" y="40" width="80" height="40" rx="4"/>
-              <text className="diag-text bold" x="750" y="64">PRODUCTION</text>
-              <path className="diag-line accented" d="M482.5 80V140H192.5V80" />
-              <rect className="diag-node accented" x="277.5" y="125" width="115" height="26" rx="3"/>
-              <text className="diag-text mono" x="335" y="141">RETRY ON VALIDATION FAIL</text>
-            </svg>
-          </div>
         </div>
       </section>
 
@@ -424,14 +378,22 @@ export default async function Page() {
         </section>
       )}
 
-      {/* SECTION 9: ENGINEERING THINKING */}
+      {/* SECTION 9: LIVE AI SYSTEMS ARCHITECTURE */}
       <section id="thinking" className="py-40 border-b border-[var(--grid-line)]">
         <div className="max-w-[1400px] mx-auto px-[8%]">
-          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
-            <span>08 / Engineering Thinking</span>
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-8 flex items-center gap-2">
+            <span>08 / Systems Architecture</span>
             <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
           </div>
-          <CodeComparer />
+          <div className="max-w-[800px] mb-12">
+            <h2 className="text-[clamp(1.8rem,4vw,2.8rem)] font-light text-white tracking-tight leading-snug mb-4">
+              How a modern AI pipeline <span className="serif-italic text-[var(--text-muted)]">actually executes.</span>
+            </h2>
+            <p className="text-[var(--text-muted)] text-sm leading-relaxed font-light max-w-[600px]">
+              A live simulation of the complete request lifecycle—from query ingestion through retrieval-augmented generation to streaming output.
+            </p>
+          </div>
+          <AIPipelineViz />
         </div>
       </section>
 
