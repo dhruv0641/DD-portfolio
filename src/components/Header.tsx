@@ -16,12 +16,12 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { name: 'Identity',   href: '/#identity', sectionId: 'identity', isPage: false },
-  { name: 'Work',       href: '/#work',     sectionId: 'work',     isPage: false },
-  { name: 'Case Study', href: '/#case',     sectionId: 'case',     isPage: false },
-  { name: 'Thinking',   href: '/#thinking', sectionId: 'thinking', isPage: false },
-  { name: 'Build',      href: '/#build',    sectionId: 'build',    isPage: false },
-  { name: 'Playground', href: '/playground', sectionId: null,       isPage: true  },
+  { name: 'Identity', href: '/#identity', sectionId: 'identity', isPage: false },
+  { name: 'Work', href: '/#work', sectionId: 'work', isPage: false },
+  { name: 'Case Study', href: '/#case', sectionId: 'case', isPage: false },
+  { name: 'Thinking', href: '/#thinking', sectionId: 'thinking', isPage: false },
+  { name: 'Build', href: '/#build', sectionId: 'build', isPage: false },
+  { name: 'Playground', href: '/playground', sectionId: null, isPage: true },
 ];
 
 const SECTION_IDS = ['identity', 'work', 'case', 'thinking', 'build'];
@@ -204,11 +204,10 @@ const CommandPalette = memo(function CommandPalette({
               <button
                 key={item.href}
                 onClick={() => { onNavigate(item); onClose(); }}
-                className={`w-full text-left py-2.5 px-3 rounded-lg transition-colors duration-100 cursor-pointer flex items-center justify-between ${
-                  idx === selectedIndex
+                className={`w-full text-left py-2.5 px-3 rounded-lg transition-colors duration-100 cursor-pointer flex items-center justify-between ${idx === selectedIndex
                     ? 'bg-white/[0.04] text-white'
                     : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'
-                }`}
+                  }`}
               >
                 <span>{item.name}</span>
                 {idx === selectedIndex && (
@@ -414,9 +413,8 @@ export default function Header({ name }: { name: string }) {
                         href={item.href}
                         prefetch={true}
                         onClick={(e) => handleNavClick(e, item)}
-                        className={`relative py-1 px-3 rounded-full flex items-center transition-colors duration-150 ${
-                          isActive ? 'text-white' : 'text-zinc-500 hover:text-white'
-                        }`}
+                        className={`relative py-1 px-3 rounded-full flex items-center transition-colors duration-150 ${isActive ? 'text-white' : 'text-zinc-500 hover:text-white'
+                          }`}
                         aria-current={isActive ? 'page' : undefined}
                       >
                         {item.name}
@@ -438,9 +436,8 @@ export default function Header({ name }: { name: string }) {
                       <a
                         href={item.href}
                         onClick={(e) => handleNavClick(e, item)}
-                        className={`relative py-1 px-3 rounded-full flex items-center transition-colors duration-150 ${
-                          isActive ? 'text-white' : 'text-zinc-500 hover:text-white'
-                        }`}
+                        className={`relative py-1 px-3 rounded-full flex items-center transition-colors duration-150 ${isActive ? 'text-white' : 'text-zinc-500 hover:text-white'
+                          }`}
                         aria-current={isActive ? 'page' : undefined}
                       >
                         {item.name}
@@ -500,11 +497,10 @@ export default function Header({ name }: { name: string }) {
                     key={item.href}
                     href={item.href}
                     onClick={(e) => handleNavClick(e, item)}
-                    className={`block py-2.5 px-3 rounded-xl transition-colors duration-100 ${
-                      isActive
+                    className={`block py-2.5 px-3 rounded-xl transition-colors duration-100 ${isActive
                         ? 'text-white bg-white/[0.04] border border-white/[0.06]'
                         : 'text-zinc-500 hover:text-white border border-transparent'
-                    }`}
+                      }`}
                     aria-current={isActive ? 'page' : undefined}
                   >
                     {item.name}

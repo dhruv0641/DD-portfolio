@@ -87,23 +87,7 @@
   transform: scale(1.02);
 }
 
-/* Case study SVG styling */
-.diag-node {
-  fill: #161616;
-  stroke: var(--grid-line);
-  stroke-width: 1.5;
-  transition: fill 0.3s, stroke 0.3s;
-}
 
-.diag-node.accented {
-  stroke: var(--accent);
-  fill: rgba(var(--accent-rgb), 0.05);
-}
-
-.diag-node:hover {
-  fill: #222;
-  stroke: var(--text-muted);
-}
 
 /* Code toggles */
 .code-toggle-container {
