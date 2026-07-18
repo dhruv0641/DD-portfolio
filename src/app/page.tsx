@@ -230,6 +230,31 @@ export default async function Page() {
             </div>
           </div>
 
+          {/* Technical Diagram */}
+          <div className="bg-[#09090b] border border-[var(--grid-line)] rounded-xl py-16 px-6 lg:px-16 flex justify-center items-center overflow-x-auto">
+            <svg className="min-w-[800px] w-full max-w-[800px] h-auto" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect className="diag-node" x="10" y="40" width="105" height="40" rx="4"/>
+              <text className="diag-text bold" x="62.5" y="64">MANUAL PROCESS</text>
+              <path className="diag-line" d="M115 60H135"/>
+              <rect className="diag-node" x="135" y="40" width="115" height="40" rx="4"/>
+              <text className="diag-text bold" x="192.5" y="64">PROMPT ENG</text>
+              <path className="diag-line" d="M250 60H270"/>
+              <rect className="diag-node" x="270" y="40" width="130" height="40" rx="4"/>
+              <text className="diag-text bold" x="335" y="64">PROMPT EVAL (A/B)</text>
+              <path className="diag-line" d="M400 60H420"/>
+              <rect className="diag-node accented" x="420" y="40" width="125" height="40" rx="4"/>
+              <text className="diag-text bold" x="482.5" y="64">OUTPUT VALIDATION</text>
+              <path className="diag-line accented" d="M545 60H565"/>
+              <rect className="diag-node" x="565" y="40" width="125" height="40" rx="4"/>
+              <text className="diag-text bold" x="627.5" y="64">REST API INTEGRATION</text>
+              <path className="diag-line accented" d="M690 60H710"/>
+              <rect className="diag-node accented" x="710" y="40" width="80" height="40" rx="4"/>
+              <text className="diag-text bold" x="750" y="64">PRODUCTION</text>
+              <path className="diag-line accented" d="M482.5 80V140H192.5V80" />
+              <rect className="diag-node accented" x="277.5" y="125" width="115" height="26" rx="3"/>
+              <text className="diag-text mono" x="335" y="141">RETRY ON VALIDATION FAIL</text>
+            </svg>
+          </div>
         </div>
       </section>
 
