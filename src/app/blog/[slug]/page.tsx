@@ -47,7 +47,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const categories: string[] = typeof post.categories === 'string' ? JSON.parse(post.categories || '[]') : (post.categories || []);
 
   return (
-    <section className="pt-40 pb-32 min-h-screen bg-[#030303]">
+    <section className="pt-40 pb-32 min-h-screen">
       <div className="max-w-[1400px] mx-auto px-[8%]">
         
         {/* Navigation Breadcrumb */}

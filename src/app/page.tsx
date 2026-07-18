@@ -90,7 +90,7 @@ export default async function Page() {
       </section>
 
       {/* SECTION 2: STORYTELLING ABOUT & BELIEFS */}
-      <section id="identity" className="py-40 border-b border-[var(--grid-line)] bg-[#050506]">
+      <section id="identity" className="py-40 border-b border-[var(--grid-line)]">
         <div className="max-w-[1400px] mx-auto px-[8%]">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-12 flex items-center gap-2">
             <span>01 / Storytelling &amp; Beliefs</span>
@@ -206,7 +206,7 @@ export default async function Page() {
       </section>
 
       {/* SECTION 4: CASE STUDY DETAILS */}
-      <section id="case" className="py-40 border-b border-[var(--grid-line)] bg-[#050506]">
+      <section id="case" className="py-40 border-b border-[var(--grid-line)]">
         <div className="max-w-[1400px] mx-auto px-[8%]">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
             <span>03 / Core Architecture Study</span>
@@ -314,7 +314,7 @@ export default async function Page() {
       </section>
 
       {/* SECTION 6: PREMIUM EXPERIENCE & EDUCATION TIMELINES */}
-      <section className="py-40 border-b border-[var(--grid-line)] bg-[#050506]">
+      <section className="py-40 border-b border-[var(--grid-line)]">
         <div className="max-w-[1400px] mx-auto px-[8%]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
             
@@ -393,7 +393,7 @@ export default async function Page() {
 
       {/* SECTION 8: CLIENT TESTIMONIALS CAROUSEL */}
       {testimonials.length > 0 && (
-        <section className="py-40 border-b border-[var(--grid-line)] bg-[#050506]">
+        <section className="py-40 border-b border-[var(--grid-line)]">
           <div className="max-w-[1400px] mx-auto px-[8%]">
             <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
               <span>07 / Client Testimonials</span>
@@ -436,7 +436,7 @@ export default async function Page() {
       </section>
 
       {/* SECTION 10: CERTIFICATIONS & LEARNING */}
-      <section id="certifications" className="py-40 border-b border-[var(--grid-line)] bg-[#050506]">
+      <section id="certifications" className="py-40 border-b border-[var(--grid-line)]">
         <div className="max-w-[1400px] mx-auto px-[8%]">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
             <span>09 / Certifications &amp; Learning</span>
@@ -480,7 +480,7 @@ export default async function Page() {
       </section>
 
       {/* SECTION 12: BUILD TOGETHER (CONTACT) */}
-      <section id="build" className="py-40 bg-[#050506]">
+      <section id="build" className="py-40">
         <div className="max-w-[1400px] mx-auto px-[8%]">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
             <span>11 / Let&apos;s Build Together</span>

@@ -16,15 +16,18 @@ export default function ContactForm() {
   const [messageId, setMessageId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
-  const [buttonHovered, setButtonHovered] = useState(false);
-  const [buttonCoords, setButtonCoords] = useState({ x: 0, y: 0 });
 
   const handleButtonMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setButtonCoords({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    e.currentTarget.style.transform = `translate3d(${x * 0.3}px, ${y * 0.3}px, 0)`;
+    e.currentTarget.style.transition = 'none';
+  };
+
+  const handleButtonMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.transform = `translate3d(0px, 0px, 0)`;
+    e.currentTarget.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
   };
 
   // References for focus management
@@ -262,35 +265,20 @@ export default function ContactForm() {
 
           <button 
             type="submit" 
-            className="form-submit-btn group relative overflow-hidden" 
+            className="form-submit-btn" 
             id="submitBtn"
             disabled={status === 'submitting'}
             style={{ pointerEvents: status === 'submitting' ? 'none' : 'auto' }}
             onMouseMove={handleButtonMouseMove}
-            onMouseEnter={() => setButtonHovered(true)}
-            onMouseLeave={() => setButtonHovered(false)}
+            onMouseLeave={handleButtonMouseLeave}
           >
-            <span
-              className="absolute rounded-full pointer-events-none transition-all mix-blend-screen filter blur-[12px] bg-[rgba(42,86,222,0.3)]"
-              style={{
-                width: '180px',
-                height: '180px',
-                left: `${buttonCoords.x - 90}px`,
-                top: `${buttonCoords.y - 90}px`,
-                transform: buttonHovered ? 'scale(1.25)' : 'scale(0)',
-                opacity: buttonHovered ? 1 : 0,
-                transition: buttonHovered 
-                  ? 'transform 0.6s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.4s' 
-                  : 'transform 0.4s ease-out, opacity 0.4s',
-              }}
-            />
             {status === 'submitting' ? (
-              <div className="flex flex-col items-center gap-2 relative z-10">
+              <div className="flex flex-col items-center gap-2">
                 <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
                 <span className="text-[11px] font-mono tracking-wider uppercase">Sending...</span>
               </div>
             ) : (
-              <span className="relative z-10 transition-colors duration-300 group-hover:text-white">Send</span>
+              <span>Send</span>
             )}</button>
         </form>
       )}
