@@ -4,7 +4,7 @@ import * as schema from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import ThoughtWave from '@/components/ThoughtWave';
 import CodeComparer from '@/components/CodeComparer';
-import ImpactCounters from '@/components/ImpactCounters';
+import Certifications from '@/components/Certifications';
 import ContactForm from '@/components/ContactForm';
 import Link from 'next/link';
 
@@ -170,7 +170,7 @@ export default async function Page() {
         </div>
       </section>
 
-      {/* SECTION 5: DEEP CASE STUDY (PULSE) */}
+      {/* SECTION 5: DEEP CASE STUDY (KOMBEE) */}
       <section id="case" className="py-40 border-b border-[rgba(255,255,255,0.04)]">
         <div className="max-w-[1400px] mx-auto px-[8%]">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
@@ -180,7 +180,7 @@ export default async function Page() {
 
           <div className="max-w-[800px] mb-20">
             <h2 className="text-[clamp(2.5rem,5vw,4.5rem)] leading-[1.15] text-[var(--text)] font-light">
-              Pulse: Re-engineering market research with agentic state machines.
+              Kombee: Orchestrating enterprise workflows with validated agentic pipelines.
             </h2>
           </div>
 
@@ -188,15 +188,15 @@ export default async function Page() {
             <div className="font-mono text-xs text-[var(--text-dim)] flex flex-col gap-10">
               <div>
                 <h4 className="text-[var(--text-dim)] font-medium mb-1">ROLE</h4>
-                <p className="text-[var(--text-muted)]">Lead AI Systems Architect</p>
+                <p className="text-[var(--text-muted)]">Lead AI Engineer</p>
               </div>
               <div className="mt-6">
                 <h4 className="text-[var(--text-dim)] font-medium mb-1">TIMELINE</h4>
-                <p className="text-[var(--text-muted)]">12 Weeks (Q1 2025)</p>
+                <p className="text-[var(--text-muted)]">12 Weeks (Q1 2026)</p>
               </div>
               <div className="mt-6">
                 <h4 className="text-[var(--text-dim)] font-medium mb-1">TECHNOLOGIES</h4>
-                <p className="text-[var(--text-muted)]">Python, LangGraph, Qdrant, Claude 3.5, AWS ECS</p>
+                <p className="text-[var(--text-muted)]">Python, LangGraph, Qdrant, Claude 3.5 Sonnet, AWS ECS</p>
               </div>
             </div>
             
@@ -204,13 +204,13 @@ export default async function Page() {
               <div>
                 <h3 className="text-2xl mb-6 text-[var(--text)] font-light">The Context</h3>
                 <p className="text-[var(--text-muted)] leading-[1.7] font-light">
-                  Institutional research analysts were spending an average of 12 hours aggregating, cleaning, and verifying information to compile a single comprehensive market brief. Latency in compiling reports directly impacted asset pricing decisions.
+                  Enterprise workflows were heavily dependent on manual data entry and unstructured review steps, creating a 12-hour turnaround bottleneck. Automated scripts failed to handle variance in document formats and unstructured inputs.
                 </p>
               </div>
               <div className="mt-8">
                 <h3 className="text-2xl mb-6 text-[var(--text)] font-light">The Challenge</h3>
                 <p className="text-[var(--text-muted)] leading-[1.7] font-light">
-                  Our initial prototype relied on flat retrieval-augmented generation. It suffered from chronic hallucination loops, missed edge cases buried in structured filings, and expanded queries so broadly that context windows overflowed, producing muddy summaries.
+                  Parsing unstructured data tables and files into strict schema formats. Standard retrieval-augmented generation suffered from context leakage and output hallucination loops, causing errors in downstream production databases.
                 </p>
               </div>
             </div>
@@ -219,61 +219,55 @@ export default async function Page() {
           <div className="mt-20">
             <h3 className="text-2xl mb-6 text-[var(--text)] font-light">System Architecture</h3>
             <p className="text-[var(--text-muted)] leading-[1.7] font-light max-w-[800px]">
-              To solve the retrieval bottleneck, we introduced a <strong>Hierarchical Vector Tree</strong>. Instead of performing a flat lookup against isolated document chunks, the system recursively indexes files into parent-child trees. The outer coordinator routes queries to high-level nodes, descending to micro-chunks only when specific metrics or citations are demanded.
+              To automate the workflow without compromising data integrity, we built a multi-stage validation pipeline using LangGraph state machines. The architecture transitions from raw ingestion through offline evaluations and real-time schema validation before integration.
             </p>
             
             {/* Technical Diagram Container */}
             <div className="bg-[var(--surface)] border border-[var(--grid-line)] rounded-xl py-16 px-6 lg:px-16 my-16 flex justify-center items-center overflow-x-auto">
-              <svg className="min-w-[800px] w-full max-w-[800px] h-auto" viewBox="0 0 800 280" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Node: Coordinator */}
-                <rect className="diag-node accented" x="330" y="20" width="140" height="40" rx="4"/>
-                <text className="diag-text bold" x="400" y="44">QUERY COORDINATOR</text>
+              <svg className="min-w-[800px] w-full max-w-[800px] h-auto" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Node 1: Manual Process */}
+                <rect className="diag-node" x="10" y="40" width="105" height="40" rx="4"/>
+                <text className="diag-text bold" x="62.5" y="64">MANUAL PROCESS</text>
                 
-                {/* Lines to level 1 */}
-                <path className="diag-line accented" d="M400 60V90"/>
-                <path className="diag-line" d="M400 75H180V90"/>
-                <path className="diag-line" d="M400 75H620V90"/>
+                {/* Connector 1 -> 2 */}
+                <path className="diag-line" d="M115 60H135"/>
                 
-                {/* Nodes: Level 1 */}
-                <rect className="diag-node" x="110" y="90" width="140" height="40" rx="4"/>
-                <text className="diag-text bold" x="180" y="114">PARENT DOCUMENT A</text>
+                {/* Node 2: Prompt Engineering */}
+                <rect className="diag-node" x="135" y="40" width="115" height="40" rx="4"/>
+                <text className="diag-text bold" x="192.5" y="64">PROMPT ENG</text>
                 
-                <rect className="diag-node" x="330" y="90" width="140" height="40" rx="4"/>
-                <text className="diag-text bold" x="400" y="114">PARENT DOCUMENT B</text>
+                {/* Connector 2 -> 3 */}
+                <path className="diag-line" d="M250 60H270"/>
                 
-                <rect className="diag-node" x="550" y="90" width="140" height="40" rx="4"/>
-                <text className="diag-text bold" x="620" y="114">PARENT DOCUMENT C</text>
+                {/* Node 3: Prompt Evaluation */}
+                <rect className="diag-node" x="270" y="40" width="130" height="40" rx="4"/>
+                <text className="diag-text bold" x="335" y="64">PROMPT EVAL (A/B)</text>
                 
-                {/* Lines to level 2 */}
-                <path className="diag-line" d="M180 130V160"/>
-                <path className="diag-line" d="M180 145H90V160"/>
-                <path className="diag-line" d="M180 145H270V160"/>
+                {/* Connector 3 -> 4 */}
+                <path className="diag-line" d="M400 60H420"/>
                 
-                <path className="diag-line" d="M400 130V160"/>
-                <path className="diag-line" d="M620 130V160"/>
+                {/* Node 4: Output Validation */}
+                <rect className="diag-node accented" x="420" y="40" width="125" height="40" rx="4"/>
+                <text className="diag-text bold" x="482.5" y="64">OUTPUT VALIDATION</text>
                 
-                {/* Nodes: Level 2 (Chunks) */}
-                <rect className="diag-node" x="30" y="160" width="100" height="30" rx="3"/>
-                <text className="diag-text mono" x="80" y="178">SUB-CHUNK A1</text>
+                {/* Connector 4 -> 5 */}
+                <path className="diag-line accented" d="M545 60H565"/>
                 
-                <rect className="diag-node" x="135" y="160" width="90" height="30" rx="3"/>
-                <text className="diag-text mono" x="180" y="178">SUB-CHUNK A2</text>
+                {/* Node 5: REST API Integration */}
+                <rect className="diag-node" x="565" y="40" width="125" height="40" rx="4"/>
+                <text className="diag-text bold" x="627.5" y="64">REST API INTEGRATION</text>
                 
-                <rect className="diag-node" x="230" y="160" width="90" height="30" rx="3"/>
-                <text className="diag-text mono" x="275" y="178">SUB-CHUNK A3</text>
+                {/* Connector 5 -> 6 */}
+                <path className="diag-line accented" d="M690 60H710"/>
                 
-                <rect className="diag-node" x="350" y="160" width="100" height="30" rx="3"/>
-                <text className="diag-text mono" x="400" y="178">SUB-CHUNK B1</text>
+                {/* Node 6: Production Workflow */}
+                <rect className="diag-node accented" x="710" y="40" width="80" height="40" rx="4"/>
+                <text className="diag-text bold" x="750" y="64">PRODUCTION</text>
                 
-                <rect className="diag-node" x="570" y="160" width="100" height="30" rx="3"/>
-                <text className="diag-text mono" x="620" y="178">SUB-CHUNK C1</text>
-                
-                {/* Feedback loop connection back to coordinator */}
-                <path className="diag-line accented" d="M80 190V230H720V120H690" />
-                <path className="diag-line accented" d="M720 230H400V205" />
-                
-                <rect className="diag-node accented" x="340" y="205" width="120" height="26" rx="3"/>
-                <text className="diag-text mono" x="400" y="221">STATE EVALUATION LOOP</text>
+                {/* Feedback loop from Validation (Node 4) to Prompt Engineering (Node 2) */}
+                <path className="diag-line accented" d="M482.5 80V140H192.5V80" />
+                <rect className="diag-node accented" x="277.5" y="125" width="115" height="26" rx="3"/>
+                <text className="diag-text mono" x="335" y="141">RETRY ON VALIDATION FAIL</text>
               </svg>
             </div>
           </div>
@@ -282,16 +276,16 @@ export default async function Page() {
             <div>
               <h3 className="text-2xl mb-4 text-[var(--text)] font-light">What Failed &amp; What Changed</h3>
               <p className="text-[var(--text-muted)] leading-[1.7] font-light">
-                The first major bottleneck occurred when agents were tasked with fetching macro-economic data tables. The LLM regularly failed to extract structured numeric values correctly, dropping trailing zeros or parsing columns out of order.
+                The initial major bottleneck occurred when agents were tasked with fetching and parsing unstructured enterprise data sheets. The LLM regularly failed to extract structured values correctly, dropping formatting elements or parsing columns out of order.
               </p>
               <p className="text-[var(--text-muted)] leading-[1.7] font-light mt-6">
-                Instead of hoping prompt updates would solve this, we hard-coded a deterministic verification state. The agent was forced to parse raw HTML tables into mathematical matrices and cross-reference them with checksum totals. If the checksum failed, the state machine rejected the output, refreshed the search query, and attempted a secondary target database pull. This strict state separation brought retrieval errors down to near zero.
+                Instead of hoping prompt updates would solve this, we hard-coded a deterministic verification state. The agent was forced to parse raw inputs into structured Pydantic schemas and cross-reference them with checksum verification rules. If the verification failed, the state machine rejected the output, adjusted the generation temperature, and triggered a retry loop. This strict validation layer brought database sync errors down to near zero.
               </p>
             </div>
             <div className="mt-10 border-t border-[rgba(255,255,255,0.04)] pt-12">
               <h3 className="text-2xl mb-4 text-[var(--text)] font-light">The Outcome</h3>
               <p className="text-[var(--text-muted)] leading-[1.7] font-light">
-                Pulse went live across three institutional research desks. Turnaround time for an analyst brief was reduced from 12 hours of manual investigation to just 4 minutes of automated verification, delivering a 180x speedup with a verifiable accuracy rate of 98.4%.
+                The automation pipeline went live across operations teams. Processing time was reduced from 12 hours of manual sorting to just 4 minutes of automated verification—representing a 180x speedup with a verified database consistency rate of 99.9%.
               </p>
             </div>
           </div>
@@ -361,16 +355,17 @@ export default async function Page() {
         </div>
       </section>
 
-      {/* SECTION 8: IMPACT */}
-      <section id="impact" className="py-40 border-b border-[rgba(255,255,255,0.04)]">
+      {/* SECTION 8: CERTIFICATIONS & LEARNING */}
+      <section id="certifications" className="py-40 border-b border-[rgba(255,255,255,0.04)]">
         <div className="max-w-[1400px] mx-auto px-[8%]">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
-            <span>06 / Cumulative Impact</span>
+            <span>06 / Certifications &amp; Learning</span>
             <div className="flex-1 h-[1px] bg-[rgba(255,255,255,0.04)]" />
           </div>
-          <ImpactCounters />
+          <Certifications />
         </div>
       </section>
+
 
       {/* SECTION 9: WRITING */}
       <section id="writing" className="py-40 border-b border-[rgba(255,255,255,0.04)]">
@@ -428,8 +423,8 @@ export default async function Page() {
                 </div>
                 <div>
                   <span className="text-[var(--text-dim)] mr-4">EML /</span>
-                  <a href={`mailto:${settings.contactEmail || 'arthur@vance.engineering'}`} className="hover:text-[var(--accent)] transition-colors duration-300">
-                    {settings.contactEmail || 'arthur@vance.engineering'}
+                  <a href={`mailto:${settings.contactEmail || 'dhruv.dobariya0641@gmail.com'}`} className="hover:text-[var(--accent)] transition-colors duration-300">
+                    {settings.contactEmail || 'dhruv.dobariya0641@gmail.com'}
                   </a>
                 </div>
               </div>

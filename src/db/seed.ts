@@ -6,6 +6,12 @@ import { eq } from 'drizzle-orm';
 async function main() {
   console.log('Seeding SQLite database...');
 
+  // 0. Clear existing data to allow fresh seed
+  await db.delete(schema.settings);
+  await db.delete(schema.projects);
+  await db.delete(schema.blogPosts);
+  console.log('✔ Cleared existing settings, projects, and blog posts');
+
   // 1. Create Default Admin User
   const existingUser = await db.select().from(schema.users).where(eq(schema.users.username, 'admin'));
   if (existingUser.length === 0) {
@@ -13,19 +19,26 @@ async function main() {
     await db.insert(schema.users).values({
       username: 'admin',
       passwordHash,
-      email: 'admin@vance.engineering',
+      email: 'dhruv.dobariya0641@gmail.com',
     });
     console.log('✔ Created default admin user (admin / password)');
+  } else {
+    // Update admin user email if it exists
+    await db.update(schema.users)
+      .set({ email: 'dhruv.dobariya0641@gmail.com' })
+      .where(eq(schema.users.username, 'admin'));
+    console.log('✔ Updated default admin user email');
   }
 
   // 2. Initialize Dynamic Layout & Visual Settings
   const defaultSettings = [
     // Category: Hero
-    { category: 'hero', key: 'name', value: 'Arthur Vance' },
+    { category: 'hero', key: 'name', value: 'Dhruv Dobariya' },
     { category: 'hero', key: 'title', value: 'Applied AI Engineer' },
     { category: 'hero', key: 'tagline', value: 'I build intelligent systems that feel human.' },
-    { category: 'hero', key: 'bio', value: 'An Applied AI Engineer designing the orchestration structures, state guardrails, and pipelines that transform stochastic model outputs into robust, deterministic systems.' },
+    { category: 'hero', key: 'bio', value: 'An Applied AI Engineer designing the orchestration structures, state guardrails, and validation pipelines that transform stochastic model outputs into robust, deterministic systems.' },
     { category: 'hero', key: 'ctaText', value: 'Explore Selected Work' },
+    { category: 'hero', key: 'contactEmail', value: 'dhruv.dobariya0641@gmail.com' },
     
     // Category: Theme Options
     { category: 'theme', key: 'themeMode', value: 'dark' },
@@ -45,17 +58,14 @@ async function main() {
     { category: 'animations', key: 'scrollSpeed', value: '1' },
 
     // Category: SEO / Metadata
-    { category: 'seo', key: 'metaDescription', value: 'Portfolio of Arthur Vance, an Applied AI Engineer building robust, deterministic agentic products.' },
+    { category: 'seo', key: 'metaDescription', value: 'Portfolio of Dhruv Dobariya, an Applied AI Engineer building robust, deterministic agentic products.' },
     { category: 'seo', key: 'ogImage', value: '/uploads/hero_visual.png' },
   ];
 
   for (const set of defaultSettings) {
-    const existing = await db.select().from(schema.settings).where(eq(schema.settings.key, set.key));
-    if (existing.length === 0) {
-      await db.insert(schema.settings).values(set);
-    }
+    await db.insert(schema.settings).values(set);
   }
-  console.log('✔ Initialized layout and theme settings');
+  console.log('✔ Seeded layout and theme settings');
 
   // 3. Create Default Projects
   const defaultProjects = [
@@ -68,15 +78,15 @@ async function main() {
       timeline: '6 Months (2025)',
       problem: 'Enterprise support portals suffered from high turnaround latency (~12 hours) and inconsistent query response context, loading massive duplicate information sets into token histories.',
       challenge: 'Scaling real-time semantic caching under 200ms while maintaining vector semantic overlap checks across multi-tenant permission layers.',
-      solution: 'Orchestrated dynamic cache routing using hierarchical document tree index indexing combined with semantic similarity searches in pgvector, cutting down token load speeds.',
+      solution: 'Orchestrated dynamic cache routing using hierarchical document tree indexing combined with semantic similarity searches in pgvector, cutting down token load speeds.',
       techStack: JSON.stringify(['Next.js', 'Python', 'pgvector', 'Claude API', 'FastAPI']),
       metrics: JSON.stringify([
         { value: '-71%', label: 'First-response latency' },
         { value: '38%', label: 'Autonomous ticket resolution' }
       ]),
       screenshots: JSON.stringify(['/uploads/hero_visual.png']),
-      githubUrl: 'https://github.com/vance/atlas',
-      demoUrl: 'https://atlas.vance.engineering',
+      githubUrl: 'https://github.com/dhruv0641/atlas',
+      demoUrl: 'https://atlas.dhruv.dev',
       isFeatured: 1,
       isPinned: 1,
       isDraft: 0,
@@ -98,8 +108,8 @@ async function main() {
         { value: '89%', label: 'PR suggestion acceptance' }
       ]),
       screenshots: JSON.stringify(['/uploads/hero_visual.png']),
-      githubUrl: 'https://github.com/vance/forge',
-      demoUrl: 'https://forge.vance.engineering',
+      githubUrl: 'https://github.com/dhruv0641/forge',
+      demoUrl: 'https://forge.dhruv.dev',
       isFeatured: 1,
       isPinned: 0,
       isDraft: 0,
@@ -108,10 +118,7 @@ async function main() {
   ];
 
   for (const proj of defaultProjects) {
-    const existing = await db.select().from(schema.projects).where(eq(schema.projects.slug, proj.slug));
-    if (existing.length === 0) {
-      await db.insert(schema.projects).values(proj);
-    }
+    await db.insert(schema.projects).values(proj);
   }
   console.log('✔ Seeded projects index data');
 
@@ -177,10 +184,7 @@ const mergedResults = rerank(keywordResults, semanticResults);
   ];
 
   for (const post of defaultPosts) {
-    const existing = await db.select().from(schema.blogPosts).where(eq(schema.blogPosts.slug, post.slug));
-    if (existing.length === 0) {
-      await db.insert(schema.blogPosts).values(post);
-    }
+    await db.insert(schema.blogPosts).values(post);
   }
   console.log('✔ Seeded engineering blog posts');
 
@@ -191,3 +195,4 @@ main().catch((err) => {
   console.error('Seeding failed:', err);
   process.exit(1);
 });
+

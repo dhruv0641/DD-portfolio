@@ -62,38 +62,59 @@ function CounterItem({ target, label, suffix, isFloat }: CounterProps) {
         {isFloat ? count.toFixed(1) : Math.floor(count)}
         {suffix}
       </div>
-      <div className="text-lg text-[var(--text-muted)] font-light">{label}</div>
+      <div className="text-sm lg:text-base text-[var(--text-muted)] font-light leading-relaxed">{label}</div>
     </div>
   );
 }
 
-export default function ImpactCounters() {
+export default function Certifications() {
   const { settings } = useThemeSettings();
+
+  const certData = [
+    {
+      target: 92,
+      suffix: '%',
+      label: 'AWS Certified Machine Learning – Specialty. Validated competency in designing, building, and deploying deep learning pipelines on AWS infrastructure.'
+    },
+    {
+      target: 100,
+      suffix: '%',
+      label: 'Generative AI Developer (DeepLearning.AI). Advanced skills in constructing RAG models, LangGraph agentic frameworks, and fine-tuning.'
+    },
+    {
+      target: 15,
+      suffix: '+',
+      label: 'Google TensorFlow Developer. Certified proficiency in engineering deep neural networks, computer vision models, and sequence processing.'
+    }
+  ];
 
   if (settings.reduceMotion === '1') {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-left">
-        <div className="border-t border-[rgba(255,255,255,0.04)] pt-12">
-          <div className="text-[clamp(3rem,7vw,6.5rem)] font-light leading-none mb-4 tracking-tighter">12M+</div>
-          <div className="text-lg text-[var(--text-muted)] font-light">Million tokens processed in active production pipelines.</div>
-        </div>
-        <div className="border-t border-[rgba(255,255,255,0.04)] pt-12">
-          <div className="text-[clamp(3rem,7vw,6.5rem)] font-light leading-none mb-4 tracking-tighter">99.9%</div>
-          <div className="text-lg text-[var(--text-muted)] font-light">Orchestration engine uptime maintained over high-traffic quarters.</div>
-        </div>
-        <div className="border-t border-[rgba(255,255,255,0.04)] pt-12">
-          <div className="text-[clamp(3rem,7vw,6.5rem)] font-light leading-none mb-4 tracking-tighter">4.2x</div>
-          <div className="text-lg text-[var(--text-muted)] font-light">Average performance acceleration achieved across operator teams.</div>
-        </div>
+        {certData.map((cert, index) => (
+          <div key={index} className="border-t border-[rgba(255,255,255,0.04)] pt-12">
+            <div className="text-[clamp(3rem,7vw,6.5rem)] font-light leading-none mb-4 tracking-tighter">
+              {cert.target}{cert.suffix}
+            </div>
+            <div className="text-sm lg:text-base text-[var(--text-muted)] font-light leading-relaxed">
+              {cert.label}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-left">
-      <CounterItem target={12} suffix="M+" label="Million tokens processed in active production pipelines." />
-      <CounterItem target={99.9} suffix="%" label="Orchestration engine uptime maintained over high-traffic quarters." isFloat />
-      <CounterItem target={4.2} suffix="x" label="Average performance acceleration achieved across operator teams." isFloat />
+      {certData.map((cert, index) => (
+        <CounterItem
+          key={index}
+          target={cert.target}
+          suffix={cert.suffix}
+          label={cert.label}
+        />
+      ))}
     </div>
   );
 }

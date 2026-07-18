@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { decryptSession, getSessionCookieName } from './lib/auth';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protect all /admin routes, excluding the login page
@@ -24,6 +24,8 @@ export async function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
+
+export default proxy;
 
 export const config = {
   matcher: ['/admin/:path*'],

@@ -2,10 +2,10 @@ import bcrypt from 'bcryptjs';
 import * as jose from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.ADMIN_JWT_SECRET || 'VANCE_PLATFORM_SECURE_SECRET_FALLBACK_KEY_2026'
+  process.env.ADMIN_JWT_SECRET || 'DHRUV_PORTFOLIO_SECURE_SECRET_FALLBACK_KEY_2026'
 );
 
-const SESSION_COOKIE_NAME = 'vance_session';
+const SESSION_COOKIE_NAME = 'dhruv_session';
 
 export interface UserSession {
   userId: number;

@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="flex flex-col gap-10">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-[var(--accent)]" />
-            <span className="font-mono text-xs tracking-widest text-[#9CA3AF] uppercase">VANCE ENGINE</span>
+            <span className="font-mono text-xs tracking-widest text-[#9CA3AF] uppercase">DHRUV ENGINE</span>
           </div>
 
           <nav className="flex flex-col gap-2 font-sans text-sm">

@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     .select()
     .from(schema.settings);
   
-  const title = seoSettings.find(s => s.key === 'name')?.value || 'Arthur Vance';
+  const title = seoSettings.find(s => s.key === 'name')?.value || 'Dhruv Dobariya';
   const titleSuffix = seoSettings.find(s => s.key === 'title')?.value || 'Applied AI Engineer';
   const description = seoSettings.find(s => s.key === 'metaDescription')?.value || 'Applied AI Systems Portfolio';
 
@@ -108,7 +108,7 @@ export default async function RootLayout({
             <header className="fixed top-0 left-0 w-full z-50 px-[8%] py-10 flex justify-between items-center pointer-events-none">
               <div className="logo pointer-events-auto select-none flex items-center gap-2 font-medium">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--text)]" />
-                <Link href="/">{mergedSettings.name || 'Arthur Vance'}</Link>
+                <Link href="/">{mergedSettings.name || 'Dhruv Dobariya'}</Link>
               </div>
               <nav className="pointer-events-auto flex gap-12 text-xs">
                 <Link href="/#identity" className="nav-link">Identity</Link>
@@ -125,9 +125,9 @@ export default async function RootLayout({
 
             {/* Platform Main Footer */}
             <footer className="w-full px-[8%] py-20 flex justify-between items-center border-t border-[rgba(255,255,255,0.04)] font-mono text-[10px] text-[var(--text-dim)]">
-              <div>© 2026 {mergedSettings.name?.toUpperCase() || 'ARTHUR VANCE'}. ALL RIGHTS RESERVED.</div>
+              <div>© 2026 {mergedSettings.name?.toUpperCase() || 'DHRUV DOBARIYA'}. ALL RIGHTS RESERVED.</div>
               <div className="flex gap-6">
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)] transition-colors duration-300">GITHUB</a>
+                <a href="https://github.com/dhruv0641" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)] transition-colors duration-300">GITHUB</a>
                 <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)] transition-colors duration-300">TWITTER</a>
                 <Link href="/admin/login" className="hover:text-[var(--text)] transition-colors duration-300">ADMIN</Link>
               </div>
