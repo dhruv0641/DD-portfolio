@@ -2,7 +2,7 @@
 
 @layer base {
   :root {
-    --bg: #030303;
+    --bg: #090909;
     --surface: #0a0a0c;
     --surface-hover: #121216;
     --text: #Fafafa;
@@ -277,6 +277,25 @@
 
 .form-submit-btn:hover {
   border-color: var(--accent);
+}
+
+.form-submit-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: scale(0);
+  border-radius: 50%;
+  transition: transform 0.5s var(--transition-smooth);
+  z-index: -1;
+}
+
+.form-submit-btn:hover::before {
+  transform: scale(1);
+}
+
+.form-submit-btn:hover {
+  color: #FFF;
 }
 
 .form-message {

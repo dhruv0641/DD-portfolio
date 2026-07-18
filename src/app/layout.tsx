@@ -88,8 +88,6 @@ export default async function RootLayout({
       <body className="bg-[var(--bg)] text-[var(--text)] font-sans antialiased overflow-x-hidden relative min-h-screen">
         <ThemeProvider initialSettings={mergedSettings}>
           <LenisProvider>
-            <LightProbe />
-            
             <BackgroundLayer />
 
             {/* Platform Main Header */}
