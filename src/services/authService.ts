@@ -4,9 +4,7 @@ import { UserSession } from '@/types';
 export const authService = {
   async signIn(username: string, passwordHash: string): Promise<{ success: boolean; session?: any; error?: string }> {
     try {
-      // Supabase Auth expects an email. For our admin console, we map the username to an email
-      // format to simplify the operator's sign-in flow.
-      const email = `${username}@vance.engineering`;
+      const email = username.includes('@') ? username.trim() : 'dobariya.dhruvkumar@gmail.com';
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -39,7 +37,7 @@ export const authService = {
 
   async resetPasswordForEmail(username: string, redirectTo: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const email = `${username}@vance.engineering`;
+      const email = username.includes('@') ? username.trim() : 'dobariya.dhruvkumar@gmail.com';
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
       if (error) {
         return { success: false, error: error.message };
