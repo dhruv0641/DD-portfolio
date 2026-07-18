@@ -7,6 +7,7 @@ import LightProbe from '@/components/LightProbe';
 import Link from 'next/link';
 import { settingsService } from '@/services/settingsService';
 import BackgroundLayer from '@/components/BackgroundLayer';
+import Header from '@/components/Header';
 import './globals.css';
 
 const fontSans = Plus_Jakarta_Sans({
@@ -37,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = settings.metaDescription || 'Applied AI Systems Portfolio';
 
   return {
-    title: `${title} — ${titleSuffix}`,
+    title: 'Dhruvkumar Dobariya',
     description,
     metadataBase: new URL('https://vance.engineering'),
     openGraph: {
@@ -109,20 +110,7 @@ export default async function RootLayout({
             <BackgroundLayer />
 
             {/* Platform Main Header */}
-            <header className="fixed top-0 left-0 w-full z-50 px-[8%] py-10 flex justify-between items-center pointer-events-none">
-              <div className="logo pointer-events-auto select-none flex items-center gap-2 font-medium">
-                <div className="w-1.5 h-1.5 rounded-full bg-[var(--text)]" />
-                <Link href="/">{mergedSettings.name || 'Dhruv Dobariya'}</Link>
-              </div>
-              <nav className="pointer-events-auto flex gap-12 text-xs">
-                <Link href="/#identity" className="nav-link">Identity</Link>
-                <Link href="/#work" className="nav-link">Work</Link>
-                <Link href="/#case" className="nav-link">Case Study</Link>
-                <Link href="/#thinking" className="nav-link">Thinking</Link>
-                <Link href="/blog" className="nav-link">Writing</Link>
-                <Link href="/#build" className="nav-link">Build</Link>
-              </nav>
-            </header>
+            <Header name={mergedSettings.name || 'Dhruv Dobariya'} />
 
             {/* Central Children Page Wrapper */}
             <main className="w-full relative z-10">{children}</main>
