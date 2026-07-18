@@ -217,6 +217,14 @@
   border-color: var(--text);
 }
 
+.form-input.is-invalid {
+  border-color: #EF4444;
+}
+
+.form-input.is-invalid ~ .form-label {
+  color: #EF4444 !important;
+}
+
 .form-label {
   position: absolute;
   top: 1rem;
