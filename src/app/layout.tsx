@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-import ThemeProvider, { ThemeConfig } from '@/components/ThemeProvider';
+import ThemeProvider from '@/components/ThemeProvider';
+import { ThemeConfig } from '@/types';
 import LenisProvider from '@/components/LenisProvider';
 import LightProbe from '@/components/LightProbe';
 import Link from 'next/link';
+import { settingsService } from '@/services/settingsService';
 import './globals.css';
 
 const fontSans = Plus_Jakarta_Sans({
@@ -29,13 +29,11 @@ const fontMono = JetBrains_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   // Query SEO parameters from database dynamically
-  const seoSettings = await db
-    .select()
-    .from(schema.settings);
+  const settings = await settingsService.getSettings();
   
-  const title = seoSettings.find(s => s.key === 'name')?.value || 'Arthur Vance';
-  const titleSuffix = seoSettings.find(s => s.key === 'title')?.value || 'Applied AI Engineer';
-  const description = seoSettings.find(s => s.key === 'metaDescription')?.value || 'Applied AI Systems Portfolio';
+  const title = settings.name || 'Dhruv Dobariya';
+  const titleSuffix = settings.title || 'Applied AI Engineer';
+  const description = settings.metaDescription || 'Applied AI Systems Portfolio';
 
   return {
     title: `${title} — ${titleSuffix}`,
@@ -62,7 +60,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   // 1. Fetch Dynamic Configuration Settings
-  const dbSettings = await db.select().from(schema.settings);
+  const initialSettings = await settingsService.getSettings();
   
   const defaultThemeConfig = {
     themeMode: 'dark',
@@ -78,11 +76,6 @@ export default async function RootLayout({
     cursorAura: '1',
     thoughtWave: '1',
   };
-
-  const initialSettings = dbSettings.reduce((acc, row) => {
-    acc[row.key] = row.value;
-    return acc;
-  }, {} as Record<string, string>);
 
   const mergedSettings = { ...defaultThemeConfig, ...initialSettings } as unknown as ThemeConfig & { name?: string; contactEmail?: string };
 
@@ -108,7 +101,7 @@ export default async function RootLayout({
             <header className="fixed top-0 left-0 w-full z-50 px-[8%] py-10 flex justify-between items-center pointer-events-none">
               <div className="logo pointer-events-auto select-none flex items-center gap-2 font-medium">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--text)]" />
-                <Link href="/">{mergedSettings.name || 'Arthur Vance'}</Link>
+                <Link href="/">{mergedSettings.name || 'Dhruv Dobariya'}</Link>
               </div>
               <nav className="pointer-events-auto flex gap-12 text-xs">
                 <Link href="/#identity" className="nav-link">Identity</Link>
@@ -125,9 +118,9 @@ export default async function RootLayout({
 
             {/* Platform Main Footer */}
             <footer className="w-full px-[8%] py-20 flex justify-between items-center border-t border-[rgba(255,255,255,0.04)] font-mono text-[10px] text-[var(--text-dim)]">
-              <div>© 2026 {mergedSettings.name?.toUpperCase() || 'ARTHUR VANCE'}. ALL RIGHTS RESERVED.</div>
+              <div>© 2026 {mergedSettings.name?.toUpperCase() || 'DHRUV DOBARIYA'}. ALL RIGHTS RESERVED.</div>
               <div className="flex gap-6">
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)] transition-colors duration-300">GITHUB</a>
+                <a href="https://github.com/dhruv0641" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)] transition-colors duration-300">GITHUB</a>
                 <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)] transition-colors duration-300">TWITTER</a>
                 <Link href="/admin/login" className="hover:text-[var(--text)] transition-colors duration-300">ADMIN</Link>
               </div>

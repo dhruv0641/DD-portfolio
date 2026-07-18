@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { decryptSession, getSessionCookieName } from './lib/auth';
+import { decryptSession } from './lib/auth';
+import { SESSION_COOKIE_NAME } from './lib/constants';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protect all /admin routes, excluding the login page
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    const sessionCookie = request.cookies.get(getSessionCookieName());
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
 
     if (!sessionCookie) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
@@ -17,7 +18,7 @@ export async function middleware(request: NextRequest) {
     if (!session) {
       // Clear cookie and redirect to login if session verification fails
       const response = NextResponse.redirect(new URL('/admin/login', request.url));
-      response.cookies.delete(getSessionCookieName());
+      response.cookies.delete(SESSION_COOKIE_NAME);
       return response;
     }
   }
@@ -28,3 +29,4 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/admin/:path*'],
 };
+export default proxy;

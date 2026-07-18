@@ -109,7 +109,7 @@ export default function SettingsCMS({ initialSettings }: { initialSettings: any[
                 id="contactEmail" 
                 required
                 className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-lg px-4 py-2.5 text-sm"
-                value={settings.contactEmail || 'arthur@vance.engineering'} 
+                value={settings.contactEmail || 'dhruv.dobariya0641@gmail.com'} 
                 onChange={handleInputChange}
               />
             </div>

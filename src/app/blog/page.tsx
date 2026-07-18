@@ -1,15 +1,9 @@
 import React from 'react';
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { blogService } from '@/services/blogService';
 import Link from 'next/link';
 
 export default async function BlogIndex() {
-  const dbPosts = await db
-    .select()
-    .from(schema.blogPosts)
-    .where(eq(schema.blogPosts.isDraft, 0))
-    .orderBy(desc(schema.blogPosts.createdAt));
+  const dbPosts = await blogService.getBlogPosts(false);
 
   return (
     <section className="pt-40 pb-20 min-h-screen">
@@ -32,7 +26,7 @@ export default async function BlogIndex() {
             </div>
           ) : (
             dbPosts.map((post) => {
-              const categories: string[] = JSON.parse(post.categories || '[]');
+              const categories: string[] = typeof post.categories === 'string' ? JSON.parse(post.categories || '[]') : (post.categories || []);
               return (
                 <Link 
                   href={`/blog/${post.slug}`} 

@@ -1,22 +1,20 @@
 'use server';
 
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { settingsService } from '@/services/settingsService';
+import { verifyAuthSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-
-export interface SettingUpdateItem {
-  key: string;
-  value: string;
-}
+import { SettingUpdateItem } from '@/types';
 
 export async function saveSettings(settingsList: SettingUpdateItem[]) {
+  const session = await verifyAuthSession();
+  if (!session) {
+    return { success: false, error: 'Unauthorized administrative operation.' };
+  }
+
   try {
-    for (const item of settingsList) {
-      await db
-        .update(schema.settings)
-        .set({ value: item.value })
-        .where(eq(schema.settings.key, item.key));
+    const result = await settingsService.saveSettings(settingsList);
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to update settings.' };
     }
     
     // Revalidate paths globally to propagate theme and copy changes immediately

@@ -1,16 +1,19 @@
 import React from 'react';
-import { db } from '@/db';
-import * as schema from '@/db/schema';
 import ProjectsCMS from './ProjectsCMS';
+import { redirect } from 'next/navigation';
+import { verifyAuthSession } from '@/lib/auth';
+import { projectService } from '@/services/projectService';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminProjectsPage() {
-  // Query all project elements directly from Drizzle SQLite client
-  const allProjects = await db
-    .select()
-    .from(schema.projects)
-    .orderBy(schema.projects.position);
+  const session = await verifyAuthSession();
+  if (!session) {
+    redirect('/admin/login');
+  }
+
+  // Query all project elements directly from Supabase service
+  const allProjects = await projectService.getProjects(true);
 
   return <ProjectsCMS initialProjects={allProjects} />;
 }

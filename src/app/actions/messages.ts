@@ -1,16 +1,20 @@
 'use server';
 
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { contactService } from '@/services/contactService';
+import { verifyAuthSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
-export async function updateMessageStatus(id: number, status: 'read' | 'unread' | 'archived' | 'spam') {
+export async function updateMessageStatus(id: string | number, status: 'read' | 'unread' | 'archived' | 'spam') {
+  const session = await verifyAuthSession();
+  if (!session) {
+    return { success: false, error: 'Unauthorized administrative operation.' };
+  }
+
   try {
-    await db
-      .update(schema.messages)
-      .set({ status })
-      .where(eq(schema.messages.id, id));
+    const result = await contactService.updateMessageStatus(id.toString(), status);
+    if (!result.success) {
+      return { success: false, error: result.error || 'Database status update error.' };
+    }
     
     revalidatePath('/admin/dashboard');
     revalidatePath('/admin/messages');
@@ -21,9 +25,17 @@ export async function updateMessageStatus(id: number, status: 'read' | 'unread' 
   }
 }
 
-export async function deleteMessage(id: number) {
+export async function deleteMessage(id: string | number) {
+  const session = await verifyAuthSession();
+  if (!session) {
+    return { success: false, error: 'Unauthorized administrative operation.' };
+  }
+
   try {
-    await db.delete(schema.messages).where(eq(schema.messages.id, id));
+    const result = await contactService.deleteMessage(id.toString());
+    if (!result.success) {
+      return { success: false, error: result.error || 'Database message deletion error.' };
+    }
     
     revalidatePath('/admin/dashboard');
     revalidatePath('/admin/messages');

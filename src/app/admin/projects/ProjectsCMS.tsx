@@ -4,27 +4,7 @@ import React, { useState } from 'react';
 import { saveProject, deleteProject } from '@/app/actions/projects';
 import { useRouter } from 'next/navigation';
 
-export interface ProjectData {
-  id?: number;
-  title: string;
-  slug: string;
-  subtitle: string;
-  role: string;
-  company: string;
-  timeline: string;
-  problem: string;
-  challenge: string;
-  solution: string;
-  techStack: string;
-  metrics: string;
-  screenshots: string;
-  githubUrl: string;
-  demoUrl: string;
-  isFeatured: number;
-  isPinned: number;
-  isDraft: number;
-  position: number;
-}
+import { ProjectData } from '@/types';
 
 export default function ProjectsCMS({ initialProjects }: { initialProjects: any[] }) {
   const [projects] = useState(initialProjects);

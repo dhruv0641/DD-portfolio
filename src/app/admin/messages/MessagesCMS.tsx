@@ -90,7 +90,7 @@ export default function MessagesCMS({ initialMessages }: { initialMessages: any[
                         {msg.objective}
                       </td>
                       <td className="py-4 px-6 text-xs text-gray-500">
-                        {new Date(msg.createdAt || '').toLocaleDateString('en-US')}
+                        {new Date(msg.created_at || '').toLocaleDateString('en-US')}
                       </td>
                       <td className="py-4 px-6">
                         <span className={`text-[9px] font-mono px-2 py-0.5 rounded ${
@@ -123,7 +123,7 @@ export default function MessagesCMS({ initialMessages }: { initialMessages: any[
                   <span className="text-xs font-mono text-gray-500">{selectedMessage.email}</span>
                 </div>
                 <span className="font-mono text-[9px] text-gray-500">
-                  {new Date(selectedMessage.createdAt || '').toLocaleString('en-US')}
+                  {new Date(selectedMessage.created_at || '').toLocaleString('en-US')}
                 </span>
               </div>
 
