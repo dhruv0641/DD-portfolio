@@ -6,6 +6,7 @@ import LenisProvider from '@/components/LenisProvider';
 import LightProbe from '@/components/LightProbe';
 import Link from 'next/link';
 import { settingsService } from '@/services/settingsService';
+import BackgroundLayer from '@/components/BackgroundLayer';
 import './globals.css';
 
 const fontSans = Plus_Jakarta_Sans({
@@ -89,13 +90,7 @@ export default async function RootLayout({
           <LenisProvider>
             <LightProbe />
             
-            {/* Background Grid Lines */}
-            <div className="grid-bg">
-              <div className="grid-bg-line" />
-              <div className="grid-bg-line" />
-              <div className="grid-bg-line" />
-              <div className="grid-bg-line" />
-            </div>
+            <BackgroundLayer />
 
             {/* Platform Main Header */}
             <header className="fixed top-0 left-0 w-full z-50 px-[8%] py-10 flex justify-between items-center pointer-events-none">
