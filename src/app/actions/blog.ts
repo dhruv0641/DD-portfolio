@@ -1,55 +1,27 @@
 'use server';
 
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { blogService } from '@/services/blogService';
+import { verifyAuthSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import { getReadingTime } from '@/lib/utils';
+import { BlogPostData } from '@/types';
 
-export async function saveBlogPost(formData: any) {
+export async function saveBlogPost(formData: Partial<BlogPostData>) {
+  const session = await verifyAuthSession();
+  if (!session) {
+    return { success: false, error: 'Unauthorized administrative operation.' };
+  }
+
   try {
-    const {
-      id,
-      title,
-      slug,
-      contentMarkdown,
-      categories,
-      tags,
-      isDraft,
-    } = formData;
-
-    if (!title || !slug || !contentMarkdown) {
-      return { success: false, error: 'Title, Slug, and content markdown are required.' };
-    }
-
-    const calculatedReadingTime = getReadingTime(contentMarkdown);
-
-    const payload = {
-      title,
-      slug,
-      contentMarkdown,
-      categories: typeof categories === 'string' ? categories : JSON.stringify(categories || []),
-      tags: typeof tags === 'string' ? tags : JSON.stringify(tags || []),
-      readingTime: calculatedReadingTime,
-      isDraft: isDraft ? 1 : 0,
-      publishedAt: isDraft ? null : new Date(),
-      updatedAt: new Date(),
-    };
-
-    if (id) {
-      // Update
-      await db.update(schema.blogPosts).set(payload).where(eq(schema.blogPosts.id, id));
-    } else {
-      // Insert
-      await db.insert(schema.blogPosts).values({
-        ...payload,
-        createdAt: new Date(),
-      });
+    const result = await blogService.saveBlogPost(formData);
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to save essay.' };
     }
 
     revalidatePath('/');
     revalidatePath('/blog');
-    revalidatePath(`/blog/${slug}`);
+    if (formData.slug) {
+      revalidatePath(`/blog/${formData.slug}`);
+    }
     revalidatePath('/admin/blog');
     return { success: true };
   } catch (error: any) {
@@ -58,9 +30,17 @@ export async function saveBlogPost(formData: any) {
   }
 }
 
-export async function deleteBlogPost(id: number) {
+export async function deleteBlogPost(id: string | number) {
+  const session = await verifyAuthSession();
+  if (!session) {
+    return { success: false, error: 'Unauthorized administrative operation.' };
+  }
+
   try {
-    await db.delete(schema.blogPosts).where(eq(schema.blogPosts.id, id));
+    const result = await blogService.deleteBlogPost(id.toString());
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to delete essay.' };
+    }
     revalidatePath('/');
     revalidatePath('/blog');
     revalidatePath('/admin/blog');

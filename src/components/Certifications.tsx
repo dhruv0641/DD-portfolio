@@ -67,10 +67,19 @@ function CounterItem({ target, label, suffix, isFloat }: CounterProps) {
   );
 }
 
-export default function Certifications() {
-  const { settings } = useThemeSettings();
+import { certificateService, CertificateData } from '@/services/certificateService';
 
-  const certData = [
+export default function Certifications({ initialCertificates }: { initialCertificates?: CertificateData[] }) {
+  const { settings } = useThemeSettings();
+  const [certs, setCerts] = useState<CertificateData[]>(initialCertificates || []);
+
+  useEffect(() => {
+    if (!initialCertificates) {
+      certificateService.getCertificates().then((data) => setCerts(data));
+    }
+  }, [initialCertificates]);
+
+  const defaultCerts = [
     {
       target: 92,
       suffix: '%',
@@ -88,10 +97,16 @@ export default function Certifications() {
     }
   ];
 
+  const activeCerts = certs.length > 0 ? certs.map(c => ({
+    target: c.score,
+    suffix: c.suffix,
+    label: `${c.title} (${c.issuer}). ${c.description || ''}`
+  })) : defaultCerts;
+
   if (settings.reduceMotion === '1') {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-left">
-        {certData.map((cert, index) => (
+        {activeCerts.map((cert, index) => (
           <div key={index} className="border-t border-[rgba(255,255,255,0.04)] pt-12">
             <div className="text-[clamp(3rem,7vw,6.5rem)] font-light leading-none mb-4 tracking-tighter">
               {cert.target}{cert.suffix}
@@ -107,7 +122,7 @@ export default function Certifications() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-left">
-      {certData.map((cert, index) => (
+      {activeCerts.map((cert, index) => (
         <CounterItem
           key={index}
           target={cert.target}

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-import ThemeProvider, { ThemeConfig } from '@/components/ThemeProvider';
+import ThemeProvider from '@/components/ThemeProvider';
+import { ThemeConfig } from '@/types';
 import LenisProvider from '@/components/LenisProvider';
 import LightProbe from '@/components/LightProbe';
 import Link from 'next/link';
+import { settingsService } from '@/services/settingsService';
 import './globals.css';
 
 const fontSans = Plus_Jakarta_Sans({
@@ -29,13 +29,11 @@ const fontMono = JetBrains_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   // Query SEO parameters from database dynamically
-  const seoSettings = await db
-    .select()
-    .from(schema.settings);
+  const settings = await settingsService.getSettings();
   
-  const title = seoSettings.find(s => s.key === 'name')?.value || 'Dhruv Dobariya';
-  const titleSuffix = seoSettings.find(s => s.key === 'title')?.value || 'Applied AI Engineer';
-  const description = seoSettings.find(s => s.key === 'metaDescription')?.value || 'Applied AI Systems Portfolio';
+  const title = settings.name || 'Dhruv Dobariya';
+  const titleSuffix = settings.title || 'Applied AI Engineer';
+  const description = settings.metaDescription || 'Applied AI Systems Portfolio';
 
   return {
     title: `${title} — ${titleSuffix}`,
@@ -62,7 +60,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   // 1. Fetch Dynamic Configuration Settings
-  const dbSettings = await db.select().from(schema.settings);
+  const initialSettings = await settingsService.getSettings();
   
   const defaultThemeConfig = {
     themeMode: 'dark',
@@ -78,11 +76,6 @@ export default async function RootLayout({
     cursorAura: '1',
     thoughtWave: '1',
   };
-
-  const initialSettings = dbSettings.reduce((acc, row) => {
-    acc[row.key] = row.value;
-    return acc;
-  }, {} as Record<string, string>);
 
   const mergedSettings = { ...defaultThemeConfig, ...initialSettings } as unknown as ThemeConfig & { name?: string; contactEmail?: string };
 

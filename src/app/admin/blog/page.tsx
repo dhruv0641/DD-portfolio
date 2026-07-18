@@ -1,17 +1,19 @@
 import React from 'react';
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-import { desc } from 'drizzle-orm';
 import BlogCMS from './BlogCMS';
+import { redirect } from 'next/navigation';
+import { verifyAuthSession } from '@/lib/auth';
+import { blogService } from '@/services/blogService';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminBlogPage() {
-  // Query all journal essays directly from SQLite Drizzle client
-  const allPosts = await db
-    .select()
-    .from(schema.blogPosts)
-    .orderBy(desc(schema.blogPosts.createdAt));
+  const session = await verifyAuthSession();
+  if (!session) {
+    redirect('/admin/login');
+  }
+
+  // Query all journal essays directly from Supabase service
+  const allPosts = await blogService.getBlogPosts(true);
 
   return <BlogCMS initialPosts={allPosts} />;
 }

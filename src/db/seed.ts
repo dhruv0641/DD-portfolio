@@ -1,7 +1,6 @@
 import { db } from './index';
 import * as schema from './schema';
 import { hashPassword } from '../lib/auth';
-import { eq } from 'drizzle-orm';
 
 async function main() {
   console.log('Seeding SQLite database...');
@@ -13,22 +12,20 @@ async function main() {
   console.log('✔ Cleared existing settings, projects, and blog posts');
 
   // 1. Create Default Admin User
-  const existingUser = await db.select().from(schema.users).where(eq(schema.users.username, 'admin'));
-  if (existingUser.length === 0) {
-    const passwordHash = await hashPassword('password');
-    await db.insert(schema.users).values({
-      username: 'admin',
-      passwordHash,
-      email: 'dhruv.dobariya0641@gmail.com',
-    });
-    console.log('✔ Created default admin user (admin / password)');
-  } else {
-    // Update admin user email if it exists
-    await db.update(schema.users)
-      .set({ email: 'dhruv.dobariya0641@gmail.com' })
-      .where(eq(schema.users.username, 'admin'));
-    console.log('✔ Updated default admin user email');
-  }
+  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'dhruv_secure_admin_password_2026';
+
+  // Wipe previous admin users to clear any weak defaults (e.g. admin/password)
+  await db.delete(schema.users);
+  console.log('✔ Cleared existing admin users');
+
+  const passwordHash = await hashPassword(adminPassword);
+  await db.insert(schema.users).values({
+    username: adminUsername,
+    passwordHash,
+    email: 'dhruv.dobariya0641@gmail.com',
+  });
+  console.log(`✔ Created default admin user (${adminUsername} / ${process.env.ADMIN_PASSWORD ? '******' : adminPassword})`);
 
   // 2. Initialize Dynamic Layout & Visual Settings
   const defaultSettings = [

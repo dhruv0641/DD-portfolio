@@ -1,65 +1,80 @@
 'use server';
 
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-
-export interface ContactInput {
-  name: string;
-  email: string;
-  objective: string;
-  details: string;
-  website?: string; // Honeypot field
-}
+import { contactService } from '@/services/contactService';
+import { supabase } from '@/lib/supabase';
+import { ContactInput } from '@/types';
+import { rateLimit } from '@/lib/rateLimiter';
+import { validateEmail, sanitizeString } from '@/lib/validation';
 
 export async function submitContactForm(data: ContactInput) {
   try {
+    // 1. Rate Limiting Check: 3 contact submissions per hour (approx 0.05 refill rate)
+    const rateCheck = await rateLimit('contact_form', 3, 0.05);
+    if (!rateCheck.allowed) {
+      return { success: false, error: rateCheck.error || 'Too many submissions. Please try again later.' };
+    }
+
     const { name, email, objective, details, website } = data;
 
-    // 1. Honeypot check for spam protection
+    // 2. Honeypot check for spam protection
     if (website && website.trim() !== '') {
       console.warn('Spam submission detected via honeypot field:', { name, email, website });
       return { success: false, error: 'Spam submission detected.' };
     }
 
-    // 2. Server-side validation
+    // 3. Server-side validation
     const trimmedName = (name || '').trim();
     const trimmedEmail = (email || '').trim();
     const trimmedDetails = (details || '').trim();
     const trimmedObjective = (objective || '').trim() || 'General Inquiry';
 
-    if (!trimmedName || trimmedName.length < 2) {
-      return { success: false, error: 'Name must be at least 2 characters long.' };
+    if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 100) {
+      return { success: false, error: 'Name must be between 2 and 100 characters long.' };
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+    if (!trimmedEmail || !validateEmail(trimmedEmail)) {
       return { success: false, error: 'Please enter a valid email address.' };
     }
 
-    if (!trimmedDetails || trimmedDetails.length < 10) {
-      return { success: false, error: 'Message details must be at least 10 characters long.' };
+    if (!trimmedDetails || trimmedDetails.length < 10 || trimmedDetails.length > 5000) {
+      return { success: false, error: 'Message details must be between 10 and 5000 characters long.' };
     }
 
-    // 3. Insert into SQLite local database (keeps CMS inbox working)
-    await db.insert(schema.messages).values({
-      name: trimmedName,
-      email: trimmedEmail,
-      objective: trimmedObjective,
-      details: trimmedDetails,
-      status: 'unread',
+    // 4. Escape inputs to prevent XSS injection
+    const cleanName = sanitizeString(trimmedName);
+    const cleanEmail = sanitizeString(trimmedEmail);
+    const cleanObjective = sanitizeString(trimmedObjective);
+    const cleanDetails = sanitizeString(trimmedDetails);
+
+    // 5. Insert into Supabase messages table
+    const dbResult = await contactService.submitMessage({
+      name: cleanName,
+      email: cleanEmail,
+      objective: cleanObjective,
+      details: cleanDetails,
     });
 
-    // 4. Increment analytics event
-    await db.insert(schema.analyticsEvents).values({
-      eventType: 'cta_click',
-      path: '/#contact',
-      referrer: 'contact_form_submit',
-    });
+    if (!dbResult.success) {
+      return { success: false, error: 'Failed to submit inquiry.' };
+    }
 
-    // 5. External Endpoint Forwarding (Formspree/Web3Forms/Custom API)
+    // 6. Log analytics event to Supabase safely
+    try {
+      await supabase.from('analytics_events').insert([
+        {
+          event_type: 'cta_click',
+          path: '/#contact',
+          referrer: 'contact_form_submit',
+        },
+      ]);
+    } catch (anaErr) {
+      console.error('Error logging contact analytics:', anaErr);
+    }
+
+    // 7. External Endpoint Forwarding (Formspree/Web3Forms/Custom API)
     const endpoint = process.env.CONTACT_FORM_ENDPOINT;
     if (endpoint) {
-      console.log(`Forwarding message to contact endpoint: ${endpoint}`);
+      console.log('Forwarding message to contact endpoint.');
 
       // Abort controller for a 10-second timeout boundary
       const controller = new AbortController();
@@ -73,11 +88,11 @@ export async function submitContactForm(data: ContactInput) {
             'Accept': 'application/json',
           },
           body: JSON.stringify({
-            name: trimmedName,
-            email: trimmedEmail,
-            objective: trimmedObjective,
-            message: trimmedDetails, // Formspree prefers standard 'message' field
-            details: trimmedDetails,
+            name: cleanName,
+            email: cleanEmail,
+            objective: cleanObjective,
+            message: cleanDetails,
+            details: cleanDetails,
           }),
           signal: controller.signal,
         });
@@ -85,11 +100,10 @@ export async function submitContactForm(data: ContactInput) {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          const errText = await response.text().catch(() => '');
-          console.error(`External endpoint returned status ${response.status}:`, errText);
+          console.error(`External endpoint returned status ${response.status}`);
           return {
             success: false,
-            error: 'Failed to deliver message to configured mail endpoint. Please email directly.',
+            error: 'Failed to deliver message. Please contact via direct email.',
           };
         }
       } catch (fetchErr: any) {
@@ -101,14 +115,11 @@ export async function submitContactForm(data: ContactInput) {
         console.error('Failed to forward to external contact endpoint:', fetchErr);
         return { success: false, error: 'Network error: could not connect to mail delivery service.' };
       }
-    } else {
-      console.warn('CONTACT_FORM_ENDPOINT is not configured. Message stored only in database.');
     }
 
     return { success: true };
   } catch (error: any) {
     console.error('Contact submit error:', error);
-    return { success: false, error: error.message || 'Database transaction failed.' };
+    return { success: false, error: 'Inquiry submission pipeline error occurred.' };
   }
 }
-

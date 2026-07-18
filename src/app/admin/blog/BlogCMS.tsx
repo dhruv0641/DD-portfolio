@@ -4,15 +4,7 @@ import React, { useState } from 'react';
 import { saveBlogPost, deleteBlogPost } from '@/app/actions/blog';
 import { useRouter } from 'next/navigation';
 
-export interface BlogPostData {
-  id?: number;
-  title: string;
-  slug: string;
-  contentMarkdown: string;
-  categories: string;
-  tags: string;
-  isDraft: number;
-}
+import { BlogPostData } from '@/types';
 
 export default function BlogCMS({ initialPosts }: { initialPosts: any[] }) {
   const [posts] = useState(initialPosts);

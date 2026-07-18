@@ -1,69 +1,20 @@
 'use server';
 
-import { db } from '@/db';
-import * as schema from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { projectService } from '@/services/projectService';
+import { verifyAuthSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { ProjectData } from '@/types';
 
-export async function saveProject(formData: any) {
+export async function saveProject(formData: Partial<ProjectData>) {
+  const session = await verifyAuthSession();
+  if (!session) {
+    return { success: false, error: 'Unauthorized administrative operation.' };
+  }
+
   try {
-    const {
-      id,
-      title,
-      slug,
-      subtitle,
-      role,
-      company,
-      timeline,
-      problem,
-      challenge,
-      solution,
-      techStack,
-      metrics,
-      screenshots,
-      githubUrl,
-      demoUrl,
-      isFeatured,
-      isPinned,
-      isDraft,
-      position,
-    } = formData;
-
-    if (!title || !slug) {
-      return { success: false, error: 'Title and Slug are required.' };
-    }
-
-    const payload = {
-      title,
-      slug,
-      subtitle,
-      role,
-      company,
-      timeline,
-      problem,
-      challenge,
-      solution,
-      techStack: typeof techStack === 'string' ? techStack : JSON.stringify(techStack || []),
-      metrics: typeof metrics === 'string' ? metrics : JSON.stringify(metrics || []),
-      screenshots: typeof screenshots === 'string' ? screenshots : JSON.stringify(screenshots || []),
-      githubUrl,
-      demoUrl,
-      isFeatured: isFeatured ? 1 : 0,
-      isPinned: isPinned ? 1 : 0,
-      isDraft: isDraft ? 1 : 0,
-      position: position ? parseInt(position, 10) : 0,
-      updatedAt: new Date(),
-    };
-
-    if (id) {
-      // Update
-      await db.update(schema.projects).set(payload).where(eq(schema.projects.id, id));
-    } else {
-      // Insert
-      await db.insert(schema.projects).values({
-        ...payload,
-        createdAt: new Date(),
-      });
+    const result = await projectService.saveProject(formData);
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to save case study.' };
     }
 
     revalidatePath('/');
@@ -75,9 +26,17 @@ export async function saveProject(formData: any) {
   }
 }
 
-export async function deleteProject(id: number) {
+export async function deleteProject(id: string | number) {
+  const session = await verifyAuthSession();
+  if (!session) {
+    return { success: false, error: 'Unauthorized administrative operation.' };
+  }
+
   try {
-    await db.delete(schema.projects).where(eq(schema.projects.id, id));
+    const result = await projectService.deleteProject(id.toString());
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to delete case study.' };
+    }
     revalidatePath('/');
     revalidatePath('/admin/projects');
     return { success: true };
@@ -87,13 +46,20 @@ export async function deleteProject(id: number) {
   }
 }
 
-export async function updateProjectOrder(orderList: { id: number; position: number }[]) {
+export async function updateProjectOrder(orderList: { id: string | number; position: number }[]) {
+  const session = await verifyAuthSession();
+  if (!session) {
+    return { success: false, error: 'Unauthorized administrative operation.' };
+  }
+
   try {
-    for (const item of orderList) {
-      await db
-        .update(schema.projects)
-        .set({ position: item.position })
-        .where(eq(schema.projects.id, item.id));
+    const formattedList = orderList.map((item) => ({
+      id: item.id.toString(),
+      position: item.position,
+    }));
+    const result = await projectService.updateProjectOrder(formattedList);
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to update catalog order.' };
     }
     revalidatePath('/');
     revalidatePath('/admin/projects');

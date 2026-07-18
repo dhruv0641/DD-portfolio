@@ -1,0 +1,109 @@
+'use client';
+
+import React, { useState } from 'react';
+import { performPasswordReset } from '@/app/actions/login';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+export default function ResetPasswordForm() {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
+
+    const result = await performPasswordReset(password);
+    if (result.success) {
+      setSuccess('Your password has been successfully updated.');
+      setTimeout(() => {
+        router.push('/admin/login');
+      }, 2500);
+    } else {
+      setError(result.error || 'Failed to reset password.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="min-h-screen flex items-center justify-center bg-[var(--bg)] px-6">
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
+        <div className="grid-bg">
+          <div className="grid-bg-line" />
+          <div className="grid-bg-line" />
+        </div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-[420px] bg-[var(--surface)] border border-[rgba(255,255,255,0.04)] rounded-xl p-10 shadow-2xl">
+        <div className="logo flex items-center gap-2 mb-8 font-medium justify-center">
+          <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+          <span className="font-mono text-sm tracking-widest text-[var(--text)]">UPDATE PASSWORD</span>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2 relative">
+            <input
+              type="password"
+              className="w-full bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-lg px-4 py-3 text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+              placeholder="New Password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading || !!success}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2 relative">
+            <input
+              type="password"
+              className="w-full bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-lg px-4 py-3 text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+              placeholder="Confirm New Password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading || !!success}
+            />
+          </div>
+
+          {error && (
+            <div className="font-mono text-[10px] text-red-500 text-center uppercase tracking-wide">
+              $ ERROR: {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="font-mono text-[10px] text-emerald-400 text-center uppercase tracking-wide">
+              $ SUCCESS: {success}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || !!success}
+            className="w-full bg-[var(--accent)] text-white text-xs font-mono uppercase tracking-widest py-3.5 rounded-lg hover:bg-[rgba(var(--accent-rgb),0.8)] focus:outline-none transition-colors duration-300 font-semibold cursor-pointer"
+          >
+            {loading ? 'SAVING...' : 'SAVE PASSWORD'}
+          </button>
+        </form>
+
+        <div className="mt-8 text-center">
+          <Link href="/admin/login" className="font-mono text-[9px] text-[var(--text-dim)] uppercase hover:text-[var(--text)] transition-colors">
+            ← BACK TO LOGIN
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}

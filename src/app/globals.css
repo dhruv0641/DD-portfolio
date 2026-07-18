@@ -2,24 +2,34 @@
 
 @layer base {
   :root {
-    --bg: #090909;
-    --surface: #111111;
-    --text: #F5F5F5;
-    --text-muted: #A1A1AA;
-    --text-dim: #71717A;
-    --accent: #0066FF;
-    --accent-rgb: 0, 102, 255;
+    --bg: #030303;
+    --surface: #0a0a0c;
+    --surface-hover: #121216;
+    --text: #Fafafa;
+    --text-muted: #a0a0a5;
+    --text-dim: #5c5c64;
+    --accent: #2A56DE;
+    --accent-rgb: 42, 86, 222;
     --font-serif: var(--font-serif);
     --font-sans: var(--font-sans);
     --font-mono: var(--font-mono);
-    --grid-line: rgba(255, 255, 255, 0.04);
-    --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --grid-line: rgba(255, 255, 255, 0.025);
+    --transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
+    
+    /* Extra Design Tokens */
+    --border-radius-sm: 6px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 20px;
+    --glow-opacity: 0.15;
   }
 
   body {
     background-color: var(--bg);
     color: var(--text);
     font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 }
 
