@@ -16,12 +16,12 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { name: 'Identity', href: '/#identity', sectionId: 'identity', isPage: false },
-  { name: 'Work', href: '/#work', sectionId: 'work', isPage: false },
-  { name: 'Case Study', href: '/#case', sectionId: 'case', isPage: false },
-  { name: 'Thinking', href: '/#thinking', sectionId: 'thinking', isPage: false },
-  { name: 'Build', href: '/#build', sectionId: 'build', isPage: false },
-  { name: 'Playground', href: '/playground', sectionId: null, isPage: true },
+  { name: 'About',      href: '/#identity', sectionId: 'identity', isPage: false },
+  { name: 'Projects',   href: '/#work',     sectionId: 'work',     isPage: false },
+  { name: 'Case Study', href: '/#case',     sectionId: 'case',     isPage: false },
+  { name: 'Process',    href: '/#thinking', sectionId: 'thinking', isPage: false },
+  { name: 'Contact',    href: '/#build',    sectionId: 'build',    isPage: false },
+  { name: 'Playground', href: '/playground', sectionId: null,      isPage: true  },
 ];
 
 const SECTION_IDS = ['identity', 'work', 'case', 'thinking', 'build'];
@@ -238,6 +238,40 @@ export default function Header({ name }: { name: string }) {
 
   const pendingScrollRef = useRef<string | null>(null);
 
+  // ── Scroll lock: suppresses IntersectionObserver during programmatic scrolling ──
+  const scrollLockRef = useRef(false);
+  const scrollLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const lockScrollObserver = useCallback((targetSectionId: string) => {
+    // Immediately set the active section to the click target
+    setActiveSection(targetSectionId);
+    scrollLockRef.current = true;
+
+    // Clear any previous unlock timer
+    if (scrollLockTimerRef.current) {
+      clearTimeout(scrollLockTimerRef.current);
+    }
+
+    // Use scrollend event if supported, with a fallback timeout
+    let unlocked = false;
+    const unlock = () => {
+      if (unlocked) return;
+      unlocked = true;
+      scrollLockRef.current = false;
+      window.removeEventListener('scrollend', unlock);
+      if (scrollLockTimerRef.current) {
+        clearTimeout(scrollLockTimerRef.current);
+        scrollLockTimerRef.current = null;
+      }
+    };
+
+    // scrollend fires once smooth scrolling finishes (modern browsers)
+    window.addEventListener('scrollend', unlock, { once: true });
+
+    // Fallback: unlock after 1.2s max (covers browsers without scrollend)
+    scrollLockTimerRef.current = setTimeout(unlock, 1200);
+  }, []);
+
   // ── Ctrl+K ──
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -270,11 +304,14 @@ export default function Header({ name }: { name: string }) {
 
     const observerOptions = {
       root: null,
-      rootMargin: '-30% 0px -40% 0px', // Sweet spot in the middle of the viewport
+      rootMargin: '-30% 0px -40% 0px',
       threshold: 0
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      // Skip updates while programmatic scroll is in progress
+      if (scrollLockRef.current) return;
+
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           setActiveSection(entry.target.id);
@@ -311,11 +348,13 @@ export default function Header({ name }: { name: string }) {
       const targetId = pendingScrollRef.current;
       pendingScrollRef.current = null;
 
+      // Lock observer and set active state immediately
+      lockScrollObserver(targetId);
+
       const attemptScroll = () => {
         const el = document.getElementById(targetId);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth' });
-          // Note: IntersectionObserver will automatically update activeSection as it scrolls into view
         }
       };
 
@@ -323,7 +362,16 @@ export default function Header({ name }: { name: string }) {
         requestAnimationFrame(attemptScroll);
       });
     }
-  }, [pathname]);
+  }, [pathname, lockScrollObserver]);
+
+  // ── Cleanup scroll lock timer on unmount ──
+  useEffect(() => {
+    return () => {
+      if (scrollLockTimerRef.current) {
+        clearTimeout(scrollLockTimerRef.current);
+      }
+    };
+  }, []);
 
   // ── Core navigation handler ──
   const navigateTo = useCallback((item: NavItem) => {
@@ -340,16 +388,21 @@ export default function Header({ name }: { name: string }) {
     if (!sectionId) return;
 
     if (pathname === '/') {
+      // Lock observer immediately so the pill moves in one fluid motion
+      lockScrollObserver(sectionId);
+
       const el = document.getElementById(sectionId);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
         window.history.pushState(null, '', `/#${sectionId}`);
       }
     } else {
+      // Set active state immediately even before route change
+      setActiveSection(sectionId);
       pendingScrollRef.current = sectionId;
       router.push('/');
     }
-  }, [pathname, router]);
+  }, [pathname, router, lockScrollObserver]);
 
   const handleNavClick = useCallback((e: React.MouseEvent, item: NavItem) => {
     e.preventDefault();

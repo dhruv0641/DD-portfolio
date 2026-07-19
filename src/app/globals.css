@@ -30,6 +30,40 @@
     letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    
+    /* Disable text selection globally */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -webkit-touch-callout: none;
+
+    /* Hide scrollbar — Firefox */
+    scrollbar-width: none;
+    /* Hide scrollbar — Legacy Edge */
+    -ms-overflow-style: none;
+  }
+
+  /* Hide scrollbar — Chrome, Edge, Safari */
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Allow selection ONLY for inputs, editable blocks, and specific text elements */
+  input,
+  textarea,
+  [contenteditable="true"],
+  .select-text,
+  code,
+  pre {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+  }
+
+  /* Prevent image dragging globally */
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
   }
 }
 
@@ -208,39 +242,63 @@
 
 .form-group {
   position: relative;
+  margin-bottom: 0.25rem;
+}
+
+/* Animated underline that fills from left on focus */
+.form-group::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width 0.4s var(--transition-smooth);
+  z-index: 1;
+}
+
+.form-group:focus-within::after {
+  width: 100%;
 }
 
 .form-input {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--grid-line);
-  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.1rem 0;
   color: var(--text);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 300;
-  transition: border-color 0.3s;
+  transition: border-color 0.3s ease;
+  caret-color: var(--accent);
+}
+
+.form-input:hover {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--text);
+  border-color: rgba(var(--accent-rgb), 0.3);
 }
 
 .form-input.is-invalid {
-  border-color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .form-input.is-invalid ~ .form-label {
   color: #EF4444 !important;
 }
 
+/* Floating label */
 .form-label {
   position: absolute;
-  top: 1rem;
+  top: 1.1rem;
   left: 0;
-  font-size: 1.1rem;
-  color: var(--text-muted);
+  font-size: 1.05rem;
+  color: var(--text-dim);
   pointer-events: none;
   transition: all 0.3s var(--transition-smooth);
   font-weight: 300;
@@ -248,22 +306,26 @@
 
 .form-input:focus ~ .form-label,
 .form-input:not(:placeholder-shown) ~ .form-label {
-  top: -1.5rem;
-  font-size: 0.75rem;
+  top: -1.4rem;
+  font-size: 0.65rem;
   font-family: var(--font-mono);
   color: var(--accent);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
+  font-weight: 500;
 }
 
+/* Submit button — circular with ripple fill, glow, and press feedback */
 .form-submit-btn {
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  border: 1px solid var(--grid-line);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   background: transparent;
-  color: var(--text);
-  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -271,12 +333,18 @@
   position: relative;
   overflow: hidden;
   align-self: flex-start;
-  margin-top: 1rem;
-  transition: border-color 0.3s;
+  margin-top: 1.5rem;
+  transition: border-color 0.4s ease, color 0.3s ease, box-shadow 0.4s ease, transform 0.15s ease;
 }
 
 .form-submit-btn:hover {
   border-color: var(--accent);
+  color: #FFF;
+  box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.12), inset 0 0 20px rgba(var(--accent-rgb), 0.04);
+}
+
+.form-submit-btn:active {
+  transform: scale(0.95) !important;
 }
 
 .form-submit-btn::before {
@@ -294,10 +362,12 @@
   transform: scale(1);
 }
 
-.form-submit-btn:hover {
-  color: #FFF;
+.form-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
+/* Success / Error messages */
 .form-message {
   font-family: var(--font-mono);
   font-size: 0.85rem;
