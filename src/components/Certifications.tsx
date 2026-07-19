@@ -58,7 +58,7 @@ function CounterItem({ target, label, suffix, isFloat }: CounterProps) {
 
   return (
     <div ref={elementRef} className="border-t border-[rgba(255,255,255,0.04)] pt-12">
-      <div className="text-[clamp(3rem,7vw,6.5rem)] font-light leading-none mb-4 tracking-tighter">
+      <div className="text-[clamp(2.5rem,5.5vw,5.2rem)] font-light leading-none mb-6 tracking-tighter">
         {isFloat ? count.toFixed(1) : Math.floor(count)}
         {suffix}
       </div>
@@ -108,7 +108,7 @@ export default function Certifications({ initialCertificates }: { initialCertifi
       <div className="grid grid-cols-1 md:grid-cols-3 gap-16 text-left">
         {activeCerts.map((cert, index) => (
           <div key={index} className="border-t border-[rgba(255,255,255,0.04)] pt-12">
-            <div className="text-[clamp(3rem,7vw,6.5rem)] font-light leading-none mb-4 tracking-tighter">
+            <div className="text-[clamp(2.5rem,5.5vw,5.2rem)] font-light leading-none mb-6 tracking-tighter">
               {cert.target}{cert.suffix}
             </div>
             <div className="text-sm lg:text-base text-[var(--text-muted)] font-light leading-relaxed">

@@ -14,20 +14,26 @@ export default function LightProbe() {
     let targetY = -1000;
     let currentX = -1000;
     let currentY = -1000;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-
+    let isTracking = false;
     let frameId: number;
 
     const tick = () => {
-      // Lerp (Linear Interpolation) for smooth 60fps tracking
-      currentX += (targetX - currentX) * 0.08;
-      currentY += (targetY - currentY) * 0.08;
+      const dx = targetX - currentX;
+      const dy = targetY - currentY;
+
+      // Stop tracking if we are close enough to the target (prevents continuous reflows when idle)
+      if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
+        currentX = targetX;
+        currentY = targetY;
+        if (probeRef.current) {
+          probeRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+        }
+        isTracking = false;
+        return;
+      }
+
+      currentX += dx * 0.08;
+      currentY += dy * 0.08;
 
       if (probeRef.current) {
         probeRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
@@ -36,7 +42,17 @@ export default function LightProbe() {
       frameId = requestAnimationFrame(tick);
     };
 
-    frameId = requestAnimationFrame(tick);
+    const handleMouseMove = (e: MouseEvent) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+
+      if (!isTracking) {
+        isTracking = true;
+        frameId = requestAnimationFrame(tick);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);

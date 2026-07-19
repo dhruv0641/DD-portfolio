@@ -231,6 +231,7 @@ const CommandPalette = memo(function CommandPalette({
 export default function Header({ name }: { name: string }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const [activeHref, setActiveHref] = useState('');
   const [cmdOpen, setCmdOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -297,6 +298,27 @@ export default function Header({ name }: { name: string }) {
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // ── Synchronize activeHref with scroll and path changes ──
+  useEffect(() => {
+    if (scrollLockRef.current) return;
+
+    if (pathname === '/playground') {
+      setActiveHref('/playground');
+    } else if (pathname.startsWith('/blog')) {
+      setActiveHref('/blog');
+    } else if (pathname === '/') {
+      const activeItem = NAV_ITEMS.find((item) => item.sectionId === activeSection);
+      if (activeItem) {
+        setActiveHref(activeItem.href);
+      } else {
+        // Fallback to first navigation item (About)
+        setActiveHref('/#identity');
+      }
+    } else {
+      setActiveHref('');
+    }
+  }, [pathname, activeSection]);
 
   // ── IntersectionObserver for active section tracking on Home Page ──
   useEffect(() => {
@@ -377,6 +399,9 @@ export default function Header({ name }: { name: string }) {
   const navigateTo = useCallback((item: NavItem) => {
     setMobileMenuOpen(false);
 
+    // Optimistically update the active highlight position instantly on click
+    setActiveHref(item.href);
+
     // Standalone page routes
     if (item.isPage) {
       router.push(item.href);
@@ -410,13 +435,8 @@ export default function Header({ name }: { name: string }) {
   }, [navigateTo]);
 
   const getIsActive = useCallback((item: NavItem): boolean => {
-    if (item.isPage) {
-      if (item.href === '/blog') return pathname.startsWith('/blog');
-      if (item.href === '/playground') return pathname === '/playground';
-      return pathname === item.href;
-    }
-    return activeSection === item.sectionId;
-  }, [activeSection, pathname]);
+    return activeHref === item.href;
+  }, [activeHref]);
 
   return (
     <>
@@ -461,48 +481,30 @@ export default function Header({ name }: { name: string }) {
 
                 return (
                   <MagneticEffect key={item.href}>
-                    {item.isPage ? (
-                      <Link
-                        href={item.href}
-                        prefetch={true}
-                        onClick={(e) => handleNavClick(e, item)}
-                        className={`relative py-1 px-3 rounded-full flex items-center transition-colors duration-150 ${isActive ? 'text-white' : 'text-zinc-500 hover:text-white'
-                          }`}
-                        aria-current={isActive ? 'page' : undefined}
-                      >
-                        {item.name}
-                        {isActive && (
-                          <motion.div
-                            layoutId="nav-active-pill"
-                            className="absolute inset-0 bg-white/[0.05] border border-white/[0.08] rounded-full z-[-1]"
-                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                          />
-                        )}
-                        {isPlayground && (
-                          <span className="relative flex h-1.5 w-1.5 ml-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent)]" />
-                          </span>
-                        )}
-                      </Link>
-                    ) : (
-                      <a
-                        href={item.href}
-                        onClick={(e) => handleNavClick(e, item)}
-                        className={`relative py-1 px-3 rounded-full flex items-center transition-colors duration-150 ${isActive ? 'text-white' : 'text-zinc-500 hover:text-white'
-                          }`}
-                        aria-current={isActive ? 'page' : undefined}
-                      >
-                        {item.name}
-                        {isActive && (
-                          <motion.div
-                            layoutId="nav-active-pill"
-                            className="absolute inset-0 bg-white/[0.05] border border-white/[0.08] rounded-full z-[-1]"
-                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                          />
-                        )}
-                      </a>
-                    )}
+                    <Link
+                      href={item.href}
+                      prefetch={true}
+                      onClick={(e) => handleNavClick(e, item)}
+                      className={`relative py-1 px-3 rounded-full flex items-center transition-colors duration-150 ${
+                        isActive ? 'text-white' : 'text-zinc-500 hover:text-white'
+                      }`}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      {item.name}
+                      {isActive && (
+                        <motion.div
+                          layoutId="nav-active-pill"
+                          className="absolute inset-0 bg-white/[0.05] border border-white/[0.08] rounded-full z-[-1]"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                      {isPlayground && (
+                        <span className="relative flex h-1.5 w-1.5 ml-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent)]" />
+                        </span>
+                      )}
+                    </Link>
                   </MagneticEffect>
                 );
               })}
@@ -546,18 +548,20 @@ export default function Header({ name }: { name: string }) {
               {NAV_ITEMS.map((item) => {
                 const isActive = getIsActive(item);
                 return (
-                  <a
+                  <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={true}
                     onClick={(e) => handleNavClick(e, item)}
-                    className={`block py-2.5 px-3 rounded-xl transition-colors duration-100 ${isActive
+                    className={`block py-2.5 px-3 rounded-xl transition-colors duration-100 ${
+                      isActive
                         ? 'text-white bg-white/[0.04] border border-white/[0.06]'
                         : 'text-zinc-500 hover:text-white border border-transparent'
-                      }`}
+                    }`}
                     aria-current={isActive ? 'page' : undefined}
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 );
               })}
             </motion.nav>

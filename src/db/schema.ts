@@ -80,3 +80,11 @@ export const analyticsEvents = sqliteTable('analytics_events', {
   browser: text('browser'),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
+
+// Per-IP Rate Limiting for Playground
+export const rateLimits = sqliteTable('rate_limits', {
+  ip: text('ip').primaryKey(),
+  count: integer('count').notNull().default(0),
+  firstRequestTime: integer('first_request_time').notNull(),
+  resetTime: integer('reset_time').notNull(),
+});

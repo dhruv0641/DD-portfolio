@@ -9,6 +9,7 @@ import { settingsService } from '@/services/settingsService';
 import BackgroundLayer from '@/components/BackgroundLayer';
 import Header from '@/components/Header';
 import AntiCopy from '@/components/AntiCopy';
+import Footer from '@/components/Footer';
 import './globals.css';
 
 const fontSans = Plus_Jakarta_Sans({
@@ -120,14 +121,10 @@ export default async function RootLayout({
             <main className="w-full relative z-10">{children}</main>
 
             {/* Platform Main Footer */}
-            <footer className="w-full px-[8%] py-20 flex justify-between items-center border-t border-[rgba(255,255,255,0.04)] font-mono text-[10px] text-[var(--text-dim)]">
-              <div>© 2026 {mergedSettings.name?.toUpperCase() || 'DHRUV DOBARIYA'}. ALL RIGHTS RESERVED.</div>
-              <div className="flex gap-6">
-                <a href="https://github.com/dhruv0641" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)] transition-colors duration-300">GITHUB</a>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)] transition-colors duration-300">TWITTER</a>
-                <Link href="/admin/login" className="hover:text-[var(--text)] transition-colors duration-300">ADMIN</Link>
-              </div>
-            </footer>
+            <Footer
+              name={mergedSettings.name || 'Dhruvkumar Dobariya'}
+              email={mergedSettings.contactEmail || 'dhruv.dobariya0641@gmail.com'}
+            />
           </LenisProvider>
         </ThemeProvider>
       </body>

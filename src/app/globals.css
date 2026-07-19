@@ -23,7 +23,7 @@
     --glow-opacity: 0.15;
   }
 
-  body {
+  html, body {
     background-color: var(--bg);
     color: var(--text);
     font-family: var(--font-sans);
@@ -44,8 +44,12 @@
   }
 
   /* Hide scrollbar — Chrome, Edge, Safari */
-  body::-webkit-scrollbar {
-    display: none;
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  ::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
 
   /* Allow selection ONLY for inputs, editable blocks, and specific text elements */

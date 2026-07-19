@@ -14,6 +14,8 @@ export function GridLayer({ config = defaultBackgroundConfig }: { config?: Backg
         padding: '0 8%',
         maxWidth: config.grid.maxWidth,
         margin: '0 auto',
+        willChange: 'transform',
+        transform: 'translate3d(0,0,0)',
       }}
     >
       {Array.from({ length: config.grid.columns }).map((_, idx) => (
@@ -58,7 +60,7 @@ export function PointerGlowLayer({ config = defaultBackgroundConfig }: { config?
     };
 
     if (!isTouchDevice && !mediaQuery.matches) {
-      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mousemove', handleMouseMove, { passive: true });
     }
 
     return () => {
@@ -91,6 +93,8 @@ export function NoiseLayer({ config = defaultBackgroundConfig }: { config?: Back
       className="grain fixed inset-0 w-screen h-screen pointer-events-none z-[9999]"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${config.noise.frequency}' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='${config.noise.opacity}'/%3E%3C/svg%3E")`,
+        willChange: 'transform',
+        transform: 'translate3d(0,0,0)',
       }}
     />
   );
@@ -103,6 +107,8 @@ export function VignetteLayer({ config = defaultBackgroundConfig }: { config?: B
       className="vignette fixed inset-0 pointer-events-none z-[-1]"
       style={{
         background: `radial-gradient(circle, transparent 40%, rgba(9, 9, 9, ${config.vignette.strength}) 100%)`,
+        willChange: 'transform',
+        transform: 'translate3d(0,0,0)',
       }}
     />
   );
