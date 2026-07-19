@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { settingsService } from '@/services/settingsService';
 import BackgroundLayer from '@/components/BackgroundLayer';
 import Header from '@/components/Header';
+import AntiCopy from '@/components/AntiCopy';
 import './globals.css';
 
 const fontSans = Plus_Jakarta_Sans({
@@ -111,6 +112,9 @@ export default async function RootLayout({
 
             {/* Platform Main Header */}
             <Header name={mergedSettings.name || 'Dhruv Dobariya'} />
+
+            {/* Premium Global Anti-Copy Protection */}
+            <AntiCopy />
 
             {/* Central Children Page Wrapper */}
             <main className="w-full relative z-10">{children}</main>
