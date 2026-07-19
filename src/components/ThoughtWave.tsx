@@ -17,6 +17,7 @@ export default function ThoughtWave() {
     if (!ctx) return;
 
     let animFrameId: number;
+    let isVisible = false;
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -25,12 +26,14 @@ export default function ThoughtWave() {
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     };
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
     resize();
 
     let step = 0;
 
     const render = () => {
+      if (!isVisible) return;
+
       const w = canvas.width / window.devicePixelRatio;
       const h = canvas.height / window.devicePixelRatio;
 
@@ -70,10 +73,29 @@ export default function ThoughtWave() {
       animFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    // Use IntersectionObserver to pause the animation loop when scrolled offscreen
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          // Restart loop
+          animFrameId = requestAnimationFrame(render);
+        }
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(canvas);
+
+    // Initial loop launch if visible
+    if (isVisible) {
+      animFrameId = requestAnimationFrame(render);
+    }
 
     return () => {
       window.removeEventListener('resize', resize);
+      observer.disconnect();
       cancelAnimationFrame(animFrameId);
     };
   }, [settings.thoughtWave, settings.reduceMotion, settings.themeMode]);

@@ -1,844 +1,818 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Tab configuration definitions
-interface TabItem {
+// ════════════════════════════════════════════════════════════════════════════
+// TYPES & INTERFACES
+// ════════════════════════════════════════════════════════════════════════════
+interface Message {
   id: string;
-  name: string;
-  category: string;
-  icon: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: number;
 }
 
-const labs: TabItem[] = [
-  { id: 'agent', name: 'Multi-Agent Studio', category: 'Orchestration', icon: '🤖' },
-  { id: 'rag', name: 'RAG Retriever', category: 'Information', icon: '🔍' },
-  { id: 'prompt', name: 'Prompt Developer', category: 'Core', icon: '📝' },
-  { id: 'vector', name: 'Vector Database Vectorizer', category: 'Storage', icon: '📊' },
-  { id: 'reasoning', name: 'Logical Reasoning Graph', category: 'Core', icon: '🧠' },
-  { id: 'memory', name: 'Synaptic Memory Stack', category: 'Storage', icon: '💾' },
-  { id: 'tool', name: 'API Tool Dispatcher', category: 'Orchestration', icon: '⚙️' },
-  { id: 'monitor', name: 'DevOps System Monitor', category: 'Storage', icon: '📈' },
+interface Chat {
+  id: string;
+  title: string;
+  messages: Message[];
+  model: string;
+  temperature: number;
+  createdAt: number;
+  metadata?: {
+    latency?: number;
+    tokens?: number;
+    executionTime?: number;
+  };
+}
+
+interface PromptTemplate {
+  title: string;
+  description: string;
+  prompt: string;
+  category: string;
+}
+
+const PROMPT_LIBRARY: PromptTemplate[] = [
+  {
+    title: 'Explain this code',
+    description: 'Deconstruct complex algorithms or design patterns.',
+    prompt: 'Review the following code block, explain its time complexity (Big O), and suggest 2 refactoring techniques to optimize execution:\n\n```javascript\n\n```',
+    category: 'Analysis',
+  },
+  {
+    title: 'System Design Architect',
+    description: 'Design distributed architectures with trade-offs.',
+    prompt: 'Draft a system design proposal for a high-volume notification microservice supporting 10,000 requests per second. Include components, databases, caching layers, and potential failover mechanics.',
+    category: 'Design',
+  },
+  {
+    title: 'Optimize Database Queries',
+    description: 'Audit SQL queries for index optimization.',
+    prompt: 'Analyze this SQL query. Identify bottlenecks, recommend missing indexes, and rewrite it for maximum performance:\n\n```sql\nSELECT users.id, profiles.bio, count(orders.id)\nFROM users\nLEFT JOIN profiles ON profiles.user_id = users.id\nLEFT JOIN orders ON orders.user_id = users.id\nWHERE users.status = \'active\'\nGROUP BY users.id, profiles.bio;\n```',
+    category: 'Data',
+  },
+  {
+    title: 'Construct API Endpoint',
+    description: 'Generate Next.js Route Handlers.',
+    prompt: 'Write a clean Next.js 15 Route Handler (TypeScript) that processes POST requests with input validation using Zod and saves the data to a database. Include complete error handling.',
+    category: 'Engineering',
+  },
 ];
 
-export default function AIPlayground() {
-  const [activeTab, setActiveTab] = useState<string>('agent');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
-  const [zoom, setZoom] = useState(1.0);
-  const [consoleOpen, setConsoleOpen] = useState(true);
-  const [logs, setLogs] = useState<string[]>(['[SYSTEM] AI Research Lab v1.0.0 initialized successfully.']);
-  const [metrics, setMetrics] = useState({
-    status: 'STANDBY',
-    latency: '0ms',
-    executionTime: '0.0s',
-    confidence: '100%',
-    tokens: '0',
-    memory: '0.0MB',
-    cost: '$0.0000',
-    depth: '0'
-  });
-  const [showCmdPalette, setShowCmdPalette] = useState(false);
-  const [cmdSearch, setCmdSearch] = useState('');
-  const [showTutorial, setShowTutorial] = useState(false);
+const MODELS = [
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google', desc: 'Fast, lightweight multimodal model.' },
+  { id: 'gemini-pro', name: 'Gemini 1.5 Pro', provider: 'Google', desc: 'Capable reasoning and complex instructions.' },
+  { id: 'groq-llama', name: 'Llama 3.3 70B (Groq)', provider: 'Groq', desc: 'Ultrafast open-source model execution.' },
+  { id: 'groq-mixtral', name: 'Mixtral 8x7B (Groq)', provider: 'Groq', desc: 'High concurrency MoE model.' },
+];
 
-  // Add a log entry helper
-  const addLog = (msg: string) => {
-    setLogs((prev) => [...prev.slice(-49), `[${new Date().toLocaleTimeString()}] ${msg}`]);
+// ════════════════════════════════════════════════════════════════════════════
+// RENDERERS
+// ════════════════════════════════════════════════════════════════════════════
+const MarkdownRenderer = memo(function MarkdownRenderer({ content }: { content: string }) {
+  if (!content) return null;
+
+  const parts = content.split(/(```[\s\S]*?```)/g);
+
+  return (
+    <div className="flex flex-col gap-3 font-sans text-sm leading-[1.7] text-zinc-300">
+      {parts.map((part, index) => {
+        if (part.startsWith('```')) {
+          const match = part.match(/```(\w*)\n([\s\S]*?)```/);
+          const lang = match ? match[1] : '';
+          const code = match ? match[2] : part.slice(3, -3);
+
+          return <CodeBlock key={index} language={lang} code={code.trim()} />;
+        }
+
+        const lines = part.split('\n');
+        return (
+          <div key={index} className="flex flex-col gap-2">
+            {lines.map((line, lIdx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return <div key={lIdx} className="h-2" />;
+
+              if (trimmed.startsWith('# ')) {
+                return <h1 key={lIdx} className="text-lg font-bold text-white mt-4 first:mt-0 tracking-tight">{trimmed.slice(2)}</h1>;
+              }
+              if (trimmed.startsWith('## ')) {
+                return <h2 key={lIdx} className="text-base font-bold text-white mt-3 first:mt-0 tracking-tight">{trimmed.slice(3)}</h2>;
+              }
+              if (trimmed.startsWith('### ')) {
+                return <h3 key={lIdx} className="text-sm font-bold text-white mt-2 first:mt-0 tracking-tight">{trimmed.slice(4)}</h3>;
+              }
+
+              if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                return (
+                  <ul key={lIdx} className="list-disc pl-5 flex flex-col gap-1">
+                    <li className="font-light">{trimmed.slice(2)}</li>
+                  </ul>
+                );
+              }
+
+              if (/^\d+\.\s/.test(trimmed)) {
+                const matchDot = trimmed.match(/^(\d+)\.\s(.*)/);
+                return (
+                  <ol key={lIdx} className="list-decimal pl-5 flex flex-col gap-1">
+                    <li className="font-light" value={matchDot ? parseInt(matchDot[1]) : undefined}>
+                      {matchDot ? matchDot[2] : trimmed}
+                    </li>
+                  </ol>
+                );
+              }
+
+              const boldProcessed = trimmed.split(/(\*\*.*?\*\*)/g).map((chunk, cIdx) => {
+                if (chunk.startsWith('**') && chunk.endsWith('**')) {
+                  return <strong key={cIdx} className="font-semibold text-white">{chunk.slice(2, -2)}</strong>;
+                }
+                return chunk;
+              });
+
+              return (
+                <p key={lIdx} className="font-light text-zinc-300">
+                  {boldProcessed}
+                </p>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+
+const CodeBlock = memo(function CodeBlock({ language, code }: { language: string; code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  // Listen for Ctrl+K
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        setShowCmdPalette((prev) => !prev);
+  return (
+    <div className="w-full bg-[#070709] border border-white/[0.04] rounded-xl overflow-hidden my-3 shadow-lg">
+      <div className="flex justify-between items-center py-2 px-4 border-b border-white/[0.03] bg-black/40 text-[10px] font-mono text-zinc-500">
+        <span>{language ? language.toUpperCase() : 'CODE'}</span>
+        <button
+          onClick={handleCopy}
+          className="hover:text-white transition-colors duration-150 flex items-center gap-1.5 cursor-pointer"
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <pre className="p-4 overflow-x-auto font-mono text-xs text-zinc-300 leading-[1.6]">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// PLAYGROUND COMPONENT
+// ════════════════════════════════════════════════════════════════════════════
+export default function AIPlayground() {
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+  const [temperature, setTemperature] = useState(0.7);
+
+  // Rate Limiting States
+  const [remainingRequests, setRemainingRequests] = useState<number>(2);
+  const [resetTimestamp, setResetTimestamp] = useState<number>(0);
+  const [resetCountdown, setResetCountdown] = useState<string>('');
+
+  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
+  const [showRightSidebar, setShowRightSidebar] = useState(true);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatParentRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Estimated stats
+  const [latency, setLatency] = useState<number | null>(null);
+  const [execTime, setExecTime] = useState<number | null>(null);
+  const [tokensEstimated, setTokensEstimated] = useState<number | null>(null);
+
+  // Fetch current rate limit status
+  const updateRateLimitStatus = async () => {
+    try {
+      const res = await fetch('/api/chat/rate-limit');
+      if (res.ok) {
+        const data = await res.json();
+        setRemainingRequests(data.remaining);
+        setResetTimestamp(data.resetTime);
       }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    } catch (e) {
+      console.error('Failed to sync rate limit status:', e);
+    }
+  };
+
+  // Setup mount and chats
+  useEffect(() => {
+    updateRateLimitStatus();
+
+    const saved = localStorage.getItem('engineering_playground_chats');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setChats(parsed);
+        if (parsed.length > 0) {
+          setActiveChatId(parsed[0].id);
+        }
+      } catch (e) {}
+    } else {
+      const seedChat: Chat = {
+        id: 'default-chat',
+        title: 'Initial Architecture Discussion',
+        messages: [
+          {
+            id: 'm1',
+            role: 'assistant',
+            content: 'Hello! I am your AI engineering playground companion. Type a message or choose a prompt from the library to test live streaming across Google Gemini and Groq.',
+            timestamp: Date.now(),
+          },
+        ],
+        model: 'gemini-2.5-flash',
+        temperature: 0.7,
+        createdAt: Date.now(),
+      };
+      setChats([seedChat]);
+      setActiveChatId(seedChat.id);
+    }
   }, []);
 
-  const resetAll = () => {
-    setIsPlaying(false);
-    setLogs(['[SYSTEM] Lab parameter matrix state reset successfully.']);
-    setMetrics({
-      status: 'STANDBY',
-      latency: '0ms',
-      executionTime: '0.0s',
-      confidence: '100%',
-      tokens: '0',
-      memory: '0.0MB',
-      cost: '$0.0000',
-      depth: '0'
-    });
-    addLog('Simulation reset.');
-  };
-
-  const handleExport = () => {
-    const stateString = JSON.stringify({ activeTab, speed, zoom, metrics }, null, 2);
-    navigator.clipboard.writeText(stateString);
-    addLog('JSON state parameters copied to clipboard!');
-    alert('JSON Configuration parameters copied to clipboard successfully!');
-  };
-
-  return (
-    <div className="w-full bg-[#050506]/40 border border-[var(--grid-line)] rounded-2xl overflow-hidden backdrop-blur-md relative font-sans text-white select-none">
-      
-      {/* Top Main Controls Toolbar */}
-      <div className="w-full border-b border-[var(--grid-line)] bg-black/30 py-3 px-6 flex flex-wrap justify-between items-center gap-4 text-xs font-mono text-[var(--text-dim)]">
-        <div className="flex items-center gap-4">
-          <span className="text-white font-semibold flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            AI_RESEARCH_LAB
-          </span>
-          <span className="text-zinc-600">|</span>
-          <button 
-            onClick={() => { setIsPlaying(!isPlaying); addLog(isPlaying ? 'Simulation paused.' : 'Simulation started.'); }}
-            className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-              isPlaying 
-                ? 'border-amber-500/30 bg-amber-500/5 text-amber-500' 
-                : 'border-white/10 hover:border-white/20 text-white bg-white/5'
-            }`}
-          >
-            {isPlaying ? '⏸️ PAUSE' : '▶️ RUN'}
-          </button>
-          <button 
-            onClick={resetAll}
-            className="px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/20 text-white bg-white/5 cursor-pointer"
-          >
-            🔄 RESET
-          </button>
-        </div>
-
-        {/* Global modifiers: Speed, Zoom, Export, Fullscreen */}
-        <div className="flex items-center gap-4 flex-wrap">
-          {/* Speed settings */}
-          <div className="flex items-center gap-1 border border-white/5 rounded-lg bg-black/40 p-0.5">
-            {[1, 2, 4].map((s) => (
-              <button 
-                key={s} 
-                onClick={() => { setSpeed(s); addLog(`Simulation speed multiplier changed to: x${s}`); }}
-                className={`px-2 py-1 rounded text-[10px] cursor-pointer ${
-                  speed === s ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white'
-                }`}
-              >
-                {s}x
-              </button>
-            ))}
-          </div>
-
-          <span className="text-zinc-800">|</span>
-
-          {/* Zoom settings */}
-          <div className="flex items-center gap-1.5 text-zinc-500">
-            <button onClick={() => setZoom(Math.max(0.7, zoom - 0.1))} className="hover:text-white cursor-pointer">🔍-</button>
-            <span className="text-[10px] text-white min-w-[36px] text-center">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom(Math.min(1.3, zoom + 0.1))} className="hover:text-white cursor-pointer">🔍+</button>
-          </div>
-
-          <span className="text-zinc-800">|</span>
-
-          {/* Tutorial & Export Buttons */}
-          <button 
-            onClick={() => setShowTutorial(true)}
-            className="px-2.5 py-1.5 rounded border border-white/5 hover:border-white/15 text-zinc-400 hover:text-white cursor-pointer"
-          >
-            ❓ TUTORIAL
-          </button>
-          <button 
-            onClick={handleExport}
-            className="px-2.5 py-1.5 rounded border border-[rgba(var(--accent-rgb),0.3)] bg-[rgba(var(--accent-rgb),0.05)] text-[var(--accent)] hover:bg-[rgba(var(--accent-rgb),0.1)] cursor-pointer"
-          >
-            📤 EXPORT CONFIG
-          </button>
-          <button 
-            onClick={() => setShowCmdPalette(true)}
-            className="px-2.5 py-1.5 rounded border border-white/5 hover:border-white/15 text-zinc-500 hover:text-white cursor-pointer hidden md:block"
-          >
-            ⌨️ Ctrl+K
-          </button>
-        </div>
-      </div>
-
-      {/* Main Layout Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] min-h-[580px] bg-black/10">
-        
-        {/* LEFT COLUMN: Sidebar Navigation Explorer */}
-        <div className="border-r border-[var(--grid-line)] bg-black/20 p-5 flex flex-col gap-6">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-mono text-[var(--text-dim)] uppercase tracking-wider">LABORATORY EXPERIMENTS</span>
-            <div className="flex flex-col gap-1 mt-1">
-              {labs.map((lab) => {
-                const isActive = activeTab === lab.id;
-                return (
-                  <button
-                    key={lab.id}
-                    onClick={() => { setActiveTab(lab.id); addLog(`Switched experiment context window target to: ${lab.name}`); }}
-                    className={`flex items-center gap-3 w-full py-2.5 px-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      isActive
-                        ? 'border-[rgba(var(--accent-rgb),0.2)] bg-[rgba(var(--accent-rgb),0.06)] text-white shadow-sm'
-                        : 'border-transparent text-zinc-500 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <span className="text-base">{lab.icon}</span>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-mono text-[var(--text-dim)] uppercase tracking-wider leading-none">{lab.category}</span>
-                      <span className="text-xs font-medium mt-1 leading-none">{lab.name}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick Presets */}
-          <div className="flex flex-col gap-2 mt-auto border-t border-white/5 pt-4">
-            <span className="text-[10px] font-mono text-[var(--text-dim)] uppercase tracking-wider">SIMULATION PRESETS</span>
-            <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
-              <button 
-                onClick={() => { setActiveTab('rag'); setLogs(['[SYSTEM] RAG Preset loaded: High Density.']); addLog('RAG High-Density preset loaded.'); }}
-                className="py-1.5 px-2 rounded border border-white/5 bg-white/5 hover:border-white/10 text-zinc-400 hover:text-white cursor-pointer"
-              >
-                High RAG
-              </button>
-              <button 
-                onClick={() => { setActiveTab('agent'); setLogs(['[SYSTEM] Agent Preset loaded: Critic Loop.']); addLog('Agent Critic Loop preset loaded.'); }}
-                className="py-1.5 px-2 rounded border border-white/5 bg-white/5 hover:border-white/10 text-zinc-400 hover:text-white cursor-pointer"
-              >
-                Critic Loop
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* CENTER COLUMN: Visualization Canvas */}
-        <div className="flex flex-col justify-between overflow-hidden relative min-h-[440px] lg:min-h-0 border-r lg:border-r-0 border-[var(--grid-line)]">
-          <div 
-            className="flex-1 p-6 lg:p-10 flex flex-col justify-center transition-all duration-300"
-            style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="w-full h-full flex flex-col"
-              >
-                {activeTab === 'agent' && <MultiAgentLab isPlaying={isPlaying} speed={speed} addLog={addLog} setMetrics={setMetrics} />}
-                {activeTab === 'rag' && <RAGLab isPlaying={isPlaying} speed={speed} addLog={addLog} setMetrics={setMetrics} />}
-                {activeTab === 'prompt' && <PromptLab isPlaying={isPlaying} speed={speed} addLog={addLog} setMetrics={setMetrics} />}
-                {activeTab === 'memory' && <MemoryLab isPlaying={isPlaying} speed={speed} addLog={addLog} setMetrics={setMetrics} />}
-                {activeTab === 'vector' && <VectorDatabaseLab isPlaying={isPlaying} speed={speed} addLog={addLog} setMetrics={setMetrics} />}
-                {activeTab === 'reasoning' && <ReasoningLab isPlaying={isPlaying} speed={speed} addLog={addLog} setMetrics={setMetrics} />}
-                {activeTab === 'tool' && <ToolCallingLab isPlaying={isPlaying} speed={speed} addLog={addLog} setMetrics={setMetrics} />}
-                {activeTab === 'monitor' && <MonitoringDashboard isPlaying={isPlaying} speed={speed} addLog={addLog} setMetrics={setMetrics} />}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Bottom Collapsible Terminal console logs */}
-          <div className="border-t border-[var(--grid-line)] bg-black/40 flex flex-col relative z-20">
-            <button 
-              onClick={() => setConsoleOpen(!consoleOpen)}
-              className="w-full py-2 px-6 flex justify-between items-center text-[10px] font-mono text-zinc-500 hover:text-white border-b border-white/5 cursor-pointer"
-            >
-              <span>AI CONSOLE TERMINAL</span>
-              <span>{consoleOpen ? '▼ COLLAPSE' : '▲ EXPAND'}</span>
-            </button>
-            <AnimatePresence>
-              {consoleOpen && (
-                <motion.div 
-                  initial={{ height: 0 }}
-                  animate={{ height: 120 }}
-                  exit={{ height: 0 }}
-                  className="w-full bg-[#030304] overflow-y-auto p-4 font-mono text-[10px] text-zinc-400 flex flex-col gap-1 border-b border-white/5"
-                >
-                  {logs.map((log, idx) => (
-                    <div key={idx} className="leading-relaxed whitespace-pre-wrap">
-                      <span className="text-zinc-600">&gt;</span> {log}
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: Live Inspector Metrics */}
-        <div className="border-l border-[var(--grid-line)] bg-black/20 p-5 flex flex-col gap-6 font-mono text-xs text-[var(--text-dim)]">
-          <div className="flex flex-col gap-4">
-            <span className="text-[10px] text-white font-semibold tracking-wider">LIVE INSPECTOR METRICS</span>
-            
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-between border-b border-white/5 pb-1">
-                <span>STATUS:</span>
-                <span className={`font-semibold ${metrics.status === 'RUNNING' ? 'text-[var(--accent)]' : 'text-zinc-500'}`}>{metrics.status}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 pb-1">
-                <span>LATENCY:</span>
-                <span className="text-white">{metrics.latency}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 pb-1">
-                <span>EXEC TIME:</span>
-                <span className="text-white">{metrics.executionTime}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 pb-1">
-                <span>CONFIDENCE:</span>
-                <span className="text-white">{metrics.confidence}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 pb-1">
-                <span>TOKENS:</span>
-                <span className="text-white">{metrics.tokens}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 pb-1">
-                <span>MEM ALLOC:</span>
-                <span className="text-white">{metrics.memory}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 pb-1">
-                <span>RUN COST:</span>
-                <span className="text-white">{metrics.cost}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/5 pb-1">
-                <span>REASON DEPTH:</span>
-                <span className="text-white">{metrics.depth}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick interactive hints explanation cards */}
-          <div className="border border-white/5 bg-white/5 rounded-xl p-4 mt-auto">
-            <div className="text-[9px] text-white font-semibold uppercase tracking-wider mb-2">
-              💡 CORE LEARNING DETAILS
-            </div>
-            <p className="text-[10px] text-zinc-400 font-light leading-relaxed">
-              {activeTab === 'agent' && 'Multi-Agent flows coordinate task plans sequentially. Critical loops confirm logical compliance to mitigate model bias.'}
-              {activeTab === 'rag' && 'Retrieval-Augmented Generation embeds text inputs and indexes similar keys, bypassing dynamic LLM context limits.'}
-              {activeTab === 'prompt' && 'Prompt engineering adjusts formatting frameworks and context window dimensions, altering output tokens.'}
-              {activeTab === 'memory' && 'Synaptic memory systems decay text layers over time, representing working and long-term cache memories.'}
-              {activeTab === 'vector' && 'Vector databases plot high-dimensional weights to cluster semantic coordinates, calculating similarities.'}
-              {activeTab === 'reasoning' && 'Logical reasoning structures plan code sub-tasks and reflection loops to construct exact solutions.'}
-              {activeTab === 'tool' && 'API Tool calling parses questions to select tool JSON payloads, returning live weather and calculation logs.'}
-              {activeTab === 'monitor' && 'DevOps systems track live GPU workloads, memory pools, and inference queues to resolve model spikes.'}
-            </p>
-          </div>
-        </div>
-
-      </div>
-
-      {/* COMMAND PALETTE POPUP MODAL (CTRL+K) */}
-      <AnimatePresence>
-        {showCmdPalette && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-[500px] bg-[#0c0c0e] border border-[var(--grid-line)] rounded-xl p-4 flex flex-col gap-3 shadow-2xl"
-            >
-              <div className="flex justify-between items-center text-xs font-mono text-[var(--text-dim)] border-b border-white/5 pb-2">
-                <span>COMMAND PALETTE SEARCH</span>
-                <button onClick={() => setShowCmdPalette(false)} className="hover:text-white cursor-pointer">✕ CLOSE</button>
-              </div>
-              <input 
-                type="text" 
-                placeholder="Search experiments, tools, models..." 
-                value={cmdSearch}
-                onChange={(e) => setCmdSearch(e.target.value)}
-                className="bg-black/50 border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-zinc-700 w-full"
-                autoFocus
-              />
-              <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
-                {labs
-                  .filter(lab => lab.name.toLowerCase().includes(cmdSearch.toLowerCase()))
-                  .map(lab => (
-                    <button
-                      key={lab.id}
-                      onClick={() => { setActiveTab(lab.id); setShowCmdPalette(false); addLog(`Switched experiment to: ${lab.name}`); }}
-                      className="w-full text-left py-2 px-3 hover:bg-white/5 rounded text-xs text-zinc-400 hover:text-white cursor-pointer flex justify-between"
-                    >
-                      <span>{lab.icon} {lab.name}</span>
-                      <span className="text-[9px] font-mono opacity-50 uppercase">{lab.category}</span>
-                    </button>
-                  ))}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* TUTORIAL ONBOARDING OVERLAY */}
-      <AnimatePresence>
-        {showTutorial && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-[450px] bg-[#0c0c0e] border border-[var(--grid-line)] rounded-2xl p-6 flex flex-col gap-4 shadow-2xl"
-            >
-              <div className="flex justify-between items-center text-xs font-mono text-[var(--text-dim)] border-b border-white/5 pb-2">
-                <span>LAB ONBOARDING TUTORIAL</span>
-                <button onClick={() => setShowTutorial(false)} className="hover:text-white cursor-pointer">✕ CLOSE</button>
-              </div>
-              <div className="flex flex-col gap-3 text-xs leading-relaxed text-zinc-300">
-                <p>Welcome to the **AI Systems Research Lab**! Here is how to navigate the developer tools:</p>
-                <ul className="list-disc pl-5 flex flex-col gap-1.5 font-light">
-                  <li>**Sidebar Navigation**: Explorer on the left selects between 8 real-time simulation targets.</li>
-                  <li>**Command Palette**: Press **Ctrl+K** or click the button to trigger search filters.</li>
-                  <li>**Interactive controls**: Center canvas parameters let you customize chunk indices, temperatures, weights, and run cycles.</li>
-                  <li>**Terminal console**: Collapsible pane logs debug operations and JSON payloads.</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => setShowTutorial(false)}
-                className="w-full py-2.5 rounded-lg text-xs font-mono uppercase bg-white text-black font-semibold hover:bg-gray-200 transition-colors mt-4 cursor-pointer"
-              >
-                Get Started
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-    </div>
-  );
-}
-
-/* ==========================================================================
-   LAB WIDGETS
-   ========================================================================== */
-
-// 1. MULTI-AGENT LAB
-function MultiAgentLab({ isPlaying, speed, addLog, setMetrics }: { isPlaying: boolean; speed: number; addLog: (m: string) => void; setMetrics: any }) {
-  const [activeStep, setActiveStep] = useState(0);
-  const steps = ['Planner', 'Retriever', 'Memory', 'Coder', 'Critic', 'Response'];
-
+  // Update countdown timer for rate limit reset
   useEffect(() => {
-    if (!isPlaying) {
-      setMetrics((prev: any) => ({ ...prev, status: 'STANDBY' }));
-      return;
-    }
-    setMetrics((prev: any) => ({ ...prev, status: 'RUNNING' }));
+    if (!resetTimestamp) return;
 
-    const interval = setInterval(() => {
-      setActiveStep((prev) => {
-        const next = (prev + 1) % steps.length;
-        addLog(`Agent [${steps[next]}] initialized task process.`);
-        setMetrics({
-          status: 'RUNNING',
-          latency: `${Math.floor(12 + Math.random() * 45)}ms`,
-          executionTime: `${(0.4 + Math.random() * 1.5).toFixed(1)}s`,
-          confidence: `${Math.floor(92 + Math.random() * 7)}%`,
-          tokens: `${Math.floor(250 + Math.random() * 400)}`,
-          memory: `${(4.1 + Math.random() * 2).toFixed(1)}MB`,
-          cost: `$0.00${Math.floor(10 + Math.random() * 15)}`,
-          depth: `${Math.floor(3 + Math.random() * 4)}`
-        });
-        return next;
-      });
-    }, 1600 / speed);
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const diff = resetTimestamp - now;
 
-    return () => clearInterval(interval);
-  }, [isPlaying, speed]);
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
-        <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Multi-Agent Workflow Simulation</h4>
-        <span className="text-[10px] font-mono text-[var(--accent)] uppercase">Status: {isPlaying ? 'ACTIVE' : 'IDLE'}</span>
-      </div>
-
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 py-8 relative">
-        {steps.map((step, idx) => {
-          const isActive = idx === activeStep && isPlaying;
-          return (
-            <div key={idx} className="flex flex-col items-center gap-2 w-full md:w-auto relative z-10">
-              <div 
-                className={`py-3 px-4 rounded-xl border text-center transition-all min-w-[90px] ${
-                  isActive 
-                    ? 'border-[var(--accent)] bg-[rgba(var(--accent-rgb),0.08)] text-white shadow-lg' 
-                    : 'border-white/5 bg-[#09090b]'
-                }`}
-              >
-                <div className="text-[8px] font-mono text-zinc-500">0{idx+1}</div>
-                <div className="text-xs font-medium mt-1">{step}</div>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Connections Line */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-white/5 z-0 hidden md:block" />
-      </div>
-    </div>
-  );
-}
-
-// 2. RAG LAB
-function RAGLab({ isPlaying, speed, addLog, setMetrics }: { isPlaying: boolean; speed: number; addLog: (m: string) => void; setMetrics: any }) {
-  const [topK, setTopK] = useState(3);
-  const [chunkSize, setChunkSize] = useState(256);
-  const [threshold, setThreshold] = useState(0.7);
-
-  const simulateSearch = () => {
-    addLog(`Searching indices with topK=${topK}, chunkSize=${chunkSize}, threshold=${threshold}`);
-    setMetrics({
-      status: 'RUNNING',
-      latency: `${Math.floor(10 + Math.random() * 30)}ms`,
-      executionTime: '0.6s',
-      confidence: '97%',
-      tokens: `${topK * chunkSize}`,
-      memory: '8.4MB',
-      cost: `$0.000${topK * 2}`,
-      depth: '2'
-    });
-  };
-
-  return (
-    <div className="flex flex-col gap-6">
-      <h4 className="text-sm font-semibold text-white uppercase tracking-wider">RAG Vector Retrieval Index</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex flex-col gap-4 font-mono text-xs">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between">
-              <span>TOP-K MATCHES:</span>
-              <span className="text-white">{topK}</span>
-            </div>
-            <input type="range" min="1" max="8" value={topK} onChange={(e) => setTopK(parseInt(e.target.value))} className="w-full accent-[var(--accent)]" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between">
-              <span>CHUNK SIZE (WORDS):</span>
-              <span className="text-white">{chunkSize}</span>
-            </div>
-            <input type="range" min="128" max="512" step="64" value={chunkSize} onChange={(e) => setChunkSize(parseInt(e.target.value))} className="w-full accent-[var(--accent)]" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between">
-              <span>SIMILARITY THRESHOLD:</span>
-              <span className="text-white">{threshold}</span>
-            </div>
-            <input type="range" min="0.5" max="0.9" step="0.05" value={threshold} onChange={(e) => setThreshold(parseFloat(e.target.value))} className="w-full accent-[var(--accent)]" />
-          </div>
-        </div>
-
-        <div className="border border-white/5 rounded-xl p-4 bg-black/40 flex flex-col justify-between">
-          <div className="text-[10px] font-mono text-zinc-500">RETRIEVED VECTOR LOGS</div>
-          <div className="text-[10px] font-mono text-zinc-400 mt-2">
-            &gt; Query weights loaded.<br />
-            &gt; Similarity threshold match resolved: {threshold}.<br />
-            &gt; Extracted {topK} matching chunks of size {chunkSize}.
-          </div>
-          <button onClick={simulateSearch} className="w-full py-2 bg-white text-black font-semibold rounded-lg mt-4 text-xs font-mono cursor-pointer">
-            QUERY RETRIEVER
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 3. PROMPT LAB
-function PromptLab({ isPlaying, speed, addLog, setMetrics }: { isPlaying: boolean; speed: number; addLog: (m: string) => void; setMetrics: any }) {
-  const [temp, setTemp] = useState(0.7);
-  const [topP, setTopP] = useState(0.9);
-  const [systemPrompt, setSystemPrompt] = useState('Write an optimized binary search tree in TypeScript.');
-  const [simRes, setSimRes] = useState('');
-
-  const simulateRun = () => {
-    addLog(`Running prompt compile with Temp=${temp}, TopP=${topP}`);
-    setSimRes('RESOLVING CHIP TARGETS...');
-    setTimeout(() => {
-      setSimRes(`class TreeNode {\n  value: number;\n  left: TreeNode | null = null;\n  right: TreeNode | null = null;\n  constructor(value: number) {\n    this.value = value;\n  }\n}`);
-      setMetrics({
-        status: 'SUCCESS',
-        latency: '82ms',
-        executionTime: '0.4s',
-        confidence: '99%',
-        tokens: '128',
-        memory: '2.5MB',
-        cost: '$0.0003',
-        depth: '1'
-      });
-    }, 600);
-  };
-
-  return (
-    <div className="flex flex-col gap-6">
-      <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Prompt Developer Console</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex flex-col gap-4 font-mono text-xs">
-          <div className="flex flex-col gap-1">
-            <span>SYSTEM CONSTRAINTS:</span>
-            <input type="text" value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value)} className="bg-black/50 border border-white/5 rounded-lg p-2.5 text-xs text-white" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between">
-              <span>TEMPERATURE:</span>
-              <span className="text-white">{temp}</span>
-            </div>
-            <input type="range" min="0.1" max="1.0" step="0.1" value={temp} onChange={(e) => setTemp(parseFloat(e.target.value))} className="w-full accent-[var(--accent)]" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between">
-              <span>TOP-P:</span>
-              <span className="text-white">{topP}</span>
-            </div>
-            <input type="range" min="0.1" max="1.0" step="0.1" value={topP} onChange={(e) => setTopP(parseFloat(e.target.value))} className="w-full accent-[var(--accent)]" />
-          </div>
-        </div>
-
-        <div className="border border-white/5 rounded-xl p-4 bg-black/40 flex flex-col justify-between">
-          <div className="text-[10px] font-mono text-zinc-500">SIMULATED RESPONSE OUTPUT</div>
-          <pre className="text-[10px] font-mono text-gray-300 overflow-x-auto mt-2 max-h-[120px] overflow-y-auto whitespace-pre-wrap">
-            {simRes || '> Set coefficients and run compilation.'}
-          </pre>
-          <button onClick={simulateRun} className="w-full py-2 bg-white text-black font-semibold rounded-lg mt-4 text-xs font-mono cursor-pointer">
-            RUN GENERATOR
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 4. SYNAPTIC MEMORY LAB
-function MemoryLab({ isPlaying, speed, addLog, setMetrics }: { isPlaying: boolean; speed: number; addLog: (m: string) => void; setMetrics: any }) {
-  const [memories, setMemories] = useState(['Configuration logs cached', 'Embedding indexes mapped', 'User profile parameters saved']);
-  const [newMem, setNewMem] = useState('');
-
-  const insertMemory = () => {
-    if (!newMem.trim()) return;
-    setMemories([newMem, ...memories]);
-    addLog(`Memory saved to stack: "${newMem}"`);
-    setNewMem('');
-    setMetrics((prev: any) => ({ ...prev, depth: `${memories.length + 1}` }));
-  };
-
-  return (
-    <div className="flex flex-col gap-6">
-      <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Memory Allocation Stacks</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex flex-col gap-3 max-h-[180px] overflow-y-auto border border-white/5 p-4 rounded-xl bg-black/30">
-          {memories.map((m, idx) => (
-            <div key={idx} className="flex justify-between items-center py-2 px-3 border border-white/5 rounded bg-black/50 text-xs">
-              <span className="font-mono">{m}</span>
-              <span className="text-[8px] font-mono text-[var(--accent)]">ACTIVE</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="border border-white/5 rounded-xl p-4 bg-black/40 flex flex-col justify-between">
-          <div className="flex flex-col gap-2">
-            <span className="text-[10px] font-mono text-zinc-500">INSERT KEY-VALUE</span>
-            <input type="text" value={newMem} onChange={(e) => setNewMem(e.target.value)} placeholder="e.g. Server connection established" className="bg-black/50 border border-white/5 rounded-lg p-2 text-xs text-white" />
-          </div>
-          <button onClick={insertMemory} className="w-full py-2 bg-white text-black font-semibold rounded-lg mt-4 text-xs font-mono cursor-pointer">
-            COMMIT TO STACK
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 5. VECTOR DATABASE LAB
-function VectorDatabaseLab({ isPlaying, speed, addLog, setMetrics }: { isPlaying: boolean; speed: number; addLog: (m: string) => void; setMetrics: any }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animId: number;
-    const points = Array.from({ length: 80 }).map(() => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4
-    }));
-
-    const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(255,255,255,0.1)';
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-
-      // Draw connection bounds
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
-        p.x += p.vx * speed;
-        p.y += p.vy * speed;
-
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,102,255,0.6)';
-        ctx.fill();
-
-        for (let j = i + 1; j < points.length; j++) {
-          const p2 = points[j];
-          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if (dist < 40) {
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-          }
-        }
+      if (diff <= 0) {
+        setResetCountdown('');
+        setRemainingRequests(2);
+        clearInterval(timer);
+      } else {
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        setResetCountdown(`${minutes}m ${seconds}s`);
       }
+    }, 1000);
 
-      animId = requestAnimationFrame(render);
+    return () => clearInterval(timer);
+  }, [resetTimestamp]);
+
+  const saveChats = (updatedChats: Chat[]) => {
+    setChats(updatedChats);
+    localStorage.setItem('engineering_playground_chats', JSON.stringify(updatedChats));
+  };
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const activeChat = chats.find((c) => c.id === activeChatId) || null;
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [activeChat?.messages, isGenerating, scrollToBottom]);
+
+  const handleNewChat = () => {
+    const newId = `chat-${Date.now()}`;
+    const newChat: Chat = {
+      id: newId,
+      title: `Chat ${chats.length + 1}`,
+      messages: [],
+      model: selectedModel,
+      temperature,
+      createdAt: Date.now(),
+    };
+    saveChats([newChat, ...chats]);
+    setActiveChatId(newId);
+  };
+
+  const handleDeleteChat = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const filtered = chats.filter((c) => c.id !== id);
+    saveChats(filtered);
+    if (activeChatId === id) {
+      setActiveChatId(filtered.length > 0 ? filtered[0].id : null);
+    }
+  };
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsGenerating(false);
+    }
+  };
+
+  const isLimitExhausted = remainingRequests <= 0;
+
+  const handleSendMessage = async (textToSend?: string) => {
+    const text = (textToSend || inputMessage).trim();
+    if (!text || !activeChatId || isGenerating) return;
+    if (isLimitExhausted) return;
+
+    setInputMessage('');
+    const userMessage: Message = {
+      id: `m-usr-${Date.now()}`,
+      role: 'user',
+      content: text,
+      timestamp: Date.now(),
     };
 
-    render();
-    return () => cancelAnimationFrame(animId);
-  }, [speed]);
+    const currentChat = chats.find((c) => c.id === activeChatId);
+    if (!currentChat) return;
 
-  return (
-    <div className="flex flex-col gap-4">
-      <h4 className="text-sm font-semibold text-white uppercase tracking-wider">High-Dimensional Vector Clusters</h4>
-      <div className="border border-white/5 rounded-xl bg-black/40 p-4 flex justify-center items-center">
-        <canvas ref={canvasRef} width={450} height={200} className="w-full max-w-[450px] h-auto" />
-      </div>
-    </div>
-  );
-}
+    const originalMessages = [...currentChat.messages];
+    const updatedMessages = [...originalMessages, userMessage];
 
-// 6. REASONING LAB
-function ReasoningLab({ isPlaying, speed, addLog, setMetrics }: { isPlaying: boolean; speed: number; addLog: (m: string) => void; setMetrics: any }) {
-  const [activeStep, setActiveStep] = useState(0);
-  const steps = ['Planning targets', 'Evaluate sub-tasks', 'Logic reflection', 'Verification checks'];
+    const tempChats = chats.map((c) =>
+      c.id === activeChatId ? { ...c, messages: updatedMessages } : c
+    );
+    setChats(tempChats);
 
-  useEffect(() => {
-    if (!isPlaying) return;
+    setIsGenerating(true);
+    setLatency(null);
+    setExecTime(null);
+    setTokensEstimated(null);
 
-    const interval = setInterval(() => {
-      setActiveStep((prev) => {
-        const next = (prev + 1) % steps.length;
-        addLog(`Reasoning: executed constraint step [${steps[next]}]`);
-        setMetrics((prevMetrics: any) => ({
-          ...prevMetrics,
-          latency: `${Math.floor(20 + Math.random() * 30)}ms`,
-          confidence: `${Math.floor(94 + Math.random() * 5)}%`,
-          depth: `${next + 1}`
-        }));
-        return next;
+    const startTime = Date.now();
+    let firstTokenReceived = false;
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const assistantMessageId = `m-ast-${Date.now()}`;
+    const newAssistantMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
+
+    const finalMessages = [...updatedMessages, newAssistantMessage];
+    setChats(
+      chats.map((c) =>
+        c.id === activeChatId ? { ...c, messages: finalMessages } : c
+      )
+    );
+
+    try {
+      const response = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
+          model: selectedModel,
+          temperature,
+        }),
+        signal: controller.signal,
       });
-    }, 1500 / speed);
 
-    return () => clearInterval(interval);
-  }, [isPlaying, speed]);
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(errorJson.message || errorJson.error || 'Server stream failed');
+      }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Multi-Step Logical Reflection Graph</h4>
-      <div className="flex flex-col gap-3 pl-4 border-l border-white/5">
-        {steps.map((step, idx) => {
-          const isActive = idx === activeStep && isPlaying;
-          return (
-            <div key={idx} className="flex items-center gap-3">
-              <span className={`w-2.5 h-2.5 rounded-full border ${isActive ? 'border-[var(--accent)] bg-black animate-pulse' : 'border-zinc-800 bg-zinc-950'}`} />
-              <span className={`text-xs font-mono ${isActive ? 'text-white' : 'text-zinc-500'}`}>{step}</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('Response body reader could not be acquired');
 
-// 7. TOOL CALLING LAB
-function ToolCallingLab({ isPlaying, speed, addLog, setMetrics }: { isPlaying: boolean; speed: number; addLog: (m: string) => void; setMetrics: any }) {
-  const [activeNode, setActiveNode] = useState(0);
-  const nodes = ['Planner', 'Database API', 'Calculator', 'Weather API', 'Response'];
+      const decoder = new TextDecoder();
+      let streamedContent = '';
 
-  useEffect(() => {
-    if (!isPlaying) return;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-    const interval = setInterval(() => {
-      setActiveNode((prev) => {
-        const next = (prev + 1) % nodes.length;
-        addLog(`Dispatched parameters to tool: [${nodes[next]}]`);
-        setMetrics((prevMetrics: any) => ({
-          ...prevMetrics,
-          latency: `${Math.floor(15 + Math.random() * 40)}ms`,
-          tokens: `${Math.floor(100 + Math.random() * 200)}`
-        }));
-        return next;
-      });
-    }, 1400 / speed);
+        const chunk = decoder.decode(value, { stream: true });
+        streamedContent += chunk;
 
-    return () => clearInterval(interval);
-  }, [isPlaying, speed]);
+        if (!firstTokenReceived) {
+          firstTokenReceived = true;
+          setLatency(Date.now() - startTime);
+        }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Parallel Tool Calling Execution</h4>
-      <div className="flex justify-between items-center gap-2 py-4 border border-white/5 rounded-xl p-4 bg-black/20">
-        {nodes.map((node, idx) => {
-          const isActive = idx === activeNode && isPlaying;
-          return (
-            <span key={idx} className={`py-1.5 px-3 rounded text-[10px] font-mono border ${isActive ? 'border-[var(--accent)] bg-[rgba(var(--accent-rgb),0.05)] text-white' : 'border-white/5 text-zinc-500'}`}>
-              {node}
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+        setChats(
+          tempChats.map((c) =>
+            c.id === activeChatId
+              ? {
+                  ...c,
+                  messages: [
+                    ...updatedMessages,
+                    { ...newAssistantMessage, content: streamedContent },
+                  ],
+                }
+              : c
+          )
+        );
+      }
 
-// 8. MONITORING DASHBOARD
-function MonitoringDashboard({ isPlaying, speed, addLog, setMetrics }: { isPlaying: boolean; speed: number; addLog: (m: string) => void; setMetrics: any }) {
-  const [vals, setVals] = useState({ gpu: '0%', vram: '0.0GB', queue: '0' });
+      const totalTime = Date.now() - startTime;
+      setExecTime(totalTime);
+      setTokensEstimated(Math.floor((text.length + streamedContent.length) / 4));
 
-  useEffect(() => {
-    if (!isPlaying) {
-      setVals({ gpu: '0%', vram: '0.0GB', queue: '0' });
-      return;
+      const finalChatList = chats.map((c) =>
+        c.id === activeChatId
+          ? {
+              ...c,
+              messages: [
+                ...updatedMessages,
+                { ...newAssistantMessage, content: streamedContent },
+              ],
+              model: selectedModel,
+              temperature,
+            }
+          : c
+      );
+      saveChats(finalChatList);
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.log('Stream generation aborted by user.');
+      } else {
+        console.error('Streaming request error:', err);
+        setChats(
+          tempChats.map((c) =>
+            c.id === activeChatId
+              ? {
+                  ...c,
+                  messages: [
+                    ...updatedMessages,
+                    {
+                      ...newAssistantMessage,
+                      content: `❌ Error: ${err.message || 'Stream connection failed. Server error.'}`,
+                    },
+                  ],
+                }
+              : c
+          )
+        );
+      }
+    } finally {
+      setIsGenerating(false);
+      abortControllerRef.current = null;
+      await updateRateLimitStatus();
     }
+  };
 
-    const interval = setInterval(() => {
-      const gpu = `${Math.floor(40 + Math.random() * 45)}%`;
-      const vram = `${(8.4 + Math.random() * 4).toFixed(1)}GB`;
-      const queue = `${Math.floor(Math.random() * 5)}`;
-      setVals({ gpu, vram, queue });
-
-      setMetrics((prev: any) => ({
-        ...prev,
-        latency: `${Math.floor(12 + Math.random() * 15)}ms`,
-        memory: vram
-      }));
-    }, 1200 / speed);
-
-    return () => clearInterval(interval);
-  }, [isPlaying, speed]);
+  const handleUsePrompt = (promptText: string) => {
+    setInputMessage(promptText);
+  };
 
   return (
-    <div className="flex flex-col gap-6">
-      <h4 className="text-sm font-semibold text-white uppercase tracking-wider">DevOps Systems Dashboard</h4>
-      <div className="grid grid-cols-3 gap-4 font-mono text-center">
-        <div className="border border-white/5 rounded-xl p-4 bg-black/40">
-          <div className="text-[8px] text-zinc-500 uppercase">GPU Load</div>
-          <div className="text-xl text-white font-semibold mt-1">{vals.gpu}</div>
+    <div className="w-full bg-[#050506] border border-white/5 rounded-2xl overflow-hidden backdrop-blur-md relative font-sans text-white shadow-2xl flex flex-col md:grid md:grid-cols-[240px_1fr_240px] min-h-[640px] max-h-[800px] h-[75vh]">
+      
+      {/* ── LEFT SIDEBAR ── */}
+      <AnimatePresence initial={false}>
+        {showLeftSidebar && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 240, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            className="border-r border-white/5 bg-black/40 flex flex-col justify-between overflow-y-auto"
+          >
+            <div className="p-4 flex flex-col gap-4">
+              <button
+                onClick={handleNewChat}
+                className="w-full border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-white rounded-lg py-2 px-3 font-mono text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              >
+                <span>+</span> New Chat
+              </button>
+
+              <div className="flex flex-col gap-1 mt-2">
+                <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase px-2 mb-2 block">
+                  Recent Conversations
+                </span>
+                <div className="flex flex-col gap-1 max-h-[160px] overflow-y-auto pr-1">
+                  {chats.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setActiveChatId(c.id)}
+                      className={`w-full text-left py-2 px-2.5 rounded-lg text-xs font-mono flex items-center justify-between cursor-pointer transition-colors ${
+                        activeChatId === c.id
+                          ? 'bg-white/[0.04] text-white'
+                          : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.01]'
+                      }`}
+                    >
+                      <span className="truncate pr-2">{c.title}</span>
+                      {chats.length > 1 && (
+                        <span
+                          onClick={(e) => handleDeleteChat(c.id, e)}
+                          className="text-[9px] text-zinc-600 hover:text-red-400 px-1.5"
+                        >
+                          ✕
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Prompt Library */}
+              <div className="flex flex-col gap-1 mt-4">
+                <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase px-2 mb-2 block">
+                  Prompt Library
+                </span>
+                <div className="flex flex-col gap-2">
+                  {PROMPT_LIBRARY.map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleUsePrompt(item.prompt)}
+                      className="w-full text-left p-2 rounded-lg border border-white/[0.02] bg-white/[0.01] hover:border-white/5 hover:bg-white/[0.03] transition-all cursor-pointer flex flex-col gap-0.5"
+                    >
+                      <span className="text-[10px] font-semibold text-zinc-300">{item.title}</span>
+                      <span className="text-[8px] text-zinc-500 line-clamp-1">{item.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Provider Badges */}
+            <div className="p-4 border-t border-white/5 bg-black/60 flex flex-col gap-2 select-none font-mono text-[9px] text-zinc-500">
+              <span className="uppercase tracking-widest text-[8px] mb-1">Powered by API</span>
+              <div className="flex items-center gap-2">
+                <div className="px-2 py-1 rounded bg-[#0d0d12] border border-white/[0.04] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <span>GEMINI</span>
+                </div>
+                <div className="px-2 py-1 rounded bg-[#0d0d12] border border-white/[0.04] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  <span>GROQ</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── CENTER CHAT INTERFACE ── */}
+      <div className="flex flex-col justify-between h-full bg-[#050506]/40 overflow-hidden">
+        {/* Chat Header */}
+        <div className="w-full border-b border-white/5 bg-black/20 py-2.5 px-4 flex justify-between items-center text-[10px] font-mono text-zinc-500">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowLeftSidebar(!showLeftSidebar)}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              ☰
+            </button>
+            <span>AI CORE LAB / CHAT</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-[9px] text-[var(--accent)] font-medium">
+              REQUESTS REMAINING: {remainingRequests} / 2
+            </span>
+            <button
+              onClick={() => setShowRightSidebar(!showRightSidebar)}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              ⚙
+            </button>
+          </div>
         </div>
-        <div className="border border-white/5 rounded-xl p-4 bg-black/40">
-          <div className="text-[8px] text-zinc-500 uppercase">VRAM Alloc</div>
-          <div className="text-xl text-white font-semibold mt-1">{vals.vram}</div>
+
+        {/* Message logs */}
+        <div
+          ref={chatParentRef}
+          className="flex-1 overflow-y-auto p-6 flex flex-col gap-6"
+        >
+          {activeChat && activeChat.messages.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center gap-4 py-16">
+              <span className="text-2xl opacity-30">💬</span>
+              <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                Start a conversation by typing below...
+              </p>
+            </div>
+          ) : (
+            activeChat?.messages.map((m) => (
+              <div
+                key={m.id}
+                className={`flex flex-col gap-1.5 max-w-[85%] ${
+                  m.role === 'user' ? 'align-self-end items-end ml-auto' : 'align-self-start'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-[9px] font-mono tracking-widest text-zinc-500 uppercase">
+                  <span>{m.role}</span>
+                </div>
+                <div
+                  className={`rounded-2xl px-5 py-4 border shadow-sm ${
+                    m.role === 'user'
+                      ? 'bg-white/[0.03] border-white/5 text-white'
+                      : 'bg-[#09090b]/60 border-white/[0.04] text-zinc-100'
+                  }`}
+                >
+                  <MarkdownRenderer content={m.content} />
+                </div>
+              </div>
+            ))
+          )}
+
+          {isGenerating && activeChat?.messages.slice(-1)[0]?.content === '' && (
+            <div className="flex flex-col gap-1.5 align-self-start">
+              <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase">
+                Assistant
+              </span>
+              <div className="rounded-2xl px-5 py-4 border border-white/[0.04] bg-[#09090b]/60 text-zinc-500 font-mono text-xs flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 animate-ping" />
+                <span>THINKING...</span>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
-        <div className="border border-white/5 rounded-xl p-4 bg-black/40">
-          <div className="text-[8px] text-zinc-500 uppercase">Embedding Queue</div>
-          <div className="text-xl text-white font-semibold mt-1">{vals.queue}</div>
+
+        {/* Input panel / Rate Limit exhaustion overlay */}
+        <div className="p-4 border-t border-white/5 bg-black/40 flex flex-col gap-3">
+          {isLimitExhausted ? (
+            <div className="border border-white/5 bg-white/[0.01] rounded-xl p-5 text-center flex flex-col gap-2 font-mono text-xs select-none">
+              <span className="text-zinc-500 uppercase tracking-widest text-[10px] font-bold">
+                Playground Limit Reached
+              </span>
+              <p className="text-zinc-400 font-sans text-xs font-light max-w-[350px] mx-auto leading-relaxed mt-1">
+                You have used your 2 complimentary AI requests. The Playground resets every hour.
+              </p>
+              <div className="mt-2 text-[10px] text-[var(--accent)] font-semibold uppercase tracking-wider">
+                Next reset in: {resetCountdown || 'Calculating...'}
+              </div>
+            </div>
+          ) : (
+            <>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
+                }}
+                className="relative flex items-center bg-[#070709] border border-white/5 rounded-xl overflow-hidden focus-within:border-white/10 transition-colors"
+              >
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder={
+                    isGenerating ? 'Assistant is streaming...' : 'Ask about architecture, code optimization...'
+                  }
+                  disabled={isGenerating}
+                  className="w-full bg-transparent p-3.5 pr-20 text-xs text-white placeholder:text-zinc-600 focus:outline-none"
+                />
+                <div className="absolute right-2 flex items-center gap-1.5">
+                  {isGenerating ? (
+                    <button
+                      type="button"
+                      onClick={handleStopGeneration}
+                      className="bg-red-550 border border-red-500/20 text-white rounded-lg px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider hover:bg-red-500 transition-colors cursor-pointer"
+                    >
+                      Stop
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={!inputMessage.trim()}
+                      className="bg-white hover:bg-zinc-200 text-black disabled:opacity-30 disabled:hover:bg-white rounded-lg px-4 py-1.5 font-mono text-[10px] uppercase font-bold tracking-wider transition-all cursor-pointer"
+                    >
+                      Send
+                    </button>
+                  )}
+                </div>
+              </form>
+              <div className="flex justify-between items-center text-[8px] font-mono text-zinc-600 tracking-wider">
+                <span>SECURE PROXIED PIPELINE</span>
+                <span>PRESS ENTER TO SUBMIT</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
+
+      {/* ── RIGHT SIDEBAR ── */}
+      <AnimatePresence initial={false}>
+        {showRightSidebar && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 240, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            className="border-l border-white/5 bg-black/40 flex flex-col justify-between p-4 overflow-y-auto"
+          >
+            <div className="flex flex-col gap-6">
+              <div>
+                <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase mb-3 block">
+                  Model Selector
+                </span>
+                <div className="flex flex-col gap-2">
+                  <select
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    className="w-full bg-[#0c0c0e] border border-white/10 rounded-lg p-2.5 font-mono text-xs text-white focus:outline-none cursor-pointer"
+                  >
+                    {MODELS.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[9px] text-zinc-500 leading-normal font-sans font-light">
+                    {MODELS.find((m) => m.id === selectedModel)?.desc}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase mb-3 block">
+                  Hyperparameters
+                </span>
+                <div className="flex flex-col gap-2 font-mono text-[10px]">
+                  <div className="flex justify-between items-center text-zinc-400">
+                    <span>TEMPERATURE</span>
+                    <span className="text-white">{temperature.toFixed(1)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="1.0"
+                    step="0.1"
+                    value={temperature}
+                    onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                    className="w-full accent-white"
+                  />
+                  <div className="flex justify-between text-[8px] text-zinc-600">
+                    <span>DETERMINISTIC</span>
+                    <span>CREATIVE</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase mb-3 block">
+                  Stream Telemetry
+                </span>
+                <div className="flex flex-col gap-2.5 font-mono text-[10px] bg-white/[0.01] border border-white/[0.04] p-3 rounded-lg">
+                  <div className="flex justify-between text-zinc-500">
+                    <span>PROVIDER</span>
+                    <span className="text-zinc-300">
+                      {selectedModel.startsWith('gemini') ? 'Google' : 'Groq'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-zinc-500">
+                    <span>LATENCY (TTFT)</span>
+                    <span className="text-zinc-300">{latency ? `${latency}ms` : '—'}</span>
+                  </div>
+                  <div className="flex justify-between text-zinc-500">
+                    <span>EXECUTION TIME</span>
+                    <span className="text-zinc-300">{execTime ? `${(execTime / 1000).toFixed(2)}s` : '—'}</span>
+                  </div>
+                  <div className="flex justify-between text-zinc-500">
+                    <span>TOKENS (EST)</span>
+                    <span className="text-zinc-300">{tokensEstimated ?? '—'}</span>
+                  </div>
+                  <div className="flex justify-between text-zinc-500">
+                    <span>CONTEXT USED</span>
+                    <span className="text-zinc-300">
+                      {activeChat ? activeChat.messages.length : 0} turns
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-4 border-t border-white/5 bg-black/20">
+              <button
+                onClick={() => {
+                  if (!activeChat) return;
+                  const dataStr = JSON.stringify(activeChat, null, 2);
+                  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                  const exportFileDefaultName = `chat-${activeChat.id}.json`;
+                  const linkElement = document.createElement('a');
+                  linkElement.setAttribute('href', dataUri);
+                  linkElement.setAttribute('download', exportFileDefaultName);
+                  linkElement.click();
+                }}
+                className="w-full border border-white/5 hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] text-zinc-400 hover:text-white rounded-lg py-2 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors"
+              >
+                Export JSON
+              </button>
+              <button
+                onClick={() => {
+                  if (activeChatId) {
+                    saveChats(chats.map((c) => (c.id === activeChatId ? { ...c, messages: [] } : c)));
+                  }
+                }}
+                className="w-full border border-white/5 hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] text-zinc-400 hover:text-white rounded-lg py-2 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors"
+              >
+                Clear History
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
