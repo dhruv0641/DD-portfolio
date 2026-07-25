@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, memo, useCallback } from 'react';
+import React, { useEffect, useState, memo, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface Toast {
@@ -11,6 +11,8 @@ interface Toast {
 
 export const AntiCopy = memo(function AntiCopy() {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [unlocked, setUnlocked] = useState(false);
+  const keySequenceRef = useRef<string[]>([]);
 
   // Function to spawn a premium glass toast
   const showToast = useCallback((message: string, type: 'copy' | 'rightclick' | 'devtools') => {
@@ -19,7 +21,7 @@ export const AntiCopy = memo(function AntiCopy() {
 
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 2000);
+    }, 2500);
   }, []);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export const AntiCopy = memo(function AntiCopy() {
 
     // 1. Block Context Menu (Right Click)
     const handleContextMenu = (e: MouseEvent) => {
+      if (unlocked) return; // Permitted if dev mode unlocked
       const target = e.target as HTMLElement;
       if (isInteractive(target)) return;
 
@@ -43,6 +46,7 @@ export const AntiCopy = memo(function AntiCopy() {
 
     // 2. Block Copy / Cut Events
     const handleCopyCut = (e: ClipboardEvent) => {
+      if (unlocked) return; // Permitted if dev mode unlocked
       const target = e.target as HTMLElement;
       if (isInteractive(target)) return;
 
@@ -52,6 +56,7 @@ export const AntiCopy = memo(function AntiCopy() {
 
     // 3. Block Drag Events (Text and Image drag)
     const handleDragStart = (e: DragEvent) => {
+      if (unlocked) return; // Permitted if dev mode unlocked
       const target = e.target as HTMLElement;
       if (isInteractive(target)) return;
 
@@ -59,10 +64,37 @@ export const AntiCopy = memo(function AntiCopy() {
       e.preventDefault();
     };
 
-    // 4. Block Keyboard Shortcuts
+    // 4. Block Keyboard Shortcuts & Handle Dev Unlock sequence
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const isInput = isInteractive(target);
+
+      // Listen for "dev" or "unlock" secret code sequence on active viewport key presses
+      if (!isInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const key = e.key.toLowerCase();
+        if (/^[a-z]$/.test(key)) {
+          keySequenceRef.current.push(key);
+          // Bound historical key sequence length to 6 characters
+          if (keySequenceRef.current.length > 6) {
+            keySequenceRef.current.shift();
+          }
+          const currentStr = keySequenceRef.current.join('');
+          if (currentStr.endsWith('dev') || currentStr.endsWith('unlock')) {
+            setUnlocked((prev) => {
+              const nextState = !prev;
+              showToast(
+                nextState ? 'DEVELOPER MODE UNLOCKED. PROTECTION BYPASSED.' : 'DEVELOPER MODE LOCKED. PROTECTION ACTIVE.',
+                'devtools'
+              );
+              return nextState;
+            });
+            keySequenceRef.current = [];
+            return;
+          }
+        }
+      }
+
+      if (unlocked) return; // Bypass blocker if dev mode is active
 
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
@@ -123,7 +155,7 @@ export const AntiCopy = memo(function AntiCopy() {
       window.removeEventListener('dragstart', handleDragStart);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showToast]);
+  }, [showToast, unlocked]); // Add unlocked state dependency to update listener bindings
 
   return (
     <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2.5 pointer-events-none max-w-sm">

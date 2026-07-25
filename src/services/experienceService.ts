@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { fallbackExperience } from '@/lib/fallbackData';
 
 export interface ExperienceData {
   id?: string;
@@ -12,25 +13,30 @@ export interface ExperienceData {
 
 export const experienceService = {
   async getExperience(): Promise<ExperienceData[]> {
-    const { data, error } = await supabase
-      .from('experience')
-      .select('*')
-      .eq('status', 'active')
-      .order('position', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('experience')
+        .select('*')
+        .eq('status', 'active')
+        .order('position', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching experiences:', error);
-      return [];
+      if (error || !data || data.length === 0) {
+        console.warn('Error fetching experience, using fallback data:', error);
+        return fallbackExperience;
+      }
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        role: row.role,
+        company: row.company,
+        location: row.location,
+        timeline: row.timeline,
+        description: row.description,
+        position: row.position,
+      }));
+    } catch (err) {
+      console.warn('Network error in experienceService.getExperience, using fallback:', err);
+      return fallbackExperience;
     }
-
-    return (data || []).map((row) => ({
-      id: row.id,
-      role: row.role,
-      company: row.company,
-      location: row.location,
-      timeline: row.timeline,
-      description: row.description,
-      position: row.position,
-    }));
   },
 };

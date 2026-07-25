@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { fallbackSkills } from '@/lib/fallbackData';
 
 export interface SkillItem {
   id: string;
@@ -14,58 +15,66 @@ export interface SkillCategory {
 
 export const skillService = {
   async getSkillsWithCategories(): Promise<SkillCategory[]> {
-    // 1. Fetch categories
-    const { data: categories, error: catError } = await supabase
-      .from('skill_categories')
-      .select('*')
-      .eq('status', 'active')
-      .order('position', { ascending: true });
+    try {
+      // 1. Fetch categories
+      const { data: categories, error: catError } = await supabase
+        .from('skill_categories')
+        .select('*')
+        .eq('status', 'active')
+        .order('position', { ascending: true });
 
-    if (catError) {
-      console.error('Error fetching categories:', catError);
-      return [];
+      if (catError || !categories || categories.length === 0) {
+        console.warn('Error fetching skill categories, using fallback data:', catError);
+        return fallbackSkills;
+      }
+
+      // 2. Fetch skills
+      const { data: skills, error: skillError } = await supabase
+        .from('skills')
+        .select('*')
+        .eq('status', 'active')
+        .order('position', { ascending: true });
+
+      if (skillError) {
+        console.warn('Error fetching skills, using fallback data:', skillError);
+        return fallbackSkills;
+      }
+
+      // 3. Map categories to their child skills
+      return (categories || []).map((cat) => {
+        const childSkills = (skills || [])
+          .filter((skill) => skill.category_id === cat.id)
+          .map((s) => ({
+            id: s.id,
+            name: s.name,
+            proficiency: s.proficiency,
+          }));
+
+        return {
+          id: cat.id,
+          name: cat.name,
+          skills: childSkills,
+        };
+      });
+    } catch (err) {
+      console.warn('Network error in skillService.getSkillsWithCategories, using fallback:', err);
+      return fallbackSkills;
     }
-
-    // 2. Fetch skills
-    const { data: skills, error: skillError } = await supabase
-      .from('skills')
-      .select('*')
-      .eq('status', 'active')
-      .order('position', { ascending: true });
-
-    if (skillError) {
-      console.error('Error fetching skills:', skillError);
-      return [];
-    }
-
-    // 3. Map categories to their child skills
-    return (categories || []).map((cat) => {
-      const childSkills = (skills || [])
-        .filter((skill) => skill.category_id === cat.id)
-        .map((s) => ({
-          id: s.id,
-          name: s.name,
-          proficiency: s.proficiency,
-        }));
-
-      return {
-        id: cat.id,
-        name: cat.name,
-        skills: childSkills,
-      };
-    });
   },
 
   async getCategories(): Promise<any[]> {
-    const { data, error } = await supabase
-      .from('skill_categories')
-      .select('*')
-      .eq('status', 'active')
-      .order('position', { ascending: true });
-    if (error) {
-      console.error('Error fetching categories:', error);
-      return [];
+    try {
+      const { data, error } = await supabase
+        .from('skill_categories')
+        .select('*')
+        .eq('status', 'active')
+        .order('position', { ascending: true });
+      if (error || !data || data.length === 0) {
+        return fallbackSkills.map(c => ({ id: c.id, name: c.name, status: 'active', position: 0 }));
+      }
+      return data || [];
+    } catch (err) {
+      return fallbackSkills.map(c => ({ id: c.id, name: c.name, status: 'active', position: 0 }));
     }
-    return data || [];
   },
 };

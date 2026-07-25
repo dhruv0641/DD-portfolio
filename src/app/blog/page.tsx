@@ -2,6 +2,8 @@ import React from 'react';
 import { blogService } from '@/services/blogService';
 import Link from 'next/link';
 
+export const revalidate = 3600; // Cache for 1 hour, ISR
+
 export default async function BlogIndex() {
   const dbPosts = await blogService.getBlogPosts(false);
 

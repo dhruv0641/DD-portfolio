@@ -17,7 +17,7 @@ import { educationService } from '@/services/educationService';
 import { testimonialService } from '@/services/testimonialService';
 import { coreService } from '@/services/coreService';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache for 1 hour, ISR
 
 export default async function Page() {
   // 1. Fetch Dynamic Data from Supabase Services

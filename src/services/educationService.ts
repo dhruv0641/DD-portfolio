@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { fallbackEducation } from '@/lib/fallbackData';
 
 export interface EducationData {
   id?: string;
@@ -12,25 +13,30 @@ export interface EducationData {
 
 export const educationService = {
   async getEducation(): Promise<EducationData[]> {
-    const { data, error } = await supabase
-      .from('education')
-      .select('*')
-      .eq('status', 'active')
-      .order('position', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('education')
+        .select('*')
+        .eq('status', 'active')
+        .order('position', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching education records:', error);
-      return [];
+      if (error || !data || data.length === 0) {
+        console.warn('Error fetching education records, using fallback data:', error);
+        return fallbackEducation;
+      }
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        degree: row.degree,
+        institution: row.institution,
+        location: row.location,
+        timeline: row.timeline,
+        description: row.description,
+        position: row.position,
+      }));
+    } catch (err) {
+      console.warn('Network error in educationService.getEducation, using fallback:', err);
+      return fallbackEducation;
     }
-
-    return (data || []).map((row) => ({
-      id: row.id,
-      degree: row.degree,
-      institution: row.institution,
-      location: row.location,
-      timeline: row.timeline,
-      description: row.description,
-      position: row.position,
-    }));
   },
 };

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { fallbackServices } from '@/lib/fallbackData';
 
 export interface ServiceData {
   id?: string;
@@ -11,28 +12,33 @@ export interface ServiceData {
 
 export const coreService = {
   async getServices(includeInactive = false): Promise<ServiceData[]> {
-    let query = supabase
-      .from('services')
-      .select('*')
-      .order('position', { ascending: true });
+    try {
+      let query = supabase
+        .from('services')
+        .select('*')
+        .order('position', { ascending: true });
 
-    if (!includeInactive) {
-      query = query.eq('status', 'active');
+      if (!includeInactive) {
+        query = query.eq('status', 'active');
+      }
+
+      const { data, error } = await query;
+      if (error || !data || data.length === 0) {
+        console.warn('Error fetching services, using fallback data:', error);
+        return fallbackServices;
+      }
+
+      return (data || []).map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        icon: row.icon,
+        position: row.position,
+        status: row.status,
+      }));
+    } catch (err) {
+      console.warn('Network error in coreService.getServices, using fallback:', err);
+      return fallbackServices;
     }
-
-    const { data, error } = await query;
-    if (error) {
-      console.error('Error fetching core services:', error);
-      return [];
-    }
-
-    return (data || []).map(row => ({
-      id: row.id,
-      name: row.name,
-      description: row.description,
-      icon: row.icon,
-      position: row.position,
-      status: row.status,
-    }));
   },
 };

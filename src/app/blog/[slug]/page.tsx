@@ -2,34 +2,40 @@ import React from 'react';
 import { blogService } from '@/services/blogService';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { marked } from 'marked';
+
+export const revalidate = 3600; // Cache for 1 hour, ISR
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateStaticParams() {
+  const posts = await blogService.getBlogPosts(false);
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
 function renderMarkdown(md: string) {
-  let html = md
-    .replace(/^## (.*$)/gim, '<h3 class="text-2xl font-light mt-12 mb-6 text-white tracking-tight">$1</h3>')
-    .replace(/^# (.*$)/gim, '<h2 class="text-3xl font-light mt-16 mb-8 text-white tracking-tight">$1</h2>')
-    .replace(/^### (.*$)/gim, '<h4 class="text-xl font-medium mt-8 mb-4 text-white">$1</h4>');
+  // Use spec-compliant marked compiler
+  let html = marked.parse(md) as string;
 
-  html = html
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
-    .replace(/\*(.*?)\*/g, '<span class="serif-italic text-white">$1</span>');
-
-  html = html.replace(/```python([\s\S]*?)```/g, (_, code) => {
+  // Post-process to map custom styling matching the design tokens
+  html = html.replace(/<pre><code class="language-python">([\s\S]*?)<\/code><\/pre>/g, (_, code) => {
     return `<div class="code-display my-8 rounded-xl overflow-hidden border border-[rgba(255,255,255,0.05)] bg-[#0d0d10]"><div class="code-header flex gap-1.5 px-4 py-3 border-b border-[rgba(255,255,255,0.05)] items-center"><div class="w-2 h-2 rounded-full bg-[#ff5f56]"></div><div class="w-2 h-2 rounded-full bg-[#ffbd2e]"></div><div class="w-2 h-2 rounded-full bg-[#27c93f]"></div><div class="ml-4 font-mono text-[10px] text-gray-500">execution.py</div></div><pre class="p-6 text-xs text-gray-300 overflow-x-auto font-mono"><code>${code.trim()}</code></pre></div>`;
   });
-  
-  html = html.replace(/```typescript([\s\S]*?)```/g, (_, code) => {
+
+  html = html.replace(/<pre><code class="language-typescript">([\s\S]*?)<\/code><\/pre>/g, (_, code) => {
     return `<div class="code-display my-8 rounded-xl overflow-hidden border border-[rgba(255,255,255,0.05)] bg-[#0d0d10]"><div class="code-header flex gap-1.5 px-4 py-3 border-b border-[rgba(255,255,255,0.05)] items-center"><div class="w-2 h-2 rounded-full bg-[#ff5f56]"></div><div class="w-2 h-2 rounded-full bg-[#ffbd2e]"></div><div class="w-2 h-2 rounded-full bg-[#27c93f]"></div><div class="ml-4 font-mono text-[10px] text-gray-500">execution.ts</div></div><pre class="p-6 text-xs text-gray-300 overflow-x-auto font-mono"><code>${code.trim()}</code></pre></div>`;
   });
 
-  html = html.split('\n\n').map(p => {
-    const trimmed = p.trim();
-    if (trimmed.startsWith('<h') || trimmed.startsWith('<div') || trimmed.startsWith('<ul')) return p;
-    return `<p class="text-[var(--text-muted)] leading-[1.8] font-light mb-8 text-base md:text-lg">${p}</p>`;
-  }).join('\n');
+  // Apply custom classes to standard layout elements
+  html = html.replace(/<p>/g, '<p class="text-[var(--text-muted)] leading-[1.8] font-light mb-8 text-base md:text-lg">');
+  html = html.replace(/<h2>/g, '<h2 class="text-3xl font-light mt-16 mb-8 text-white tracking-tight">');
+  html = html.replace(/<h3>/g, '<h3 class="text-2xl font-light mt-12 mb-6 text-white tracking-tight">');
+  html = html.replace(/<h4>/g, '<h4 class="text-xl font-medium mt-8 mb-4 text-white">');
+  html = html.replace(/<li>/g, '<li class="text-[var(--text-muted)] font-light leading-[1.6] mb-2">');
 
   return { __html: html };
 }
@@ -37,7 +43,6 @@ function renderMarkdown(md: string) {
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
 
-  // Query individual blog entry via Supabase
   const post = await blogService.getPostBySlug(slug);
   if (!post || post.isDraft === 1) {
     notFound();

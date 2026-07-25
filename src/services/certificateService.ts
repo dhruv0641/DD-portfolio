@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { fallbackCertificates } from '@/lib/fallbackData';
 
 export interface CertificateData {
   id?: string;
@@ -13,26 +14,31 @@ export interface CertificateData {
 
 export const certificateService = {
   async getCertificates(): Promise<CertificateData[]> {
-    const { data, error } = await supabase
-      .from('certificates')
-      .select('*')
-      .eq('status', 'active')
-      .order('position', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('certificates')
+        .select('*')
+        .eq('status', 'active')
+        .order('position', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching certificates:', error);
-      return [];
+      if (error || !data || data.length === 0) {
+        console.warn('Error fetching certificates, using fallback data:', error);
+        return fallbackCertificates;
+      }
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        title: row.title,
+        issuer: row.issuer,
+        timeline: row.timeline,
+        score: row.score,
+        suffix: row.suffix,
+        description: row.description,
+        position: row.position,
+      }));
+    } catch (err) {
+      console.warn('Network error in certificateService.getCertificates, using fallback:', err);
+      return fallbackCertificates;
     }
-
-    return (data || []).map((row) => ({
-      id: row.id,
-      title: row.title,
-      issuer: row.issuer,
-      timeline: row.timeline,
-      score: row.score,
-      suffix: row.suffix,
-      description: row.description,
-      position: row.position,
-    }));
   },
 };
