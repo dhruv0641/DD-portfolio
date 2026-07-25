@@ -23,7 +23,7 @@ export const coreService = {
       }
 
       const { data, error } = await query;
-      if (error || !data || data.length === 0) {
+      if (error || !data) {
         console.warn('Error fetching services, using fallback data:', error);
         return fallbackServices;
       }

@@ -20,7 +20,7 @@ export const educationService = {
         .eq('status', 'active')
         .order('position', { ascending: true });
 
-      if (error || !data || data.length === 0) {
+      if (error || !data) {
         console.warn('Error fetching education records, using fallback data:', error);
         return fallbackEducation;
       }

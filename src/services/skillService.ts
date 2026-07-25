@@ -23,7 +23,7 @@ export const skillService = {
         .eq('status', 'active')
         .order('position', { ascending: true });
 
-      if (catError || !categories || categories.length === 0) {
+      if (catError || !categories) {
         console.warn('Error fetching skill categories, using fallback data:', catError);
         return fallbackSkills;
       }
@@ -69,7 +69,7 @@ export const skillService = {
         .select('*')
         .eq('status', 'active')
         .order('position', { ascending: true });
-      if (error || !data || data.length === 0) {
+      if (error || !data) {
         return fallbackSkills.map(c => ({ id: c.id, name: c.name, status: 'active', position: 0 }));
       }
       return data || [];
