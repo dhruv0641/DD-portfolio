@@ -71,28 +71,6 @@
   }
 }
 
-/* Background column grid lines */
-.grid-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -2;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  padding: 0 8%;
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-.grid-bg-line {
-  border-right: 1px solid var(--grid-line);
-  height: 100%;
-}
-
-.grid-bg-line:first-child {
-  border-left: 1px solid var(--grid-line);
-}
-
 /* Typography styles */
 .serif-italic {
   font-family: var(--font-serif);

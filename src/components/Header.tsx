@@ -21,7 +21,6 @@ const NAV_ITEMS: NavItem[] = [
   { name: 'Case Study', href: '/#case',     sectionId: 'case',     isPage: false },
   { name: 'Process',    href: '/#thinking', sectionId: 'thinking', isPage: false },
   { name: 'Contact',    href: '/#build',    sectionId: 'build',    isPage: false },
-  { name: 'Playground', href: '/playground', sectionId: null,      isPage: true  },
 ];
 
 const SECTION_IDS = ['identity', 'work', 'case', 'thinking', 'build'];
@@ -303,9 +302,7 @@ export default function Header({ name }: { name: string }) {
   useEffect(() => {
     if (scrollLockRef.current) return;
 
-    if (pathname === '/playground') {
-      setActiveHref('/playground');
-    } else if (pathname.startsWith('/blog')) {
+    if (pathname.startsWith('/blog')) {
       setActiveHref('/blog');
     } else if (pathname === '/') {
       const activeItem = NAV_ITEMS.find((item) => item.sectionId === activeSection);
@@ -353,9 +350,7 @@ export default function Header({ name }: { name: string }) {
 
   // ── Active state synchronization for standalone routes ──
   useEffect(() => {
-    if (pathname === '/playground') {
-      setActiveSection('playground');
-    } else if (pathname.startsWith('/blog')) {
+    if (pathname.startsWith('/blog')) {
       setActiveSection('blog');
     } else if (pathname === '/') {
       // Handled dynamically by IntersectionObserver
@@ -477,7 +472,6 @@ export default function Header({ name }: { name: string }) {
             >
               {NAV_ITEMS.map((item) => {
                 const isActive = getIsActive(item);
-                const isPlayground = item.href === '/playground';
 
                 return (
                   <MagneticEffect key={item.href}>
@@ -497,12 +491,6 @@ export default function Header({ name }: { name: string }) {
                           className="absolute inset-0 bg-white/[0.05] border border-white/[0.08] rounded-full z-[-1]"
                           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                         />
-                      )}
-                      {isPlayground && (
-                        <span className="relative flex h-1.5 w-1.5 ml-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent)]" />
-                        </span>
                       )}
                     </Link>
                   </MagneticEffect>
