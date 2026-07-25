@@ -21,7 +21,7 @@ export const certificateService = {
         .eq('status', 'active')
         .order('position', { ascending: true });
 
-      if (error || !data || data.length === 0) {
+      if (error || !data) {
         console.warn('Error fetching certificates, using fallback data:', error);
         return fallbackCertificates;
       }

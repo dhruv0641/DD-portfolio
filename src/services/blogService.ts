@@ -15,7 +15,7 @@ export const blogService = {
       }
 
       const { data, error } = await query;
-      if (error || !data || data.length === 0) {
+      if (error || !data) {
         console.warn('Error fetching blog posts, using fallback data:', error);
         return fallbackBlogs;
       }

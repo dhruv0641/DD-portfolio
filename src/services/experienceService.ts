@@ -20,7 +20,7 @@ export const experienceService = {
         .eq('status', 'active')
         .order('position', { ascending: true });
 
-      if (error || !data || data.length === 0) {
+      if (error || !data) {
         console.warn('Error fetching experience, using fallback data:', error);
         return fallbackExperience;
       }
