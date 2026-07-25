@@ -1,5 +1,4 @@
-import { supabase, getSupabaseAdmin } from '@/lib/supabase';
-import { SettingUpdateItem } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 export const settingsService = {
   async getSettings(): Promise<Record<string, string>> {
@@ -31,21 +30,5 @@ export const settingsService = {
     }
 
     return data || [];
-  },
-
-  async saveSettings(settingsList: SettingUpdateItem[]): Promise<{ success: boolean; error?: string }> {
-    try {
-      const admin = getSupabaseAdmin();
-      for (const item of settingsList) {
-        const { error } = await admin
-          .from('site_settings')
-          .update({ value: item.value, updated_at: new Date().toISOString() })
-          .eq('key', item.key);
-        if (error) throw error;
-      }
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to update settings.' };
-    }
   },
 };

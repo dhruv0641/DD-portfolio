@@ -1,6 +1,6 @@
 import { db } from './index';
 import * as schema from './schema';
-import { hashPassword } from '../lib/auth';
+import bcrypt from 'bcryptjs';
 
 async function main() {
   console.log('Seeding SQLite database...');
@@ -19,7 +19,8 @@ async function main() {
   await db.delete(schema.users);
   console.log('✔ Cleared existing admin users');
 
-  const passwordHash = await hashPassword(adminPassword);
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(adminPassword, salt);
   await db.insert(schema.users).values({
     username: adminUsername,
     passwordHash,

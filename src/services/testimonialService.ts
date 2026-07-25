@@ -1,4 +1,4 @@
-import { supabase, getSupabaseAdmin } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export interface TestimonialData {
   id?: string;
@@ -38,46 +38,5 @@ export const testimonialService = {
       position: row.position,
       status: row.status,
     }));
-  },
-
-  async saveTestimonial(data: Partial<TestimonialData>): Promise<{ success: boolean; error?: string }> {
-    try {
-      const payload = {
-        client_name: data.clientName,
-        client_role: data.clientRole,
-        client_company: data.clientCompany,
-        text: data.text,
-        avatar_url: data.avatarUrl,
-        position: data.position || 0,
-        status: data.status || 'active',
-        updated_at: new Date().toISOString(),
-      };
-
-      const admin = getSupabaseAdmin();
-      let res;
-      if (data.id) {
-        res = await admin.from('testimonials').update(payload).eq('id', data.id);
-      } else {
-        res = await admin.from('testimonials').insert([payload]);
-      }
-
-      if (res.error) {
-        return { success: false, error: res.error.message };
-      }
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to save testimonial.' };
-    }
-  },
-
-  async deleteTestimonial(id: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      const admin = getSupabaseAdmin();
-      const { error } = await admin.from('testimonials').delete().eq('id', id);
-      if (error) return { success: false, error: error.message };
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to delete testimonial.' };
-    }
   },
 };
