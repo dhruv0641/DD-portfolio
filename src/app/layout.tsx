@@ -3,8 +3,6 @@ import { Plus_Jakarta_Sans, Instrument_Serif, JetBrains_Mono } from 'next/font/g
 import ThemeProvider from '@/components/ThemeProvider';
 import { ThemeConfig } from '@/types';
 import LenisProvider from '@/components/LenisProvider';
-import LightProbe from '@/components/LightProbe';
-import Link from 'next/link';
 import { settingsService } from '@/services/settingsService';
 import BackgroundLayer from '@/components/BackgroundLayer';
 import Header from '@/components/Header';
@@ -106,7 +104,7 @@ export default async function RootLayout({
       lang="en"
       className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} scroll-smooth`}
     >
-      <body className="bg-[var(--bg)] text-[var(--text)] font-sans antialiased overflow-x-hidden relative min-h-screen">
+      <body className="bg-[#090909] text-[var(--text)] font-sans antialiased relative min-h-screen">
         <ThemeProvider initialSettings={mergedSettings}>
           <LenisProvider>
             <BackgroundLayer />
@@ -118,7 +116,7 @@ export default async function RootLayout({
             <AntiCopy />
 
             {/* Central Children Page Wrapper */}
-            <main className="w-full relative z-10">{children}</main>
+            <main className="w-full relative z-10 bg-transparent">{children}</main>
 
             {/* Platform Main Footer */}
             <Footer
