@@ -1,4 +1,4 @@
-import { supabase, getSupabaseAdmin } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { BlogPostData } from '@/types';
 
 export const blogService = {
@@ -58,44 +58,5 @@ export const blogService = {
       readingTime: data.reading_time,
       excerpt: data.excerpt,
     } as BlogPostData;
-  },
-
-  async saveBlogPost(post: Partial<BlogPostData>): Promise<{ success: boolean; error?: string }> {
-    try {
-      const payload = {
-        title: post.title,
-        slug: post.slug,
-        content_markdown: post.contentMarkdown,
-        categories: Array.isArray(post.categories) ? post.categories : JSON.parse(post.categories || '[]'),
-        tags: Array.isArray(post.tags) ? post.tags : JSON.parse(post.tags || '[]'),
-        is_draft: post.isDraft === 1 || post.isDraft === true,
-        published_at: (post.isDraft === 1 || post.isDraft === true) ? null : new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const admin = getSupabaseAdmin();
-      let res;
-      if (post.id) {
-        res = await admin.from('blogs').update(payload).eq('id', post.id);
-      } else {
-        res = await admin.from('blogs').insert([payload]);
-      }
-
-      if (res.error) {
-        return { success: false, error: res.error.message };
-      }
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to save blog post.' };
-    }
-  },
-
-  async deleteBlogPost(id: string): Promise<{ success: boolean; error?: string }> {
-    const admin = getSupabaseAdmin();
-    const { error } = await admin.from('blogs').delete().eq('id', id);
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    return { success: true };
   },
 };

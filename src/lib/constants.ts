@@ -9,14 +9,6 @@ export const PUBLIC_NAV_LINKS = [
   { href: '/#build', label: 'Build' },
 ] as const;
 
-export const ADMIN_NAV_LINKS = [
-  { href: '/admin/dashboard', label: 'Dashboard' },
-  { href: '/admin/projects', label: 'Projects CMS' },
-  { href: '/admin/blog', label: 'Writing CMS' },
-  { href: '/admin/messages', label: 'Leads & Messages' },
-  { href: '/admin/settings', label: 'System Settings' },
-] as const;
-
 export const DEFAULT_THEME_CONFIG = {
   themeMode: 'dark',
   colorBg: '#090909',

@@ -1,4 +1,4 @@
-import { supabase, getSupabaseAdmin } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export interface ActivityLog {
   id?: string;
@@ -11,21 +11,6 @@ export interface ActivityLog {
 }
 
 export const activityService = {
-  async getLogs(limit = 100, offset = 0): Promise<ActivityLog[]> {
-    const { data, error } = await supabase
-      .from('activity_logs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      console.error('Error fetching activity logs:', error);
-      return [];
-    }
-
-    return data || [];
-  },
-
   async logEvent(log: ActivityLog): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase.from('activity_logs').insert([log]);

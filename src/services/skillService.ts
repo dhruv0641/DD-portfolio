@@ -1,4 +1,4 @@
-import { supabase, getSupabaseAdmin } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export interface SkillItem {
   id: string;
@@ -56,43 +56,6 @@ export const skillService = {
     });
   },
 
-  async saveSkill(skill: any): Promise<{ success: boolean; error?: string }> {
-    try {
-      const payload = {
-        category_id: skill.categoryId,
-        name: skill.name,
-        proficiency: skill.proficiency,
-        position: skill.position || 0,
-        updated_at: new Date().toISOString(),
-      };
-
-      const admin = getSupabaseAdmin();
-      let res;
-      if (skill.id) {
-        res = await admin.from('skills').update(payload).eq('id', skill.id);
-      } else {
-        res = await admin.from('skills').insert([payload]);
-      }
-      if (res.error) {
-        return { success: false, error: res.error.message };
-      }
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to save skill.' };
-    }
-  },
-
-  async deleteSkill(id: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      const admin = getSupabaseAdmin();
-      const { error } = await admin.from('skills').delete().eq('id', id);
-      if (error) return { success: false, error: error.message };
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to delete skill.' };
-    }
-  },
-
   async getCategories(): Promise<any[]> {
     const { data, error } = await supabase
       .from('skill_categories')
@@ -104,42 +67,5 @@ export const skillService = {
       return [];
     }
     return data || [];
-  },
-
-  async saveCategory(category: any): Promise<{ success: boolean; id?: string; error?: string }> {
-    try {
-      const payload = {
-        name: category.name,
-        position: category.position || 0,
-        updated_at: new Date().toISOString(),
-      };
-
-      const admin = getSupabaseAdmin();
-      let res;
-      if (category.id) {
-        res = await admin.from('skill_categories').update(payload).eq('id', category.id);
-      } else {
-        res = await admin.from('skill_categories').insert([payload]).select();
-      }
-
-      if (res.error) {
-        return { success: false, error: res.error.message };
-      }
-      const savedId = !category.id && res.data ? res.data[0]?.id : category.id;
-      return { success: true, id: savedId };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to save category.' };
-    }
-  },
-
-  async deleteCategory(id: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      const admin = getSupabaseAdmin();
-      const { error } = await admin.from('skill_categories').delete().eq('id', id);
-      if (error) return { success: false, error: error.message };
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'Failed to delete category.' };
-    }
   },
 };
