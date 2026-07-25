@@ -31,44 +31,21 @@ export default function BackgroundLayer() {
     };
     mediaQuery.addEventListener('change', handleQueryChange);
 
-    let targetX = -1000;
-    let targetY = -1000;
-    let currentX = -1000;
-    let currentY = -1000;
-    let isTracking = false;
-    let frameId: number;
-
-    const tick = () => {
-      const dx = targetX - currentX;
-      const dy = targetY - currentY;
-
-      if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
-        currentX = targetX;
-        currentY = targetY;
-        if (glowRef.current) {
-          glowRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
-        }
-        isTracking = false;
-        return;
-      }
-
-      currentX += dx * 0.08;
-      currentY += dy * 0.08;
-
-      if (glowRef.current) {
-        glowRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
-      }
-
-      frameId = requestAnimationFrame(tick);
-    };
+    let rafId: number | null = null;
+    let mx = -9999;
+    let my = -9999;
 
     const handleMouseMove = (e: MouseEvent) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
+      mx = e.clientX;
+      my = e.clientY;
 
-      if (!isTracking) {
-        isTracking = true;
-        frameId = requestAnimationFrame(tick);
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          if (glowRef.current) {
+            glowRef.current.style.transform = `translate3d(${mx}px, ${my}px, 0) translate(-50%, -50%)`;
+          }
+          rafId = null;
+        });
       }
     };
 
@@ -79,7 +56,9 @@ export default function BackgroundLayer() {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       mediaQuery.removeEventListener('change', handleQueryChange);
-      cancelAnimationFrame(frameId);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
     };
   }, [isTouchDevice, prefersReducedMotion]);
 
