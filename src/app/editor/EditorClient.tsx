@@ -637,7 +637,7 @@ export default function EditorClient({
         <div className="bg-[#111115]/80 border border-white/5 shadow-2xl rounded-xl p-8 backdrop-blur-xl max-w-3xl">
           <h3 className="text-lg font-light mb-6 text-white tracking-tight">Global Configurations</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div>
+            <div className="md:col-span-2">
               <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Availability Status</label>
               <input 
                 type="text" 
@@ -645,35 +645,6 @@ export default function EditorClient({
                 onChange={(e) => setSettings({ ...settings, status: e.target.value })}
                 className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none"
               />
-            </div>
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Accent Color (Hex)</label>
-              <input 
-                type="text" 
-                value={settings.colorAccent || ''} 
-                onChange={(e) => setSettings({ ...settings, colorAccent: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Accent Color RGB Values</label>
-              <input 
-                type="text" 
-                value={settings.colorAccentRgb || ''} 
-                onChange={(e) => setSettings({ ...settings, colorAccentRgb: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Visual Noise Overlay (1=On, 0=Off)</label>
-              <select 
-                value={settings.showNoise || '1'} 
-                onChange={(e) => setSettings({ ...settings, showNoise: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none"
-              >
-                <option value="1">Enabled</option>
-                <option value="0">Disabled</option>
-              </select>
             </div>
           </div>
           <button 
