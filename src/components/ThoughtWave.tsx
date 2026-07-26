@@ -17,6 +17,7 @@ export default function ThoughtWave() {
     if (!ctx) return;
 
     let animFrameId: number;
+    let isVisible = false;
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -25,16 +26,28 @@ export default function ThoughtWave() {
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     };
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
     resize();
 
     let step = 0;
+    let scrollY = 0;
+
+    const handleScroll = () => {
+      scrollY = window.scrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     const render = () => {
+      if (!isVisible) return;
+
       const w = canvas.width / window.devicePixelRatio;
       const h = canvas.height / window.devicePixelRatio;
 
       ctx.clearRect(0, 0, w, h);
+
+      // Dampen wave amplitude as the user scrolls down from the Hero section
+      const scrollFactor = Math.max(0.15, 1 - Math.min(scrollY / 800, 0.85));
 
       // Draw primary neural wave (adapting color variables)
       ctx.lineWidth = 1.2;
@@ -42,7 +55,7 @@ export default function ThoughtWave() {
       ctx.beginPath();
       for (let i = 0; i <= w; i++) {
         const x = i;
-        const y = h / 2 + Math.sin(i * 0.007 + step) * 45 * Math.sin(i * 0.002 + step * 0.5);
+        const y = h / 2 + Math.sin(i * 0.007 + step) * 45 * scrollFactor * Math.sin(i * 0.002 + step * 0.5);
         if (i === 0) {
           ctx.moveTo(x, y);
         } else {
@@ -57,7 +70,7 @@ export default function ThoughtWave() {
       ctx.lineWidth = 0.8;
       for (let i = 0; i <= w; i++) {
         const x = i;
-        const y = h / 2.2 + Math.sin(i * 0.009 - step * 0.8) * 30 * Math.cos(i * 0.003 + step * 0.4);
+        const y = h / 2.2 + Math.sin(i * 0.009 - step * 0.8) * 30 * scrollFactor * Math.cos(i * 0.003 + step * 0.4);
         if (i === 0) {
           ctx.moveTo(x, y);
         } else {
@@ -66,14 +79,35 @@ export default function ThoughtWave() {
       }
       ctx.stroke();
 
-      step += 0.004;
+      // Slightly increase wave frequency/speed as the user scrolls
+      step += 0.004 + (scrollY * 0.000005);
       animFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    // Use IntersectionObserver to pause the animation loop when scrolled offscreen
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const wasVisible = isVisible;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !wasVisible) {
+          // Restart loop
+          animFrameId = requestAnimationFrame(render);
+        }
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(canvas);
+
+    // Initial loop launch if visible
+    if (isVisible) {
+      animFrameId = requestAnimationFrame(render);
+    }
 
     return () => {
       window.removeEventListener('resize', resize);
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
       cancelAnimationFrame(animFrameId);
     };
   }, [settings.thoughtWave, settings.reduceMotion, settings.themeMode]);

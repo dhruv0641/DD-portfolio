@@ -2,20 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export interface ThemeConfig {
-  themeMode: string;
-  colorBg: string;
-  colorSurface: string;
-  colorText: string;
-  colorTextMuted: string;
-  colorAccent: string;
-  colorAccentRgb: string;
-  radius: string;
-  showNoise: string;
-  reduceMotion: string;
-  cursorAura: string;
-  thoughtWave: string;
-}
+import { ThemeConfig } from '@/types';
 
 const ThemeContext = createContext<{
   settings: ThemeConfig;

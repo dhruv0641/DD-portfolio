@@ -77,6 +77,4 @@ export const analyticsEvents = sqliteTable('analytics_events', {
   referrer: text('referrer'),
   device: text('device'),
   country: text('country'),
-  browser: text('browser'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
