@@ -45,7 +45,12 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
 
-  if (pathname.startsWith('/editor')) return null;
+  if (
+    pathname.startsWith('/editor') || 
+    (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))
+  ) {
+    return null;
+  }
 
   const handleBackToTop = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
