@@ -1,6 +1,13 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
+import ThoughtWave from '@/components/ThoughtWave';
+import AIPipelineViz from '@/components/AIPipelineViz';
+import Certifications from '@/components/Certifications';
+import CoreBeliefs from '@/components/CoreBeliefs';
+import ArchitectureStory from '@/components/ArchitectureStory';
+import SocialCards from '@/components/SocialCards';
+import Link from 'next/link';
 import { 
   saveSettingsAction, 
   saveProfileAction, 
@@ -25,7 +32,7 @@ import {
   initializeDatabaseAction
 } from './actions';
 
-type Tab = 'settings' | 'profile' | 'projects' | 'blogs' | 'skills' | 'testimonials' | 'services' | 'experience' | 'education' | 'certificates' | 'seo';
+type ModalType = 'profile' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo';
 
 interface EditorClientProps {
   initialSettings: Record<string, string>;
@@ -56,7 +63,7 @@ export default function EditorClient({
   initialCertificates,
   initialSeo,
 }: EditorClientProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('settings');
+  const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; success: boolean } | null>(null);
 
@@ -76,34 +83,36 @@ export default function EditorClient({
     });
   };
 
-  // --- TAB 1: SETTINGS STATES & SAVER ---
+  // --- SETTINGS (Availability, etc.) ---
   const [settings, setSettings] = useState(initialSettings);
   const handleSaveSettings = () => {
     startTransition(async () => {
       const payload = Object.entries(settings).map(([key, value]) => ({ key, value }));
       const res = await saveSettingsAction(payload);
       if (res.success) {
-        triggerToast('Settings updated successfully!', true);
+        triggerToast('Availability settings updated!', true);
       } else {
         triggerToast(res.error || 'Failed to update settings.', false);
       }
     });
   };
 
-  // --- TAB 2: PROFILE STATES & SAVER ---
+  // --- PROFILE ---
   const [profile, setProfile] = useState(initialProfile);
   const handleSaveProfile = () => {
     startTransition(async () => {
       const res = await saveProfileAction(profile);
       if (res.success) {
-        triggerToast('Profile updated successfully!', true);
+        triggerToast('Profile info updated successfully!', true);
+        setActiveModal(null);
+        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to update profile.', false);
       }
     });
   };
 
-  // --- TAB 3: PROJECTS STATES & CRUD ---
+  // --- PROJECTS ---
   const [projects, setProjects] = useState(initialProjects);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [projectForm, setProjectForm] = useState({
@@ -183,6 +192,7 @@ export default function EditorClient({
       const res = await saveProjectAction(projectForm);
       if (res.success) {
         triggerToast('Project saved successfully!', true);
+        setActiveModal(null);
         window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save project.', false);
@@ -190,12 +200,14 @@ export default function EditorClient({
     });
   };
 
-  const handleDeleteProject = () => {
-    if (!projectForm.id || !confirm('Are you sure you want to delete this project?')) return;
+  const handleDeleteProject = (projId?: string) => {
+    const id = projId || projectForm.id;
+    if (!id || !confirm('Are you sure you want to delete this project?')) return;
     startTransition(async () => {
-      const res = await deleteProjectAction(projectForm.id);
+      const res = await deleteProjectAction(id);
       if (res.success) {
         triggerToast('Project deleted successfully!', true);
+        setActiveModal(null);
         window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to delete project.', false);
@@ -203,7 +215,7 @@ export default function EditorClient({
     });
   };
 
-  // --- TAB 4: BLOGS STATES & CRUD ---
+  // --- BLOGS ---
   const [blogs, setBlogs] = useState(initialBlogs);
   const [selectedBlog, setSelectedBlog] = useState<any | null>(null);
   const [blogForm, setBlogForm] = useState({
@@ -253,6 +265,7 @@ export default function EditorClient({
       const res = await saveBlogAction(blogForm);
       if (res.success) {
         triggerToast('Blog post saved successfully!', true);
+        setActiveModal(null);
         window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save blog post.', false);
@@ -260,12 +273,14 @@ export default function EditorClient({
     });
   };
 
-  const handleDeleteBlog = () => {
-    if (!blogForm.id || !confirm('Are you sure you want to delete this blog post?')) return;
+  const handleDeleteBlog = (blogId?: string) => {
+    const id = blogId || blogForm.id;
+    if (!id || !confirm('Are you sure you want to delete this blog post?')) return;
     startTransition(async () => {
-      const res = await deleteBlogAction(blogForm.id);
+      const res = await deleteBlogAction(id);
       if (res.success) {
         triggerToast('Blog post deleted successfully!', true);
+        setActiveModal(null);
         window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to delete blog post.', false);
@@ -273,7 +288,7 @@ export default function EditorClient({
     });
   };
 
-  // --- TAB 5: SKILLS STATES & CRUD ---
+  // --- SKILLS ---
   const [skills, setSkills] = useState(initialSkills);
   const [skillForm, setSkillForm] = useState({
     id: '',
@@ -282,6 +297,16 @@ export default function EditorClient({
     categoryId: skillCategories[0]?.id || '',
     position: '0',
   });
+
+  const handleNewSkill = () => {
+    setSkillForm({
+      id: '',
+      name: '',
+      proficiency: '80',
+      categoryId: skillCategories[0]?.id || '',
+      position: '0',
+    });
+  };
 
   const handleSaveSkill = () => {
     startTransition(async () => {
@@ -308,7 +333,7 @@ export default function EditorClient({
     });
   };
 
-  // --- TAB 6: TESTIMONIALS STATES & CRUD ---
+  // --- TESTIMONIALS ---
   const [testimonials, setTestimonials] = useState(initialTestimonials);
   const [testimonialForm, setTestimonialForm] = useState({
     id: '',
@@ -320,11 +345,36 @@ export default function EditorClient({
     position: '0',
   });
 
+  const handleNewTestimonial = () => {
+    setTestimonialForm({
+      id: '',
+      clientName: '',
+      clientRole: '',
+      clientCompany: '',
+      text: '',
+      avatarUrl: '',
+      position: '0',
+    });
+  };
+
+  const handleEditTestimonial = (t: any) => {
+    setTestimonialForm({
+      id: t.id,
+      clientName: t.clientName || '',
+      clientRole: t.clientRole || '',
+      clientCompany: t.clientCompany || '',
+      text: t.text || '',
+      avatarUrl: t.avatarUrl || '',
+      position: String(t.position || '0'),
+    });
+  };
+
   const handleSaveTestimonial = () => {
     startTransition(async () => {
       const res = await saveTestimonialAction(testimonialForm);
       if (res.success) {
         triggerToast('Testimonial saved successfully!', true);
+        setActiveModal(null);
         window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save testimonial.', false);
@@ -345,19 +395,7 @@ export default function EditorClient({
     });
   };
 
-  const handleEditTestimonial = (t: any) => {
-    setTestimonialForm({
-      id: t.id,
-      clientName: t.clientName || '',
-      clientRole: t.clientRole || '',
-      clientCompany: t.clientCompany || '',
-      text: t.text || '',
-      avatarUrl: t.avatarUrl || '',
-      position: String(t.position || '0'),
-    });
-  };
-
-  // --- TAB 7: SERVICES STATES & CRUD ---
+  // --- SERVICES ---
   const [services, setServices] = useState(initialServices);
   const [serviceForm, setServiceForm] = useState({
     id: '',
@@ -367,11 +405,32 @@ export default function EditorClient({
     position: '0',
   });
 
+  const handleNewService = () => {
+    setServiceForm({
+      id: '',
+      name: '',
+      description: '',
+      icon: 'CodeXml',
+      position: '0',
+    });
+  };
+
+  const handleEditService = (s: any) => {
+    setServiceForm({
+      id: s.id,
+      name: s.name || '',
+      description: s.description || '',
+      icon: s.icon || 'CodeXml',
+      position: String(s.position || '0'),
+    });
+  };
+
   const handleSaveService = () => {
     startTransition(async () => {
       const res = await saveServiceAction(serviceForm);
       if (res.success) {
         triggerToast('Service saved successfully!', true);
+        setActiveModal(null);
         window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save service.', false);
@@ -392,17 +451,7 @@ export default function EditorClient({
     });
   };
 
-  const handleEditService = (s: any) => {
-    setServiceForm({
-      id: s.id,
-      name: s.name || '',
-      description: s.description || '',
-      icon: s.icon || 'CodeXml',
-      position: String(s.position || '0'),
-    });
-  };
-
-  // --- TAB 8: EXPERIENCE STATES & CRUD ---
+  // --- EXPERIENCE ---
   const [experiences, setExperiences] = useState(initialExperiences);
   const [experienceForm, setExperienceForm] = useState({
     id: '',
@@ -414,28 +463,15 @@ export default function EditorClient({
     position: '0',
   });
 
-  const handleSaveExperience = () => {
-    startTransition(async () => {
-      const res = await saveExperienceAction(experienceForm);
-      if (res.success) {
-        triggerToast('Experience saved successfully!', true);
-        window.location.reload();
-      } else {
-        triggerToast(res.error || 'Failed to save experience.', false);
-      }
-    });
-  };
-
-  const handleDeleteExperience = (id: string) => {
-    if (!confirm('Are you sure you want to delete this experience?')) return;
-    startTransition(async () => {
-      const res = await deleteExperienceAction(id);
-      if (res.success) {
-        triggerToast('Experience deleted successfully!', true);
-        window.location.reload();
-      } else {
-        triggerToast(res.error || 'Failed to delete experience.', false);
-      }
+  const handleNewExperience = () => {
+    setExperienceForm({
+      id: '',
+      company: '',
+      role: '',
+      timeline: '',
+      location: '',
+      description: '',
+      position: '0',
     });
   };
 
@@ -451,7 +487,34 @@ export default function EditorClient({
     });
   };
 
-  // --- TAB 9: EDUCATION STATES & CRUD ---
+  const handleSaveExperience = () => {
+    startTransition(async () => {
+      const res = await saveExperienceAction(experienceForm);
+      if (res.success) {
+        triggerToast('Experience saved successfully!', true);
+        setActiveModal(null);
+        window.location.reload();
+      } else {
+        triggerToast(res.error || 'Failed to save experience.', false);
+      }
+    });
+  };
+
+  const handleDeleteExperience = (id: string) => {
+    if (!confirm('Are you sure you want to delete this experience?')) return;
+    startTransition(async () => {
+      const res = await deleteExperienceAction(id);
+      if (res.success) {
+        triggerToast('Experience deleted successfully!', true);
+        setActiveModal(null);
+        window.location.reload();
+      } else {
+        triggerToast(res.error || 'Failed to delete experience.', false);
+      }
+    });
+  };
+
+  // --- EDUCATION ---
   const [educations, setEducations] = useState(initialEducations);
   const [educationForm, setEducationForm] = useState({
     id: '',
@@ -464,28 +527,16 @@ export default function EditorClient({
     position: '0',
   });
 
-  const handleSaveEducation = () => {
-    startTransition(async () => {
-      const res = await saveEducationAction(educationForm);
-      if (res.success) {
-        triggerToast('Education saved successfully!', true);
-        window.location.reload();
-      } else {
-        triggerToast(res.error || 'Failed to save education.', false);
-      }
-    });
-  };
-
-  const handleDeleteEducation = (id: string) => {
-    if (!confirm('Are you sure you want to delete this education?')) return;
-    startTransition(async () => {
-      const res = await deleteEducationAction(id);
-      if (res.success) {
-        triggerToast('Education deleted successfully!', true);
-        window.location.reload();
-      } else {
-        triggerToast(res.error || 'Failed to delete education.', false);
-      }
+  const handleNewEducation = () => {
+    setEducationForm({
+      id: '',
+      institution: '',
+      degree: '',
+      fieldOfStudy: '',
+      period: '',
+      description: '',
+      gpa: '',
+      position: '0',
     });
   };
 
@@ -502,7 +553,33 @@ export default function EditorClient({
     });
   };
 
-  // --- TAB 10: CERTIFICATES STATES & CRUD ---
+  const handleSaveEducation = () => {
+    startTransition(async () => {
+      const res = await saveEducationAction(educationForm);
+      if (res.success) {
+        triggerToast('Education saved successfully!', true);
+        setActiveModal(null);
+        window.location.reload();
+      } else {
+        triggerToast(res.error || 'Failed to save education record.', false);
+      }
+    });
+  };
+
+  const handleDeleteEducation = (id: string) => {
+    if (!confirm('Are you sure you want to delete this education?')) return;
+    startTransition(async () => {
+      const res = await deleteEducationAction(id);
+      if (res.success) {
+        triggerToast('Education deleted successfully!', true);
+        window.location.reload();
+      } else {
+        triggerToast(res.error || 'Failed to delete education record.', false);
+      }
+    });
+  };
+
+  // --- CERTIFICATES ---
   const [certificates, setCertificates] = useState(initialCertificates);
   const [certificateForm, setCertificateForm] = useState({
     id: '',
@@ -515,11 +592,38 @@ export default function EditorClient({
     position: '0',
   });
 
+  const handleNewCertificate = () => {
+    setCertificateForm({
+      id: '',
+      title: '',
+      issuer: '',
+      timeline: '',
+      score: '100',
+      suffix: '%',
+      description: '',
+      position: '0',
+    });
+  };
+
+  const handleEditCertificate = (c: any) => {
+    setCertificateForm({
+      id: c.id,
+      title: c.title || '',
+      issuer: c.issuer || '',
+      timeline: c.timeline || '',
+      score: String(c.score || '100'),
+      suffix: c.suffix || '%',
+      description: c.description || '',
+      position: String(c.position || '0'),
+    });
+  };
+
   const handleSaveCertificate = () => {
     startTransition(async () => {
       const res = await saveCertificateAction(certificateForm);
       if (res.success) {
         triggerToast('Certificate saved successfully!', true);
+        setActiveModal(null);
         window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save certificate.', false);
@@ -540,35 +644,23 @@ export default function EditorClient({
     });
   };
 
-  const handleEditCertificate = (c: any) => {
-    setCertificateForm({
-      id: c.id,
-      title: c.title || '',
-      issuer: c.issuer || '',
-      timeline: c.timeline || '',
-      score: String(c.score || '100'),
-      suffix: c.suffix || '%',
-      description: c.description || '',
-      position: String(c.position || '0'),
-    });
-  };
-
-  // --- TAB 11: SEO STATES & SAVER ---
+  // --- SEO ---
   const [seo, setSeo] = useState(initialSeo);
   const handleSaveSeo = () => {
     startTransition(async () => {
       const res = await saveSeoAction(seo);
       if (res.success) {
         triggerToast('SEO metadata saved successfully!', true);
+        setActiveModal(null);
       } else {
         triggerToast(res.error || 'Failed to save SEO metadata.', false);
       }
     });
   };
 
-  // --- 1-CLICK INITIALIZER TRIGGER ---
+  // --- DATABASE INITIALIZER ---
   const handleInitializeDatabase = () => {
-    if (!confirm('This will seed your Supabase database with default projects, essays, and layouts. Proceed?')) return;
+    if (!confirm('This will reset your database to default settings, projects, essays, and layouts. Proceed?')) return;
     startTransition(async () => {
       const res = await initializeDatabaseAction();
       if (res.success) {
@@ -580,13 +672,90 @@ export default function EditorClient({
     });
   };
 
+  const bio = settings.bio || 'Applied AI Systems Architect.';
+  const availability = settings.status || 'AVAILABLE FOR NEW WORK';
+  const dbProjects = projects.filter(p => !p.isDraft);
+  const dbPosts = blogs.filter(b => !b.isDraft);
+
+  // Group skills by category for visual mapping
+  const skillCategoriesMap = skillCategories.map(cat => ({
+    ...cat,
+    skills: skills.filter(s => s.categoryId === cat.id)
+  }));
+
   return (
-    <div className="relative">
+    <div className="relative min-h-screen bg-[#090909] text-[#F5F5F5] font-sans selection:bg-[var(--accent)] selection:text-white pb-32 pt-16">
+      
+      {/* Sticky visual editor header */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-[#0c0c0e]/85 border-b border-white/5 backdrop-blur-xl z-40 px-6 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+          <span className="font-mono text-xs uppercase tracking-widest text-white font-semibold">CMS Visual Customizer</span>
+        </div>
+        
+        <div className="hidden lg:flex items-center gap-3">
+          <button 
+            onClick={() => setActiveModal('profile')}
+            className="border border-white/5 bg-[#121216] hover:border-white/20 text-zinc-300 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+          >
+            👤 Hero & Bio
+          </button>
+          <button 
+            onClick={() => setActiveModal('seo')}
+            className="border border-white/5 bg-[#121216] hover:border-white/20 text-zinc-300 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+          >
+            🔍 SEO Tags
+          </button>
+          <button 
+            onClick={() => { handleNewSkill(); setActiveModal('skill'); }}
+            className="border border-white/5 bg-[#121216] hover:border-white/20 text-zinc-300 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+          >
+            🛠️ Skills DB
+          </button>
+          <span className="h-4 w-[1px] bg-white/10" />
+          <button 
+            onClick={() => { handleNewProject(); setActiveModal('project'); }}
+            className="border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+          >
+            ➕ Project
+          </button>
+          <button 
+            onClick={() => { handleNewBlog(); setActiveModal('blog'); }}
+            className="border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+          >
+            📝 Essay
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleInitializeDatabase}
+            className="border border-amber-500/20 bg-amber-950/20 hover:border-amber-500 text-amber-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+          >
+            🔄 Sync Defaults
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+          >
+            🚪 Sign Out
+          </button>
+        </div>
+      </div>
+
+      {/* Editorial Grid Lines */}
+      <div className="fixed inset-0 pointer-events-none max-w-[1600px] mx-auto px-[8%] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 z-0 opacity-15">
+        <div className="border-r border-white/5 border-l h-full" />
+        <div className="border-r border-white/5 h-full hidden md:block" />
+        <div className="border-r border-white/5 h-full hidden lg:block" />
+        <div className="border-r border-white/5 h-full hidden lg:block" />
+      </div>
+
       {/* Dynamic Saving Indicator overlay */}
       {isPending && (
-        <div className="fixed top-6 right-[8%] z-50 bg-[#111115] border border-white/5 px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-3 font-mono text-[10px] text-white">
+        <div className="fixed top-20 right-[8%] z-50 bg-[#111115] border border-white/5 px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-3 font-mono text-[10px] text-white">
           <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-ping" />
-          <span>WRITING TO SUPABASE...</span>
+          <span>UPDATING DATABASE...</span>
         </div>
       )}
 
@@ -604,185 +773,588 @@ export default function EditorClient({
         </div>
       )}
 
-      {/* Header Panel with Logout */}
-      <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
-        <span className="font-mono text-[10px] text-zinc-500 uppercase">CMS CONTROL PANEL</span>
-        <button 
-          onClick={handleLogout}
-          className="border border-white/10 hover:border-red-500/30 hover:bg-red-950/20 hover:text-red-400 text-zinc-400 font-mono text-[9px] uppercase tracking-wider px-3.5 py-1.5 rounded transition-all duration-300"
-        >
-          Sign Out
-        </button>
-      </div>
-
-      {/* Control Tabs */}
-      <div className="flex flex-wrap gap-2.5 mb-10 border-b border-white/5 pb-6">
-        {(['settings', 'profile', 'projects', 'blogs', 'skills', 'testimonials', 'services', 'experience', 'education', 'certificates', 'seo'] as Tab[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg border font-mono text-[9px] uppercase tracking-wider transition-all duration-300 ${
-              activeTab === tab 
-                ? 'bg-white text-black border-white' 
-                : 'bg-transparent text-zinc-400 border-white/5 hover:border-zinc-700 hover:text-white'
-            }`}
+      {/* SECTION 1: HERO (WITH EDIT HOVER HIGHLIGHT) */}
+      <section id="intro" className="min-h-screen flex items-center pt-[140px] pb-24 border-b border-[var(--grid-line)] relative overflow-hidden group/hero hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 rounded-xl m-2">
+        <div className="absolute top-[20%] left-[50%] -translate-x-[50%] w-[500px] h-[500px] rounded-full bg-[rgba(var(--accent-rgb),0.05)] blur-[120px] pointer-events-none z-0" />
+        
+        {/* Floating section modifier overlay */}
+        <div className="absolute top-4 right-8 opacity-0 group-hover/hero:opacity-100 transition-opacity z-20 flex gap-2">
+          <button 
+            onClick={() => setActiveModal('profile')}
+            className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white flex items-center gap-1.5 shadow-md font-semibold"
           >
-            {tab}
+            ✏️ Edit Hero Info
           </button>
-        ))}
-      </div>
+        </div>
 
-      {/* ==================== TAB 1: SETTINGS ==================== */}
-      {activeTab === 'settings' && (
-        <div className="bg-[#111115]/80 border border-white/5 shadow-2xl rounded-xl p-8 backdrop-blur-xl max-w-3xl">
-          <h3 className="text-lg font-light mb-6 text-white tracking-tight">Global Configurations</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="md:col-span-2">
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Availability Status</label>
-              <input 
-                type="text" 
-                value={settings.status || ''} 
-                onChange={(e) => setSettings({ ...settings, status: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none"
-              />
+        <div className="max-w-[1400px] mx-auto px-[8%] w-full relative z-10">
+          <div className="max-w-[950px] flex flex-col gap-8">
+            <div className="w-fit flex items-center gap-2 px-3 py-1.5 rounded-full border border-[rgba(255,255,255,0.03)] bg-[#0c0c0e] font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{availability}</span>
+            </div>
+
+            <h1 className="text-[clamp(2.5rem,7.5vw,6rem)] font-light leading-[1.05] tracking-tight text-white">
+              Designing <span className="serif-italic text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-zinc-400">deterministic</span> workflows <br />for AI agents.
+            </h1>
+
+            <p className="text-[clamp(1.1rem,2vw,1.4rem)] text-[var(--text-muted)] max-w-[680px] leading-[1.6] font-light">
+              {bio}
+            </p>
+
+            <div className="flex flex-wrap gap-4 mt-4">
+              <a href="#work" className="bg-white text-black text-xs font-mono uppercase tracking-widest px-8 py-4 rounded-lg hover:bg-gray-200 transition-all font-semibold">
+                Explore Case Studies
+              </a>
+              <a href="#build" className="border border-[rgba(255,255,255,0.08)] bg-[#0d0d10] text-white text-xs font-mono uppercase tracking-widest px-8 py-4 rounded-lg hover:bg-gray-900 transition-all">
+                Let&apos;s Build Together
+              </a>
             </div>
           </div>
-          <button 
-            onClick={handleSaveSettings}
-            className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-          >
-            Save Settings
-          </button>
+          <div className="absolute right-0 top-[20%] opacity-20 pointer-events-none lg:opacity-100">
+            <ThoughtWave />
+          </div>
+        </div>
+      </section>
 
-          <div className="mt-8 pt-8 border-t border-white/5">
-            <h4 className="font-mono text-[10px] uppercase text-zinc-500 mb-2.5">Database Initialization</h4>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
-              If your Supabase tables are completely empty, click the button below to automatically sync all default portfolio details (projects, blogs, skills, experiences, and layouts) to your database.
-            </p>
+      {/* SECTION 2: IDENTITY */}
+      <section id="identity" className="py-40 border-b border-[var(--grid-line)] relative group/about hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 rounded-xl m-2">
+        <div className="absolute top-4 right-8 opacity-0 group-hover/about:opacity-100 transition-opacity z-20">
+          <button 
+            onClick={() => setActiveModal('profile')}
+            className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white shadow-md font-semibold"
+          >
+            ✏️ Edit Identity Details
+          </button>
+        </div>
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-12 flex items-center gap-2">
+            <span>01 / About</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-20">
+            <h2 className="text-[clamp(2rem,4vw,3.2rem)] leading-[1.2] font-light text-white tracking-tight">
+              Building software <br /><span className="serif-italic text-[var(--text-muted)]">that solves real problems.</span>
+            </h2>
+            <div className="flex flex-col gap-8">
+              <p className="text-[var(--text-muted)] text-[1.1rem] leading-[1.7] font-light font-sans">
+                {profile.bio || 'Professional biography details loaded dynamically.'}
+              </p>
+            </div>
+          </div>
+          <CoreBeliefs />
+        </div>
+      </section>
+
+      {/* SECTION 3: PROJECTS SHOWCASE */}
+      <section id="work" className="py-40 border-b border-[var(--grid-line)] relative">
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-20 flex items-center gap-2">
+            <span>02 / Featured Projects</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
             <button 
-              onClick={handleInitializeDatabase}
-              className="border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-emerald-900/20 transition-colors"
+              onClick={() => { handleNewProject(); setActiveModal('project'); }}
+              className="ml-4 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-200 font-semibold"
             >
-              Sync Default Data to Supabase
+              ➕ Add New Project
             </button>
           </div>
-        </div>
-      )}
 
-      {/* ==================== TAB 2: PROFILE ==================== */}
-      {activeTab === 'profile' && (
-        <div className="bg-[#111115]/80 border border-white/5 shadow-2xl rounded-xl p-8 backdrop-blur-xl max-w-3xl">
-          <h3 className="text-lg font-light mb-6 text-white tracking-tight">Identity Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Full Name</label>
-              <input 
-                type="text" 
-                value={profile.name || ''} 
-                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Job Title</label>
-              <input 
-                type="text" 
-                value={profile.title || ''} 
-                onChange={(e) => setProfile({ ...profile, title: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Contact Email</label>
-              <input 
-                type="email" 
-                value={profile.contactEmail || ''} 
-                onChange={(e) => setProfile({ ...profile, contactEmail: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Location</label>
-              <input 
-                type="text" 
-                value={profile.location || ''} 
-                onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Hero Tagline</label>
-              <input 
-                type="text" 
-                value={profile.tagline || ''} 
-                onChange={(e) => setProfile({ ...profile, tagline: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Professional Biography</label>
-              <textarea 
-                rows={4}
-                value={profile.bio || ''} 
-                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Resume / Document URL</label>
-              <input 
-                type="text" 
-                value={profile.resumeUrl || ''} 
-                onChange={(e) => setProfile({ ...profile, resumeUrl: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-              />
-            </div>
+          <div className="flex flex-col gap-40">
+            {dbProjects.map((project, index) => {
+              const isEven = index % 2 === 0;
+              const metrics: Array<{ value: string; label: string }> = typeof project.metrics === 'string' ? JSON.parse(project.metrics || '[]') : (project.metrics || []);
+              const images: string[] = typeof project.screenshots === 'string' ? JSON.parse(project.screenshots || '[]') : (project.screenshots || []);
+              const projectImg = images[0] || '/uploads/hero_visual.png';
+
+              return (
+                <div
+                  key={project.id}
+                  className={`grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-24 items-center relative group/proj-card hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 p-6 rounded-2xl ${!isEven ? 'lg:grid-cols-[1fr_1.1fr]' : ''}`}
+                >
+                  {/* Floating Project Controls */}
+                  <div className="absolute top-4 right-4 opacity-0 group-hover/proj-card:opacity-100 transition-opacity z-20 flex gap-2">
+                    <button 
+                      onClick={() => { handleSelectProject(project); setActiveModal('project'); }}
+                      className="bg-[#111115] border border-white/10 hover:border-white rounded px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white font-semibold"
+                    >
+                      ✏️ Edit Project
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteProject(project.id)}
+                      className="bg-red-950/30 border border-red-500/20 hover:border-red-500 text-red-400 rounded px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-wider font-semibold"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+
+                  {isEven && (
+                    <div className="project-visual group rounded-2xl border border-[var(--grid-line)] overflow-hidden bg-[#0d0d10] aspect-[16/10] relative">
+                      <img src={projectImg} alt={project.title} className="w-full h-full object-cover opacity-80" />
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-6">
+                    <div className="font-mono text-[10px] text-[var(--text-dim)] flex gap-4 uppercase">
+                      <span>0{index + 1} / {project.subtitle}</span>
+                      <span>•</span>
+                      <span>{project.timeline}</span>
+                      {project.isDraft && <span className="text-amber-400 border border-amber-500/30 px-1 rounded text-[8px]">DRAFT</span>}
+                    </div>
+                    <h3 className="text-3xl lg:text-4xl font-light text-white tracking-tight">{project.title}</h3>
+                    <p className="text-[var(--text-muted)] leading-[1.7] font-light text-sm lg:text-base">
+                      {project.problem}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-8 border-t border-[var(--grid-line)] pt-6 mt-2">
+                      {metrics.slice(0, 2).map((m, idx) => (
+                        <div key={idx}>
+                          <div className="font-mono text-2xl text-white font-medium">{m.value}</div>
+                          <div className="text-[10px] font-mono text-[var(--text-dim)] uppercase tracking-wider">{m.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {!isEven && (
+                    <div className="project-visual group rounded-2xl border border-[var(--grid-line)] overflow-hidden bg-[#0d0d10] aspect-[16/10] relative lg:order-last order-first">
+                      <img src={projectImg} alt={project.title} className="w-full h-full object-cover opacity-80" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
+        </div>
+      </section>
+
+      {/* SECTION 4: CASE STUDY */}
+      <section id="case" className="py-40 border-b border-[var(--grid-line)]">
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
+            <span>03 / Engineering Case Study</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
+          <ArchitectureStory />
+        </div>
+      </section>
+
+      {/* SECTION 5: SKILLS CONSOLE */}
+      <section className="py-40 border-b border-[var(--grid-line)] relative group/skills hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 rounded-xl m-2">
+        <div className="absolute top-4 right-8 opacity-0 group-hover/skills:opacity-100 transition-opacity z-20">
           <button 
-            onClick={handleSaveProfile}
-            className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+            onClick={() => { handleNewSkill(); setActiveModal('skill'); }}
+            className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white shadow-md font-semibold"
           >
-            Save Identity Profile
+            🛠️ Manage Skills List
           </button>
         </div>
-      )}
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
+            <span>04 / Technical Skills</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
 
-      {/* ==================== TAB 3: PROJECTS ==================== */}
-      {activeTab === 'projects' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2.5fr] gap-8">
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-6 backdrop-blur-xl h-fit">
-            <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
-              <span className="font-mono text-[10px] text-zinc-500 uppercase">Case Studies</span>
-              <button 
-                onClick={handleNewProject}
-                className="font-mono text-[9px] border border-white/10 rounded px-2.5 py-1 text-white hover:bg-white hover:text-black transition-colors"
-              >
-                + NEW
-              </button>
-            </div>
-            <div className="flex flex-col gap-2">
-              {projects.map((proj) => (
-                <button
-                  key={proj.id}
-                  onClick={() => handleSelectProject(proj)}
-                  className={`w-full text-left p-3.5 rounded-lg font-mono text-[10px] border transition-all duration-300 ${
-                    selectedProject?.id === proj.id
-                      ? 'bg-white text-black border-white'
-                      : 'bg-transparent text-zinc-400 border-white/5 hover:border-zinc-700 hover:text-white'
-                  }`}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {skillCategoriesMap.map((cat) => (
+              <div key={cat.id} className="bg-[#09090b] border border-[var(--grid-line)] rounded-xl p-8 flex flex-col gap-6">
+                <span className="font-mono text-xs uppercase tracking-wider text-[var(--accent)]">{cat.name}</span>
+                <div className="flex flex-col gap-4">
+                  {cat.skills.map((skill: any) => (
+                    <div key={skill.id} className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-white font-medium">{skill.name}</span>
+                        <span className="font-mono text-gray-500">{skill.proficiency}%</span>
+                      </div>
+                      <div className="w-full bg-[#131317] h-1 rounded-full overflow-hidden">
+                        <div className="bg-white h-full" style={{ width: `${skill.proficiency}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 6: Timelines (Experience & Education) */}
+      <section className="py-40 border-b border-[var(--grid-line)]">
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
+            
+            {/* Experience timeline list */}
+            <div className="relative group/experience hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 p-6 rounded-xl">
+              <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
+                <span>05.1 / Experience</span>
+                <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+                <button 
+                  onClick={() => { handleNewExperience(); setActiveModal('experience'); }}
+                  className="bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 hover:text-white px-2.5 py-0.5 rounded font-mono text-[8px] uppercase tracking-wider transition-colors duration-200 font-semibold"
                 >
-                  <div className="truncate font-semibold uppercase">{proj.title}</div>
-                  <div className="mt-1 text-[8px] opacity-60">
-                    {proj.company || 'Personal'} / {proj.role || 'Creator'}
-                  </div>
+                  ➕ Add
                 </button>
+              </div>
+
+              <div className="flex flex-col gap-10 border-l border-[var(--grid-line)] pl-8">
+                {experiences.map((exp) => (
+                  <div key={exp.id} className="relative flex flex-col gap-2 group/exp-card p-3 rounded hover:bg-white/[0.01]">
+                    <div className="absolute right-0 top-0 opacity-0 group-hover/exp-card:opacity-100 transition-opacity z-20 flex gap-2">
+                      <button onClick={() => { handleEditExperience(exp); setActiveModal('experience'); }} className="text-white hover:underline text-[9px] font-mono font-semibold">EDIT</button>
+                      <button onClick={() => handleDeleteExperience(exp.id)} className="text-red-400 hover:text-red-300 text-[9px] font-mono font-semibold">DELETE</button>
+                    </div>
+                    <div className="absolute -left-[41px] top-1.5 w-4 h-4 rounded-full bg-[#050506] border-2 border-[var(--accent)] flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#fafafa]" />
+                    </div>
+                    <span className="font-mono text-[10px] text-[var(--accent)] uppercase">{exp.timeline}</span>
+                    <h3 className="text-lg font-medium text-white">{exp.role}</h3>
+                    <span className="text-xs text-[var(--text-muted)] font-mono uppercase">{exp.company}</span>
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed font-light mt-2">{exp.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Education timeline list */}
+            <div className="relative group/education hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 p-6 rounded-xl">
+              <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
+                <span>05.2 / Education</span>
+                <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+                <button 
+                  onClick={() => { handleNewEducation(); setActiveModal('education'); }}
+                  className="bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 hover:text-white px-2.5 py-0.5 rounded font-mono text-[8px] uppercase tracking-wider transition-colors duration-200 font-semibold"
+                >
+                  ➕ Add
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-10 border-l border-[var(--grid-line)] pl-8">
+                {educations.map((edu) => (
+                  <div key={edu.id} className="relative flex flex-col gap-2 group/edu-card p-3 rounded hover:bg-white/[0.01]">
+                    <div className="absolute right-0 top-0 opacity-0 group-hover/edu-card:opacity-100 transition-opacity z-20 flex gap-2">
+                      <button onClick={() => { handleEditEducation(edu); setActiveModal('education'); }} className="text-white hover:underline text-[9px] font-mono font-semibold">EDIT</button>
+                      <button onClick={() => handleDeleteEducation(edu.id)} className="text-red-400 hover:text-red-300 text-[9px] font-mono font-semibold">DELETE</button>
+                    </div>
+                    <div className="absolute -left-[41px] top-1.5 w-4 h-4 rounded-full bg-[#050506] border-2 border-zinc-700 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                    </div>
+                    <span className="font-mono text-[10px] text-gray-500 uppercase">{edu.timeline || edu.period}</span>
+                    <h3 className="text-lg font-medium text-white">{edu.degree}</h3>
+                    <span className="text-xs text-[var(--text-muted)] font-mono uppercase">{edu.institution}</span>
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed font-light mt-2">{edu.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 7: What I Build (Services) */}
+      <section className="py-40 border-b border-[var(--grid-line)] relative group/services hover:outline hover:outline-dashed hover:outline-[var(--accent)]/20 p-6 rounded-xl m-2">
+        <div className="absolute top-4 right-8 opacity-0 group-hover/services:opacity-100 transition-opacity z-20">
+          <button 
+            onClick={() => { handleNewService(); setActiveModal('service'); }}
+            className="bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-200 font-semibold"
+          >
+            ➕ Add Service Card
+          </button>
+        </div>
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
+            <span>06 / What I Build</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {services.map((srv) => (
+              <div key={srv.id} className="bg-[#09090b] border border-[var(--grid-line)] rounded-xl p-8 flex flex-col justify-between min-h-[220px] relative group/srv-card hover:border-[var(--accent)]/40 transition-all duration-300">
+                <div className="absolute top-2 right-2 opacity-0 group-hover/srv-card:opacity-100 transition-opacity z-20 flex gap-2">
+                  <button onClick={() => { handleEditService(srv); setActiveModal('service'); }} className="text-white text-[8px] font-mono border border-white/10 px-1.5 py-0.5 rounded bg-zinc-900 font-semibold">EDIT</button>
+                  <button onClick={() => handleDeleteService(srv.id)} className="text-red-400 text-[8px] font-mono border border-red-500/10 px-1.5 py-0.5 rounded bg-zinc-900 font-semibold">DEL</button>
+                </div>
+                <div>
+                  <div className="w-8 h-8 rounded-lg bg-[rgba(var(--accent-rgb),0.05)] border border-[rgba(var(--accent-rgb),0.1)] flex items-center justify-center text-[var(--accent)] font-mono text-xs uppercase mb-6 font-semibold">
+                    {srv.icon?.slice(0, 3).toUpperCase() || 'SRV'}
+                  </div>
+                  <h3 className="text-lg font-medium text-white mb-3">{srv.name}</h3>
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed font-light">{srv.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 8: CLIENT TESTIMONIALS */}
+      <section className="py-40 border-b border-[var(--grid-line)] relative group/testimonials hover:outline hover:outline-dashed hover:outline-[var(--accent)]/20 p-6 rounded-xl m-2">
+        <div className="absolute top-4 right-8 opacity-0 group-hover/testimonials:opacity-100 transition-opacity z-20">
+          <button 
+            onClick={() => { handleNewTestimonial(); setActiveModal('testimonial'); }}
+            className="bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-200 font-semibold"
+          >
+            ➕ Add Recommendation
+          </button>
+        </div>
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
+            <span>07 / Recommendations</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {testimonials.map((t) => (
+              <div key={t.id} className="bg-[#09090b] border border-[var(--grid-line)] rounded-xl p-8 flex flex-col justify-between gap-8 relative group/test-card hover:border-[var(--accent)]/40 transition-all duration-300">
+                <div className="absolute top-2 right-2 opacity-0 group-hover/test-card:opacity-100 transition-opacity z-20 flex gap-2">
+                  <button onClick={() => { handleEditTestimonial(t); setActiveModal('testimonial'); }} className="text-white text-[8px] font-mono border border-white/10 px-1.5 py-0.5 rounded bg-zinc-900 font-semibold">EDIT</button>
+                  <button onClick={() => handleDeleteTestimonial(t.id)} className="text-red-400 text-[8px] font-mono border border-red-500/10 px-1.5 py-0.5 rounded bg-zinc-900 font-semibold">DEL</button>
+                </div>
+                <p className="text-sm text-[var(--text-muted)] leading-relaxed italic font-light font-sans">
+                  &quot;{t.text}&quot;
+                </p>
+                <div className="flex items-center gap-3">
+                  {t.avatarUrl ? (
+                    <img src={t.avatarUrl} alt={t.clientName} className="w-10 h-10 rounded-full object-cover bg-zinc-800" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-mono text-[10px] text-gray-500">C</div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold text-white">{t.clientName}</span>
+                    <span className="text-[10px] text-[var(--text-dim)] font-mono uppercase">{t.clientRole} at {t.clientCompany}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 9: AI PIPELINE SIMULATOR */}
+      <section id="thinking" className="py-40 border-b border-[var(--grid-line)]">
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-8 flex items-center gap-2">
+            <span>08 / Engineering Process</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
+          <AIPipelineViz />
+        </div>
+      </section>
+
+      {/* SECTION 10: CERTIFICATIONS */}
+      <section id="certifications" className="py-40 border-b border-[var(--grid-line)] relative group/certs hover:outline hover:outline-dashed hover:outline-[var(--accent)]/20 p-6 rounded-xl m-2">
+        <div className="absolute top-4 right-8 opacity-0 group-hover/certs:opacity-100 transition-opacity z-20">
+          <button 
+            onClick={() => { handleNewCertificate(); setActiveModal('certificate'); }}
+            className="bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-200 font-semibold"
+          >
+            ➕ Add Certificate
+          </button>
+        </div>
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
+            <span>09 / Certifications</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
+          <div className="relative group/cert-inside">
+            <Certifications initialCertificates={certificates} />
+            
+            {/* List Certificates with actions for direct editing */}
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-white/5 pt-8">
+              {certificates.map(c => (
+                <div key={c.id} className="border border-white/5 bg-[#09090b] rounded-lg p-4 flex justify-between items-center text-xs">
+                  <div>
+                    <div className="text-white font-mono uppercase truncate font-semibold">{c.title}</div>
+                    <div className="text-[10px] text-zinc-500">{c.issuer} • Score: {c.score}{c.suffix}</div>
+                  </div>
+                  <div className="flex gap-2.5">
+                    <button onClick={() => { handleEditCertificate(c); setActiveModal('certificate'); }} className="text-white hover:underline text-[9px] font-mono font-semibold">EDIT</button>
+                    <button onClick={() => handleDeleteCertificate(c.id)} className="text-red-400 hover:text-red-300 text-[9px] font-mono font-semibold font-semibold">DEL</button>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl">
+      {/* SECTION 11: WRITING */}
+      <section id="writing" className="py-40 border-b border-[var(--grid-line)] relative group/blogs hover:outline hover:outline-dashed hover:outline-[var(--accent)]/20 p-6 rounded-xl m-2">
+        <div className="absolute top-4 right-8 opacity-0 group-hover/blogs:opacity-100 transition-opacity z-20">
+          <button 
+            onClick={() => { handleNewBlog(); setActiveModal('blog'); }}
+            className="bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-200 font-semibold"
+          >
+            ➕ Write Essay
+          </button>
+        </div>
+        <div className="max-w-[1400px] mx-auto px-[8%]">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-16 flex items-center gap-2">
+            <span>10 / Technical Writing</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
+
+          <div className="flex flex-col">
+            {dbPosts.map((post) => {
+              const categories: string[] = typeof post.categories === 'string' ? JSON.parse(post.categories || '[]') : (post.categories || []);
+              return (
+                <div
+                  key={post.id}
+                  className="grid grid-cols-[1fr_3fr_1fr] items-center py-10 border-t border-[var(--grid-line)] hover:pl-5 group/blog-row transition-all duration-300 ease-out last:border-b relative"
+                >
+                  <div className="font-mono text-xs text-[var(--text-dim)] flex items-center gap-2">
+                    {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase() : 'DRAFT'}
+                    {post.isDraft && <span className="text-amber-400 border border-amber-500/20 rounded px-1 text-[8px] uppercase">DRAFT</span>}
+                  </div>
+                  <div className="text-xl text-white group-hover/blog-row:text-[var(--accent)] transition-colors duration-300 font-light flex items-center justify-between">
+                    <span>{post.title}</span>
+                    <div className="opacity-0 group-hover/blog-row:opacity-100 transition-opacity z-20 flex gap-3 text-right pr-6">
+                      <button onClick={() => { handleSelectBlog(post); setActiveModal('blog'); }} className="text-white border border-white/10 px-2 py-0.5 rounded bg-[#09090b] text-[9px] font-mono font-semibold">EDIT</button>
+                      <button onClick={() => handleDeleteBlog(post.id)} className="text-red-400 border border-red-500/20 px-2 py-0.5 rounded bg-[#09090b] text-[9px] font-mono font-semibold">DEL</button>
+                    </div>
+                  </div>
+                  <div className="font-mono text-[10px] text-[var(--text-dim)] text-right">
+                    {categories.join(' & ').toUpperCase()}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 12: CONTACT */}
+      <section id="build" className="py-40 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 80%, rgba(var(--accent-rgb), 0.04) 0%, transparent 70%)' }} />
+        <div className="max-w-[1400px] mx-auto px-[8%] relative z-10">
+          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-20 flex items-center gap-2">
+            <span>11 / Contact</span>
+            <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-24">
+            <div className="flex flex-col justify-between">
+              <div>
+                <h3 className="text-[clamp(2.2rem,4.5vw,3.8rem)] mb-10 font-light leading-[1.15] tracking-tight">
+                  <span className="text-white">Let&apos;s build software</span>
+                  <br />
+                  <span className="serif-italic text-[var(--text-muted)]">that solves real problems.</span>
+                </h3>
+              </div>
+              <div className="flex flex-col gap-5 font-mono text-xs">
+                <div className="flex items-center gap-3 text-[var(--text-muted)]">
+                  <span>{settings.contactEmail || 'dhruv.dobariya0641@gmail.com'}</span>
+                </div>
+                <SocialCards />
+              </div>
+            </div>
+            <div className="bg-[#09090b] border border-white/5 rounded-xl p-8 font-mono text-xs text-zinc-500 flex items-center justify-center min-h-[300px]">
+              $ CONTACT FORM PREVIEW INACTIVE IN ADMIN CUSTOMIZER
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* ==================== OVERLAY CUSTOMIZER MODALS ==================== */}
+
+      {activeModal === 'profile' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Edit Profile & Hero Identity</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Availability Status</label>
+                <input 
+                  type="text" 
+                  value={settings.status || ''} 
+                  onChange={(e) => setSettings({ ...settings, status: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Full Name</label>
+                <input 
+                  type="text" 
+                  value={profile.name || ''} 
+                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Job Title</label>
+                <input 
+                  type="text" 
+                  value={profile.title || ''} 
+                  onChange={(e) => setProfile({ ...profile, title: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Contact Email</label>
+                <input 
+                  type="email" 
+                  value={profile.contactEmail || ''} 
+                  onChange={(e) => setProfile({ ...profile, contactEmail: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Location</label>
+                <input 
+                  type="text" 
+                  value={profile.location || ''} 
+                  onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Resume / Document URL</label>
+                <input 
+                  type="text" 
+                  value={profile.resumeUrl || ''} 
+                  onChange={(e) => setProfile({ ...profile, resumeUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Hero Tagline</label>
+                <input 
+                  type="text" 
+                  value={profile.tagline || ''} 
+                  onChange={(e) => setProfile({ ...profile, tagline: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Biography Paragraph</label>
+                <textarea 
+                  rows={4}
+                  value={profile.bio || ''} 
+                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
+                />
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => { handleSaveProfile(); handleSaveSettings(); }} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                Save Hero & Bio Details
+              </button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'project' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">
-              {selectedProject ? `Modify: ${selectedProject.title}` : 'Create New Project Case Study'}
+              {selectedProject ? `Modify Case Study: ${selectedProject.title}` : 'Draft New Project Case Study'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div>
@@ -851,7 +1423,7 @@ export default function EditorClient({
               <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">The Problem Statement</label>
                 <textarea 
-                  rows={3} 
+                  rows={2} 
                   value={projectForm.problem} 
                   onChange={(e) => setProjectForm({ ...projectForm, problem: e.target.value })}
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
@@ -860,7 +1432,7 @@ export default function EditorClient({
               <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">The Architecture Challenge</label>
                 <textarea 
-                  rows={3} 
+                  rows={2} 
                   value={projectForm.challenge} 
                   onChange={(e) => setProjectForm({ ...projectForm, challenge: e.target.value })}
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
@@ -869,9 +1441,27 @@ export default function EditorClient({
               <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">The Solution Implementation</label>
                 <textarea 
-                  rows={3} 
+                  rows={2} 
                   value={projectForm.solution} 
                   onChange={(e) => setProjectForm({ ...projectForm, solution: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">GitHub URL</label>
+                <input 
+                  type="text" 
+                  value={projectForm.githubUrl} 
+                  onChange={(e) => setProjectForm({ ...projectForm, githubUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Demo / Live URL</label>
+                <input 
+                  type="text" 
+                  value={projectForm.demoUrl} 
+                  onChange={(e) => setProjectForm({ ...projectForm, demoUrl: e.target.value })}
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
                 />
               </div>
@@ -894,24 +1484,6 @@ export default function EditorClient({
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">GitHub URL</label>
-                <input 
-                  type="text" 
-                  value={projectForm.githubUrl} 
-                  onChange={(e) => setProjectForm({ ...projectForm, githubUrl: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Demo / Live URL</label>
-                <input 
-                  type="text" 
-                  value={projectForm.demoUrl} 
-                  onChange={(e) => setProjectForm({ ...projectForm, demoUrl: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Screenshot Paths (JSON list of strings)</label>
                 <input 
                   type="text" 
@@ -922,797 +1494,354 @@ export default function EditorClient({
               </div>
               <div className="flex flex-wrap gap-6 md:col-span-2">
                 <label className="flex items-center gap-2 font-mono text-[10px] text-white">
-                  <input 
-                    type="checkbox" 
-                    checked={projectForm.isFeatured} 
-                    onChange={(e) => setProjectForm({ ...projectForm, isFeatured: e.target.checked })}
-                    className="accent-[var(--accent)]"
-                  />
+                  <input type="checkbox" checked={projectForm.isFeatured} onChange={(e) => setProjectForm({ ...projectForm, isFeatured: e.target.checked })} className="accent-[var(--accent)]" />
                   Featured Case Study
                 </label>
                 <label className="flex items-center gap-2 font-mono text-[10px] text-white">
-                  <input 
-                    type="checkbox" 
-                    checked={projectForm.isPinned} 
-                    onChange={(e) => setProjectForm({ ...projectForm, isPinned: e.target.checked })}
-                    className="accent-[var(--accent)]"
-                  />
+                  <input type="checkbox" checked={projectForm.isPinned} onChange={(e) => setProjectForm({ ...projectForm, isPinned: e.target.checked })} className="accent-[var(--accent)]" />
                   Pinned in Home Grid
                 </label>
                 <label className="flex items-center gap-2 font-mono text-[10px] text-white">
-                  <input 
-                    type="checkbox" 
-                    checked={projectForm.isDraft} 
-                    onChange={(e) => setProjectForm({ ...projectForm, isDraft: e.target.checked })}
-                    className="accent-[var(--accent)]"
-                  />
+                  <input type="checkbox" checked={projectForm.isDraft} onChange={(e) => setProjectForm({ ...projectForm, isDraft: e.target.checked })} className="accent-[var(--accent)]" />
                   Save as Draft
                 </label>
               </div>
             </div>
             <div className="flex gap-4">
-              <button 
-                onClick={handleSaveProject}
-                className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-              >
+              <button onClick={handleSaveProject} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
                 Save Case Study
               </button>
               {selectedProject && (
-                <button 
-                  onClick={handleDeleteProject}
-                  className="border border-red-500/20 bg-red-950/20 text-red-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-red-900/20 transition-colors"
-                >
-                  Delete Project
+                <button onClick={() => handleDeleteProject()} className="border border-red-500/20 bg-red-950/20 text-red-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-red-900/20 transition-colors">
+                  Delete
                 </button>
               )}
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ==================== TAB 4: BLOGS ==================== */}
-      {activeTab === 'blogs' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2.5fr] gap-8">
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-6 backdrop-blur-xl h-fit">
-            <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
-              <span className="font-mono text-[10px] text-zinc-500 uppercase">Journal Entries</span>
-              <button 
-                onClick={handleNewBlog}
-                className="font-mono text-[9px] border border-white/10 rounded px-2.5 py-1 text-white hover:bg-white hover:text-black transition-colors"
-              >
-                + NEW
-              </button>
-            </div>
-            <div className="flex flex-col gap-2">
-              {blogs.map((blog) => (
-                <button
-                  key={blog.id}
-                  onClick={() => handleSelectBlog(blog)}
-                  className={`w-full text-left p-3.5 rounded-lg font-mono text-[10px] border transition-all duration-300 ${
-                    selectedBlog?.id === blog.id
-                      ? 'bg-white text-black border-white'
-                      : 'bg-transparent text-zinc-400 border-white/5 hover:border-zinc-700 hover:text-white'
-                  }`}
-                >
-                  <div className="truncate font-semibold uppercase">{blog.title}</div>
-                  <div className="mt-1 text-[8px] opacity-60">
-                    {blog.slug} / {blog.readingTime}m
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl">
+      {activeModal === 'blog' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">
-              {selectedBlog ? `Modify: ${selectedBlog.title}` : 'Draft New Essay Journal'}
+              {selectedBlog ? `Modify Essay: ${selectedBlog.title}` : 'Draft New Essay Journal'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Essay Title</label>
-                <input 
-                  type="text" 
-                  value={blogForm.title} 
-                  onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="text" value={blogForm.title} onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Slug (URL Path)</label>
-                <input 
-                  type="text" 
-                  value={blogForm.slug} 
-                  onChange={(e) => setBlogForm({ ...blogForm, slug: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="text" value={blogForm.slug} onChange={(e) => setBlogForm({ ...blogForm, slug: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Reading Time (Minutes)</label>
-                <input 
-                  type="number" 
-                  value={blogForm.readingTime} 
-                  onChange={(e) => setBlogForm({ ...blogForm, readingTime: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Short Excerpt</label>
-                <input 
-                  type="text" 
-                  value={blogForm.excerpt} 
-                  onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="number" value={blogForm.readingTime} onChange={(e) => setBlogForm({ ...blogForm, readingTime: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Categories (JSON list)</label>
-                <input 
-                  type="text" 
-                  value={blogForm.categories} 
-                  onChange={(e) => setBlogForm({ ...blogForm, categories: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none"
-                />
+                <input type="text" value={blogForm.categories} onChange={(e) => setBlogForm({ ...blogForm, categories: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Tags (JSON list)</label>
-                <input 
-                  type="text" 
-                  value={blogForm.tags} 
-                  onChange={(e) => setBlogForm({ ...blogForm, tags: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none"
-                />
+                <input type="text" value={blogForm.tags} onChange={(e) => setBlogForm({ ...blogForm, tags: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs font-mono text-white focus:outline-none" />
               </div>
               <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Article Body Content (Markdown syntax)</label>
-                <textarea 
-                  rows={12} 
-                  value={blogForm.contentMarkdown} 
-                  onChange={(e) => setBlogForm({ ...blogForm, contentMarkdown: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-4 text-xs font-mono text-white focus:outline-none leading-relaxed"
-                />
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Article Body Content (Markdown)</label>
+                <textarea rows={8} value={blogForm.contentMarkdown} onChange={(e) => setBlogForm({ ...blogForm, contentMarkdown: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-4 text-xs font-mono text-white focus:outline-none leading-relaxed" />
               </div>
               <div className="md:col-span-2">
                 <label className="flex items-center gap-2 font-mono text-[10px] text-white">
-                  <input 
-                    type="checkbox" 
-                    checked={blogForm.isDraft} 
-                    onChange={(e) => setBlogForm({ ...blogForm, isDraft: e.target.checked })}
-                    className="accent-[var(--accent)]"
-                  />
+                  <input type="checkbox" checked={blogForm.isDraft} onChange={(e) => setBlogForm({ ...blogForm, isDraft: e.target.checked })} className="accent-[var(--accent)]" />
                   Save as Draft (Unpublished)
                 </label>
               </div>
             </div>
             <div className="flex gap-4">
-              <button 
-                onClick={handleSaveBlog}
-                className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-              >
+              <button onClick={handleSaveBlog} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
                 Save Essay
               </button>
               {selectedBlog && (
-                <button 
-                  onClick={handleDeleteBlog}
-                  className="border border-red-500/20 bg-red-950/20 text-red-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-red-900/20 transition-colors"
-                >
-                  Delete Essay
+                <button onClick={() => handleDeleteBlog()} className="border border-red-500/20 bg-red-950/20 text-red-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-red-900/20 transition-colors">
+                  Delete
                 </button>
               )}
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ==================== TAB 5: SKILLS ==================== */}
-      {activeTab === 'skills' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8">
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl h-fit">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Active Skills Database</h3>
-            <div className="flex flex-col border border-white/5 rounded-lg overflow-hidden bg-[#09090b]">
-              <div className="grid grid-cols-[2fr_1fr_1fr_1fr] p-3 border-b border-white/5 bg-[#121216] font-mono text-[8px] uppercase text-zinc-500">
-                <span>Skill Name</span>
-                <span>Category</span>
-                <span>Proficiency</span>
-                <span className="text-right">Action</span>
-              </div>
-              {skills.map((s) => (
-                <div key={s.id} className="grid grid-cols-[2fr_1fr_1fr_1fr] p-3 border-b border-white/5 last:border-b-0 items-center font-mono text-[9px] text-zinc-300">
-                  <span className="font-semibold text-white">{s.name}</span>
-                  <span className="opacity-70 truncate">{s.categoryName}</span>
-                  <span>{s.proficiency}%</span>
-                  <button 
-                    onClick={() => handleDeleteSkill(s.id)}
-                    className="text-red-400 text-right hover:text-red-300 font-bold"
-                  >
-                    DELETE
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl h-fit">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add Skill Metric</h3>
-            <div className="flex flex-col gap-5 mb-8">
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Skill Name</label>
-                <input 
-                  type="text" 
-                  value={skillForm.name} 
-                  onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Skill Group</label>
-                <select 
-                  value={skillForm.categoryId} 
-                  onChange={(e) => setSkillForm({ ...skillForm, categoryId: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                >
-                  {skillCategories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+      {activeModal === 'skill' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Manage Skills Database</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="bg-[#09090b] border border-white/5 rounded-lg p-5 h-[300px] overflow-y-auto">
+                <span className="block font-mono text-[8px] text-zinc-500 uppercase mb-3 pb-2 border-b border-white/5">Active Skills</span>
+                <div className="flex flex-col gap-2">
+                  {skills.map(s => (
+                    <div key={s.id} className="flex justify-between items-center text-[10px] font-mono text-zinc-300 py-1 border-b border-white/5 last:border-b-0">
+                      <span className="text-white truncate max-w-[120px]">{s.name}</span>
+                      <span className="text-zinc-500 font-semibold">{s.proficiency}%</span>
+                      <button onClick={() => handleDeleteSkill(s.id)} className="text-red-400 hover:text-red-300 font-semibold">DEL</button>
+                    </div>
                   ))}
-                </select>
+                </div>
               </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Proficiency (0-100)</label>
-                <input 
-                  type="number" 
-                  value={skillForm.proficiency} 
-                  onChange={(e) => setSkillForm({ ...skillForm, proficiency: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+              
+              <div className="flex flex-col gap-4">
+                <span className="block font-mono text-[8px] text-zinc-500 uppercase">Add Skill Metric</span>
+                <div>
+                  <label className="block font-mono text-[8px] text-zinc-600 mb-1">Skill Name</label>
+                  <input type="text" value={skillForm.name} onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block font-mono text-[8px] text-zinc-600 mb-1">Skill Group</label>
+                  <select value={skillForm.categoryId} onChange={(e) => setSkillForm({ ...skillForm, categoryId: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none">
+                    {skillCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-mono text-[8px] text-zinc-600 mb-1">Proficiency (0-100)</label>
+                  <input type="number" value={skillForm.proficiency} onChange={(e) => setSkillForm({ ...skillForm, proficiency: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none" />
+                </div>
+                <button onClick={handleSaveSkill} className="bg-white text-black font-mono text-[9px] uppercase tracking-wider py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors w-full mt-2">
+                  Add Skill
+                </button>
               </div>
             </div>
-            <button 
-              onClick={handleSaveSkill}
-              className="bg-white text-black font-mono text-[10px] uppercase tracking-widest w-full py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-            >
-              Add Skill
-            </button>
+            
+            <div className="flex justify-end">
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ==================== TAB 6: TESTIMONIALS ==================== */}
-      {activeTab === 'testimonials' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8">
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl h-fit">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Social Testimonials</h3>
-            <div className="flex flex-col border border-white/5 rounded-lg overflow-hidden bg-[#09090b]">
-              <div className="grid grid-cols-[2fr_1.5fr_1fr] p-3 border-b border-white/5 bg-[#121216] font-mono text-[8px] uppercase text-zinc-500">
-                <span>Client / Partner</span>
-                <span>Title & Company</span>
-                <span className="text-right">Actions</span>
-              </div>
-              {testimonials.map((test) => (
-                <div key={test.id} className="grid grid-cols-[2fr_1.5fr_1fr] p-3 border-b border-white/5 last:border-b-0 items-center font-mono text-[9px] text-zinc-300">
-                  <span className="font-semibold text-white">{test.clientName}</span>
-                  <span className="opacity-70 truncate">{test.clientRole} at {test.clientCompany}</span>
-                  <div className="flex justify-end gap-3 text-right">
-                    <button 
-                      onClick={() => handleEditTestimonial(test)}
-                      className="text-white hover:underline font-bold"
-                    >
-                      EDIT
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteTestimonial(test.id)}
-                      className="text-red-400 hover:text-red-300 font-bold"
-                    >
-                      DELETE
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl h-fit">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Testimonial</h3>
-            <div className="flex flex-col gap-5 mb-8">
+      {activeModal === 'testimonial' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Recommendation</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Client Name</label>
-                <input 
-                  type="text" 
-                  value={testimonialForm.clientName} 
-                  onChange={(e) => setTestimonialForm({ ...testimonialForm, clientName: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="text" value={testimonialForm.clientName} onChange={(e) => setTestimonialForm({ ...testimonialForm, clientName: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Client Role</label>
-                <input 
-                  type="text" 
-                  value={testimonialForm.clientRole} 
-                  onChange={(e) => setTestimonialForm({ ...testimonialForm, clientRole: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="text" value={testimonialForm.clientRole} onChange={(e) => setTestimonialForm({ ...testimonialForm, clientRole: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Client Company</label>
-                <input 
-                  type="text" 
-                  value={testimonialForm.clientCompany} 
-                  onChange={(e) => setTestimonialForm({ ...testimonialForm, clientCompany: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Review Quote</label>
-                <textarea 
-                  rows={4} 
-                  value={testimonialForm.text} 
-                  onChange={(e) => setTestimonialForm({ ...testimonialForm, text: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
-                />
+                <input type="text" value={testimonialForm.clientCompany} onChange={(e) => setTestimonialForm({ ...testimonialForm, clientCompany: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Avatar URL</label>
-                <input 
-                  type="text" 
-                  value={testimonialForm.avatarUrl} 
-                  onChange={(e) => setTestimonialForm({ ...testimonialForm, avatarUrl: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="text" value={testimonialForm.avatarUrl} onChange={(e) => setTestimonialForm({ ...testimonialForm, avatarUrl: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Review Quote</label>
+                <textarea rows={3} value={testimonialForm.text} onChange={(e) => setTestimonialForm({ ...testimonialForm, text: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white leading-relaxed" />
               </div>
             </div>
-            <button 
-              onClick={handleSaveTestimonial}
-              className="bg-white text-black font-mono text-[10px] uppercase tracking-widest w-full py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-            >
-              Save Testimonial
-            </button>
+            <div className="flex gap-4">
+              <button onClick={handleSaveTestimonial} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">Save Recommendation</button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5">Cancel</button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ==================== TAB 7: SERVICES ==================== */}
-      {activeTab === 'services' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8">
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl h-fit">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Services List</h3>
-            <div className="flex flex-col border border-white/5 rounded-lg overflow-hidden bg-[#09090b]">
-              <div className="grid grid-cols-[1.5fr_2fr_1fr] p-3 border-b border-white/5 bg-[#121216] font-mono text-[8px] uppercase text-zinc-500">
-                <span>Service Name</span>
-                <span>Description</span>
-                <span className="text-right">Actions</span>
-              </div>
-              {services.map((s) => (
-                <div key={s.id} className="grid grid-cols-[1.5fr_2fr_1fr] p-3 border-b border-white/5 last:border-b-0 items-center font-mono text-[9px] text-zinc-300">
-                  <span className="font-semibold text-white">{s.name}</span>
-                  <span className="opacity-70 truncate">{s.description}</span>
-                  <div className="flex justify-end gap-3 text-right">
-                    <button 
-                      onClick={() => handleEditService(s)}
-                      className="text-white hover:underline font-bold"
-                    >
-                      EDIT
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteService(s.id)}
-                      className="text-red-400 hover:text-red-300 font-bold"
-                    >
-                      DELETE
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl h-fit">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Service</h3>
-            <div className="flex flex-col gap-5 mb-8">
+      {activeModal === 'service' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Service Card</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Service Name</label>
-                <input 
-                  type="text" 
-                  value={serviceForm.name} 
-                  onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="text" value={serviceForm.name} onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Lucide Icon Name</label>
-                <input 
-                  type="text" 
-                  value={serviceForm.icon} 
-                  onChange={(e) => setServiceForm({ ...serviceForm, icon: e.target.value })}
-                  placeholder="e.g. CodeXml, Globe, Terminal, Sparkles"
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Description</label>
-                <textarea 
-                  rows={4} 
-                  value={serviceForm.description} 
-                  onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
-                />
+                <input type="text" value={serviceForm.icon} onChange={(e) => setServiceForm({ ...serviceForm, icon: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Display Position</label>
-                <input 
-                  type="number" 
-                  value={serviceForm.position} 
-                  onChange={(e) => setServiceForm({ ...serviceForm, position: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="number" value={serviceForm.position} onChange={(e) => setServiceForm({ ...serviceForm, position: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Description</label>
+                <textarea rows={3} value={serviceForm.description} onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white leading-relaxed" />
               </div>
             </div>
-            <button 
-              onClick={handleSaveService}
-              className="bg-white text-black font-mono text-[10px] uppercase tracking-widest w-full py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-            >
-              Save Service
-            </button>
+            <div className="flex gap-4">
+              <button onClick={handleSaveService} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">Save Service</button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5">Cancel</button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ==================== TAB 8: EXPERIENCE ==================== */}
-      {activeTab === 'experience' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.8fr] gap-8">
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-6 backdrop-blur-xl h-fit">
-            <span className="font-mono text-[10px] text-zinc-500 uppercase block mb-4 border-b border-white/5 pb-2">Employment History</span>
-            <div className="flex flex-col gap-2">
-              {experiences.map((exp) => (
-                <button
-                  key={exp.id}
-                  onClick={() => handleEditExperience(exp)}
-                  className="w-full text-left p-3.5 rounded-lg font-mono text-[10px] border border-white/5 bg-transparent text-zinc-400 hover:border-zinc-700 hover:text-white transition-all duration-300"
-                >
-                  <div className="font-semibold uppercase text-white">{exp.role}</div>
-                  <div className="mt-1 text-[8px] opacity-75">{exp.company} | {exp.timeline}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Experience</h3>
+      {activeModal === 'experience' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Employment Record</h3>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Company Name</label>
-                <input 
-                  type="text" 
-                  value={experienceForm.company} 
-                  onChange={(e) => setExperienceForm({ ...experienceForm, company: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Role Title</label>
-                <input 
-                  type="text" 
-                  value={experienceForm.role} 
-                  onChange={(e) => setExperienceForm({ ...experienceForm, role: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="text" value={experienceForm.role} onChange={(e) => setExperienceForm({ ...experienceForm, role: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Job Timeline</label>
-                <input 
-                  type="text" 
-                  value={experienceForm.timeline} 
-                  onChange={(e) => setExperienceForm({ ...experienceForm, timeline: e.target.value })}
-                  placeholder="e.g. 2025 - Present"
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Company Name</label>
+                <input type="text" value={experienceForm.company} onChange={(e) => setExperienceForm({ ...experienceForm, company: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Timeline</label>
+                <input type="text" value={experienceForm.timeline} onChange={(e) => setExperienceForm({ ...experienceForm, timeline: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div>
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Location</label>
-                <input 
-                  type="text" 
-                  value={experienceForm.location} 
-                  onChange={(e) => setExperienceForm({ ...experienceForm, location: e.target.value })}
-                  placeholder="e.g. Remote / Surat, India"
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Job Description</label>
-                <textarea 
-                  rows={4} 
-                  value={experienceForm.description} 
-                  onChange={(e) => setExperienceForm({ ...experienceForm, description: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Display Position</label>
-                <input 
-                  type="number" 
-                  value={experienceForm.position} 
-                  onChange={(e) => setExperienceForm({ ...experienceForm, position: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <button 
-                onClick={handleSaveExperience}
-                className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-              >
-                Save Experience
-              </button>
-              {experienceForm.id && (
-                <button 
-                  onClick={() => handleDeleteExperience(experienceForm.id)}
-                  className="border border-red-500/20 bg-red-950/20 text-red-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-red-900/20 transition-colors"
-                >
-                  Delete Record
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== TAB 9: EDUCATION ==================== */}
-      {activeTab === 'education' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.8fr] gap-8">
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-6 backdrop-blur-xl h-fit">
-            <span className="font-mono text-[10px] text-zinc-500 uppercase block mb-4 border-b border-white/5 pb-2">Academic Background</span>
-            <div className="flex flex-col gap-2">
-              {educations.map((edu) => (
-                <button
-                  key={edu.id}
-                  onClick={() => handleEditEducation(edu)}
-                  className="w-full text-left p-3.5 rounded-lg font-mono text-[10px] border border-white/5 bg-transparent text-zinc-400 hover:border-zinc-700 hover:text-white transition-all duration-300"
-                >
-                  <div className="font-semibold uppercase text-white">{edu.degree}</div>
-                  <div className="mt-1 text-[8px] opacity-75">{edu.institution} | {edu.period}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Education</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Institution Name</label>
-                <input 
-                  type="text" 
-                  value={educationForm.institution} 
-                  onChange={(e) => setEducationForm({ ...educationForm, institution: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Degree / Diploma</label>
-                <input 
-                  type="text" 
-                  value={educationForm.degree} 
-                  onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Field of Study</label>
-                <input 
-                  type="text" 
-                  value={educationForm.fieldOfStudy} 
-                  onChange={(e) => setEducationForm({ ...educationForm, fieldOfStudy: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Academic Period (Timeline)</label>
-                <input 
-                  type="text" 
-                  value={educationForm.period} 
-                  onChange={(e) => setEducationForm({ ...educationForm, period: e.target.value })}
-                  placeholder="e.g. 2021 - 2024"
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">GPA / Score</label>
-                <input 
-                  type="text" 
-                  value={educationForm.gpa} 
-                  onChange={(e) => setEducationForm({ ...educationForm, gpa: e.target.value })}
-                  placeholder="e.g. 9.1 / 10"
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Display Position</label>
-                <input 
-                  type="number" 
-                  value={educationForm.position} 
-                  onChange={(e) => setEducationForm({ ...educationForm, position: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Description</label>
-                <textarea 
-                  rows={4} 
-                  value={educationForm.description} 
-                  onChange={(e) => setEducationForm({ ...educationForm, description: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
-                />
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <button 
-                onClick={handleSaveEducation}
-                className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-              >
-                Save Education
-              </button>
-              {educationForm.id && (
-                <button 
-                  onClick={() => handleDeleteEducation(educationForm.id)}
-                  className="border border-red-500/20 bg-red-950/20 text-red-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-red-900/20 transition-colors"
-                >
-                  Delete Record
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== TAB 10: CERTIFICATES ==================== */}
-      {activeTab === 'certificates' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.8fr] gap-8">
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-6 backdrop-blur-xl h-fit">
-            <span className="font-mono text-[10px] text-zinc-500 uppercase block mb-4 border-b border-white/5 pb-2">Academic & Tech Credentials</span>
-            <div className="flex flex-col gap-2">
-              {certificates.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => handleEditCertificate(c)}
-                  className="w-full text-left p-3.5 rounded-lg font-mono text-[10px] border border-white/5 bg-transparent text-zinc-400 hover:border-zinc-700 hover:text-white transition-all duration-300"
-                >
-                  <div className="font-semibold uppercase text-white">{c.title}</div>
-                  <div className="mt-1 text-[8px] opacity-75">{c.issuer} | {c.score}{c.suffix}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[#111115]/80 border border-white/5 rounded-xl p-8 backdrop-blur-xl">
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Certificate</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Certificate Name</label>
-                <input 
-                  type="text" 
-                  value={certificateForm.title} 
-                  onChange={(e) => setCertificateForm({ ...certificateForm, title: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Issuer / Organization</label>
-                <input 
-                  type="text" 
-                  value={certificateForm.issuer} 
-                  onChange={(e) => setCertificateForm({ ...certificateForm, issuer: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Credential Date</label>
-                <input 
-                  type="text" 
-                  value={certificateForm.timeline} 
-                  onChange={(e) => setCertificateForm({ ...certificateForm, timeline: e.target.value })}
-                  placeholder="e.g. 2025"
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Score / Grade</label>
-                <input 
-                  type="number" 
-                  value={certificateForm.score} 
-                  onChange={(e) => setCertificateForm({ ...certificateForm, score: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Suffix Symbol (e.g. %, /100, /4.0)</label>
-                <input 
-                  type="text" 
-                  value={certificateForm.suffix} 
-                  onChange={(e) => setCertificateForm({ ...certificateForm, suffix: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <input type="text" value={experienceForm.location} onChange={(e) => setExperienceForm({ ...experienceForm, location: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Short Description</label>
-                <textarea 
-                  rows={3} 
-                  value={certificateForm.description} 
-                  onChange={(e) => setCertificateForm({ ...certificateForm, description: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Display Position</label>
-                <input 
-                  type="number" 
-                  value={certificateForm.position} 
-                  onChange={(e) => setCertificateForm({ ...certificateForm, position: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+                <textarea rows={3} value={experienceForm.description} onChange={(e) => setExperienceForm({ ...experienceForm, description: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white leading-relaxed" />
               </div>
             </div>
             <div className="flex gap-4">
-              <button 
-                onClick={handleSaveCertificate}
-                className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-              >
-                Save Certificate
-              </button>
-              {certificateForm.id && (
-                <button 
-                  onClick={() => handleDeleteCertificate(certificateForm.id)}
-                  className="border border-red-500/20 bg-red-950/20 text-red-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-red-900/20 transition-colors"
-                >
-                  Delete Certificate
-                </button>
-              )}
+              <button onClick={handleSaveExperience} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">Save Experience</button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5">Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ==================== TAB 11: SEO ==================== */}
-      {activeTab === 'seo' && (
-        <div className="bg-[#111115]/80 border border-white/5 shadow-2xl rounded-xl p-8 backdrop-blur-xl max-w-3xl">
-          <h3 className="text-lg font-light mb-6 text-white tracking-tight">Meta SEO Configurations</h3>
-          <div className="flex flex-col gap-6 mb-8">
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Meta Description Tag</label>
-              <textarea 
-                rows={3}
-                value={seo.metaDescription || ''} 
-                onChange={(e) => setSeo({ ...seo, metaDescription: e.target.value })}
-                placeholder="A compelling summary of your site to display in search index results"
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
-              />
+      {activeModal === 'education' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Education Record</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Degree Title</label>
+                <input type="text" value={educationForm.degree} onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Institution Name</label>
+                <input type="text" value={educationForm.institution} onChange={(e) => setEducationForm({ ...educationForm, institution: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Period / Timeline</label>
+                <input type="text" value={educationForm.period} onChange={(e) => setEducationForm({ ...educationForm, period: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Field of Study</label>
+                <input type="text" value={educationForm.fieldOfStudy} onChange={(e) => setEducationForm({ ...educationForm, fieldOfStudy: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Short Description</label>
+                <textarea rows={3} value={educationForm.description} onChange={(e) => setEducationForm({ ...educationForm, description: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white leading-relaxed" />
+              </div>
             </div>
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Social OpenGraph Image Path (og:image)</label>
-              <input 
-                type="text" 
-                value={seo.ogImage || ''} 
-                onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })}
-                placeholder="e.g. /uploads/hero_visual.png"
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Twitter Card Type</label>
-              <select 
-                value={seo.twitterCard || 'summary_large_image'} 
-                onChange={(e) => setSeo({ ...seo, twitterCard: e.target.value })}
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-              >
-                <option value="summary">Summary Card</option>
-                <option value="summary_large_image">Large Image Card (Recommended)</option>
-                <option value="app">App Card</option>
-              </select>
+            <div className="flex gap-4">
+              <button onClick={handleSaveEducation} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">Save Education</button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5">Cancel</button>
             </div>
           </div>
-          <button 
-            onClick={handleSaveSeo}
-            className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-          >
-            Save SEO Metadata
-          </button>
         </div>
       )}
+
+      {activeModal === 'certificate' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Certificate</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Certificate Name</label>
+                <input type="text" value={certificateForm.title} onChange={(e) => setCertificateForm({ ...certificateForm, title: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Issuer / Organization</label>
+                <input type="text" value={certificateForm.issuer} onChange={(e) => setCertificateForm({ ...certificateForm, issuer: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Credential Date</label>
+                <input type="text" value={certificateForm.timeline} onChange={(e) => setCertificateForm({ ...certificateForm, timeline: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white font-mono" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Score / Grade</label>
+                <input type="number" value={certificateForm.score} onChange={(e) => setCertificateForm({ ...certificateForm, score: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Suffix Symbol (e.g. %)</label>
+                <input type="text" value={certificateForm.suffix} onChange={(e) => setCertificateForm({ ...certificateForm, suffix: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Short Description</label>
+                <textarea rows={3} value={certificateForm.description} onChange={(e) => setCertificateForm({ ...certificateForm, description: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white leading-relaxed" />
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={handleSaveCertificate} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">Save Certificate</button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'seo' && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Meta SEO Configurations</h3>
+            
+            <div className="flex flex-col gap-6 mb-8">
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Meta Description Tag</label>
+                <textarea rows={3} value={seo.metaDescription || ''} onChange={(e) => setSeo({ ...seo, metaDescription: e.target.value })} placeholder="A summary for search results" className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">OpenGraph Image Path</label>
+                <input type="text" value={seo.ogImage || ''} onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })} placeholder="e.g. /uploads/hero_visual.png" className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none" />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Twitter Card Type</label>
+                <select value={seo.twitterCard || 'summary_large_image'} onChange={(e) => setSeo({ ...seo, twitterCard: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none">
+                  <option value="summary">Summary Card</option>
+                  <option value="summary_large_image">Large Image Card</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={handleSaveSeo} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">Save SEO Settings</button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
