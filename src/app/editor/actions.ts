@@ -716,3 +716,46 @@ export async function initializeDatabaseAction() {
     return { success: false, error: err.message || 'Failed to initialize database.' };
   }
 }
+
+export async function saveSkillCategoryAction(cat: any) {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+    const admin = getAdminClient();
+    const payload = {
+      name: cat.name,
+      position: parseInt(cat.position || '0', 10),
+      status: 'active',
+    };
+
+    let res;
+    if (cat.id) {
+      res = await admin.from('skill_categories').update(payload).eq('id', cat.id);
+    } else {
+      res = await admin.from('skill_categories').insert([payload]);
+    }
+
+    if (res.error) throw res.error;
+    revalidatePath('/');
+    return { success: true };
+  } catch (err: any) {
+    console.error('saveSkillCategoryAction error:', err);
+    return { success: false, error: err.message || 'Failed to save skill category.' };
+  }
+}
+
+export async function deleteSkillCategoryAction(id: string) {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+    const admin = getAdminClient();
+    // Cascade delete any child skills first
+    await admin.from('skills').delete().eq('category_id', id);
+    const res = await admin.from('skill_categories').delete().eq('id', id);
+
+    if (res.error) throw res.error;
+    revalidatePath('/');
+    return { success: true };
+  } catch (err: any) {
+    console.error('deleteSkillCategoryAction error:', err);
+    return { success: false, error: err.message || 'Failed to delete skill category.' };
+  }
+}
