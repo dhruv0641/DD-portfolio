@@ -211,7 +211,6 @@ export async function saveBlogAction(post: any) {
       categories: Array.isArray(post.categories) ? post.categories : JSON.parse(post.categories || '[]'),
       tags: Array.isArray(post.tags) ? post.tags : JSON.parse(post.tags || '[]'),
       is_draft: post.isDraft === true || post.isDraft === 1,
-      excerpt: post.excerpt,
       reading_time: parseInt(post.readingTime || '5', 10),
       published_at: post.isDraft ? null : (post.publishedAt || new Date().toISOString()),
       status: 'active',
@@ -558,6 +557,20 @@ export async function initializeDatabaseAction() {
     const admin = getAdminClient();
     console.log('Starting Supabase database initialization...');
 
+    // 0. Clear out existing data before inserting to ensure a clean sync state
+    await admin.from('site_settings').delete().neq('status', 'nonexistent');
+    await admin.from('profiles').delete().neq('status', 'nonexistent');
+    await admin.from('skills').delete().neq('status', 'nonexistent');
+    await admin.from('skill_categories').delete().neq('status', 'nonexistent');
+    await admin.from('projects').delete().neq('status', 'nonexistent');
+    await admin.from('blogs').delete().neq('status', 'nonexistent');
+    await admin.from('testimonials').delete().neq('status', 'nonexistent');
+    await admin.from('services').delete().neq('status', 'nonexistent');
+    await admin.from('experience').delete().neq('status', 'nonexistent');
+    await admin.from('education').delete().neq('status', 'nonexistent');
+    await admin.from('certificates').delete().neq('status', 'nonexistent');
+    await admin.from('seo').delete().neq('status', 'nonexistent');
+
     // 1. Settings Upsert
     const settingsPayload = Object.entries(fallbackSettings).map(([key, value]) => ({
       key,
@@ -568,44 +581,48 @@ export async function initializeDatabaseAction() {
     }));
     await admin.from('site_settings').upsert(settingsPayload, { onConflict: 'key' });
 
-    // 2. Profile Insert (remove mock client ID)
-    const { id: _, ...profileFields } = fallbackProfile;
-    await admin.from('profiles').insert([{ ...profileFields, status: 'active' }]);
+    // 2. Profile Insert (remove mock client ID and map camelCase columns)
+    const { id: _, contactEmail, resumeUrl, ...profileFields } = fallbackProfile;
+    await admin.from('profiles').insert([{
+      ...profileFields,
+      contact_email: contactEmail,
+      resume_url: resumeUrl,
+      status: 'active'
+    }]);
 
-    // 3. Projects Insert (remove mock client IDs)
+    // 3. Projects Insert (remove mock client IDs and map camelCase columns)
     const projectsPayload = fallbackProjects.map(proj => {
-      const { id: _, ...fields } = proj;
+      const { id: _, techStack, githubUrl, demoUrl, isFeatured, isPinned, isDraft, ...fields } = proj;
       return {
         ...fields,
-        tech_stack: fields.techStack,
-        metrics: fields.metrics,
-        screenshots: fields.screenshots,
-        github_url: fields.githubUrl,
-        demo_url: fields.demoUrl,
-        is_featured: fields.isFeatured,
-        is_pinned: fields.isPinned,
-        is_draft: fields.isDraft,
+        tech_stack: techStack,
+        github_url: githubUrl,
+        demo_url: demoUrl,
+        is_featured: isFeatured,
+        is_pinned: isPinned,
+        is_draft: isDraft,
         status: 'active',
         updated_at: new Date().toISOString()
       };
     });
     await admin.from('projects').insert(projectsPayload);
 
-    // 4. Blogs Insert (remove mock client IDs)
+    // 4. Blogs Insert (remove mock client IDs and map camelCase columns)
     const blogsPayload = fallbackBlogs.map(blog => {
-      const { id: _, ...fields } = blog;
+      const { id: _, contentMarkdown, isDraft, publishedAt, readingTime, excerpt, ...fields } = blog;
       return {
         ...fields,
-        content_markdown: fields.contentMarkdown,
-        is_draft: fields.isDraft,
-        published_at: fields.publishedAt,
+        content_markdown: contentMarkdown,
+        is_draft: isDraft,
+        published_at: publishedAt,
+        reading_time: readingTime,
         status: 'active',
         updated_at: new Date().toISOString()
       };
     });
     await admin.from('blogs').insert(blogsPayload);
 
-    // 5. Skill Categories
+    // 5. Skill Categories and Skills
     for (const cat of fallbackSkills) {
       const catInsert = await admin.from('skill_categories').insert([{
         name: cat.name,
@@ -651,7 +668,27 @@ export async function initializeDatabaseAction() {
     });
     await admin.from('services').insert(servicesPayload);
 
-    // 8. Certificates
+    // 8. Experience
+    const experiencePayload = fallbackExperience.map(exp => {
+      const { id: _, ...fields } = exp;
+      return {
+        ...fields,
+        status: 'active'
+      };
+    });
+    await admin.from('experience').insert(experiencePayload);
+
+    // 9. Education
+    const educationPayload = fallbackEducation.map(edu => {
+      const { id: _, ...fields } = edu;
+      return {
+        ...fields,
+        status: 'active'
+      };
+    });
+    await admin.from('education').insert(educationPayload);
+
+    // 10. Certificates
     const certsPayload = fallbackCertificates.map(c => {
       const { id: _, ...fields } = c;
       return {
@@ -661,7 +698,7 @@ export async function initializeDatabaseAction() {
     });
     await admin.from('certificates').insert(certsPayload);
 
-    // 9. SEO
+    // 11. SEO
     const { id: __, ...seoFields } = fallbackSeo;
     await admin.from('seo').insert([{
       meta_description: seoFields.metaDescription,
