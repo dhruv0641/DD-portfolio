@@ -1377,9 +1377,20 @@ export default function EditorClient({
         </div>
       </section>
 
-      {/* SECTION 12: CONTACT */}
-      <section id="build" className="py-40 relative overflow-hidden">
+      {/* SECTION 12: CONTACT (WITH EDIT HOVER HIGHLIGHT) */}
+      <section id="build" className="py-40 relative overflow-hidden group/contact hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 rounded-xl m-2">
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 80%, rgba(var(--accent-rgb), 0.04) 0%, transparent 70%)' }} />
+        
+        {/* Floating section modifier overlay */}
+        <div className="absolute top-4 right-8 opacity-0 group-hover/contact:opacity-100 transition-opacity z-20 flex gap-2">
+          <button 
+            onClick={() => setActiveModal('profile')}
+            className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white flex items-center gap-1.5 shadow-md font-semibold"
+          >
+            ✏️ Edit Contact & Links
+          </button>
+        </div>
+
         <div className="max-w-[1400px] mx-auto px-[8%] relative z-10">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-20 flex items-center gap-2">
             <span>11 / Contact</span>
@@ -1395,8 +1406,16 @@ export default function EditorClient({
                 </h3>
               </div>
               <div className="flex flex-col gap-5 font-mono text-xs">
-                <div className="flex items-center gap-3 text-[var(--text-muted)]">
+                <a
+                  href={`mailto:${settings.contactEmail || 'dhruv.dobariya0641@gmail.com'}`}
+                  className="group/mail flex items-center gap-3 text-[var(--text-muted)] hover:text-white transition-colors duration-300"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-40 group-hover/mail:opacity-100 transition-opacity"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
                   <span>{settings.contactEmail || 'dhruv.dobariya0641@gmail.com'}</span>
+                </a>
+                <div className="flex items-center gap-3 text-[var(--text-muted)]">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-40"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                  <span>{profile.location || 'San Francisco, CA & Remote'}</span>
                 </div>
                 <SocialCards />
               </div>
