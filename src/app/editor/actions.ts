@@ -93,6 +93,7 @@ export async function saveSettingsAction(settingsList: { key: string; value: str
     const payload = settingsList.map(item => ({
       key: item.key,
       value: item.value,
+      category: 'general',
       status: 'active',
       updated_at: new Date().toISOString()
     }));
@@ -561,6 +562,7 @@ export async function initializeDatabaseAction() {
     const settingsPayload = Object.entries(fallbackSettings).map(([key, value]) => ({
       key,
       value,
+      category: 'general',
       status: 'active',
       updated_at: new Date().toISOString()
     }));
