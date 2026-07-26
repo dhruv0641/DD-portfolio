@@ -129,14 +129,14 @@ export async function saveProfileAction(profile: any) {
 
     let res;
     if (profile.id && profile.id !== 'default-profile') {
-      res = await admin.from('profiles').update(payload).eq('id', profile.id);
+      res = await admin.from('profiles').update(payload).eq('id', profile.id).select();
     } else {
-      res = await admin.from('profiles').insert([payload]);
+      res = await admin.from('profiles').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveProfileAction error:', err);
     return { success: false, error: err.message || 'Failed to save profile.' };
@@ -172,14 +172,14 @@ export async function saveProjectAction(project: any) {
 
     let res;
     if (project.id && !project.id.startsWith('project-')) {
-      res = await admin.from('projects').update(payload).eq('id', project.id);
+      res = await admin.from('projects').update(payload).eq('id', project.id).select();
     } else {
-      res = await admin.from('projects').insert([payload]);
+      res = await admin.from('projects').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveProjectAction error:', err);
     return { success: false, error: err.message || 'Failed to save project.' };
@@ -219,16 +219,16 @@ export async function saveBlogAction(post: any) {
 
     let res;
     if (post.id && !post.id.startsWith('blog-')) {
-      res = await admin.from('blogs').update(payload).eq('id', post.id);
+      res = await admin.from('blogs').update(payload).eq('id', post.id).select();
     } else {
-      res = await admin.from('blogs').insert([payload]);
+      res = await admin.from('blogs').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
     revalidatePath('/blog');
     revalidatePath(`/blog/${post.slug}`);
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveBlogAction error:', err);
     return { success: false, error: err.message || 'Failed to save blog post.' };
@@ -265,14 +265,14 @@ export async function saveSkillAction(skill: any) {
 
     let res;
     if (skill.id && !skill.id.startsWith('s-')) {
-      res = await admin.from('skills').update(payload).eq('id', skill.id);
+      res = await admin.from('skills').update(payload).eq('id', skill.id).select();
     } else {
-      res = await admin.from('skills').insert([payload]);
+      res = await admin.from('skills').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveSkillAction error:', err);
     return { success: false, error: err.message || 'Failed to save skill.' };
@@ -310,14 +310,14 @@ export async function saveTestimonialAction(testimonial: any) {
 
     let res;
     if (testimonial.id && !testimonial.id.startsWith('test-')) {
-      res = await admin.from('testimonials').update(payload).eq('id', testimonial.id);
+      res = await admin.from('testimonials').update(payload).eq('id', testimonial.id).select();
     } else {
-      res = await admin.from('testimonials').insert([payload]);
+      res = await admin.from('testimonials').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveTestimonialAction error:', err);
     return { success: false, error: err.message || 'Failed to save testimonial.' };
@@ -355,14 +355,14 @@ export async function saveServiceAction(service: any) {
 
     let res;
     if (service.id && !service.id.startsWith('service-')) {
-      res = await admin.from('services').update(payload).eq('id', service.id);
+      res = await admin.from('services').update(payload).eq('id', service.id).select();
     } else {
-      res = await admin.from('services').insert([payload]);
+      res = await admin.from('services').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveServiceAction error:', err);
     return { success: false, error: err.message || 'Failed to save service.' };
@@ -400,14 +400,14 @@ export async function saveExperienceAction(exp: any) {
 
     let res;
     if (exp.id && !exp.id.startsWith('exp-')) {
-      res = await admin.from('experience').update(payload).eq('id', exp.id);
+      res = await admin.from('experience').update(payload).eq('id', exp.id).select();
     } else {
-      res = await admin.from('experience').insert([payload]);
+      res = await admin.from('experience').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveExperienceAction error:', err);
     return { success: false, error: err.message || 'Failed to save experience.' };
@@ -446,14 +446,14 @@ export async function saveEducationAction(edu: any) {
 
     let res;
     if (edu.id && !edu.id.startsWith('edu-')) {
-      res = await admin.from('education').update(payload).eq('id', edu.id);
+      res = await admin.from('education').update(payload).eq('id', edu.id).select();
     } else {
-      res = await admin.from('education').insert([payload]);
+      res = await admin.from('education').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveEducationAction error:', err);
     return { success: false, error: err.message || 'Failed to save education record.' };
@@ -492,14 +492,14 @@ export async function saveCertificateAction(cert: any) {
 
     let res;
     if (cert.id && !cert.id.startsWith('cert-')) {
-      res = await admin.from('certificates').update(payload).eq('id', cert.id);
+      res = await admin.from('certificates').update(payload).eq('id', cert.id).select();
     } else {
-      res = await admin.from('certificates').insert([payload]);
+      res = await admin.from('certificates').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveCertificateAction error:', err);
     return { success: false, error: err.message || 'Failed to save certificate.' };
@@ -534,15 +534,15 @@ export async function saveSeoAction(seo: any) {
 
     let res;
     if (seo.id && !seo.id.startsWith('seo-')) {
-      res = await admin.from('seo').update(payload).eq('id', seo.id);
+      res = await admin.from('seo').update(payload).eq('id', seo.id).select();
     } else {
       // Upsert/Insert
-      res = await admin.from('seo').upsert([payload]);
+      res = await admin.from('seo').upsert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveSeoAction error:', err);
     return { success: false, error: err.message || 'Failed to save SEO metadata.' };
@@ -729,14 +729,14 @@ export async function saveSkillCategoryAction(cat: any) {
 
     let res;
     if (cat.id) {
-      res = await admin.from('skill_categories').update(payload).eq('id', cat.id);
+      res = await admin.from('skill_categories').update(payload).eq('id', cat.id).select();
     } else {
-      res = await admin.from('skill_categories').insert([payload]);
+      res = await admin.from('skill_categories').insert([payload]).select();
     }
 
     if (res.error) throw res.error;
     revalidatePath('/');
-    return { success: true };
+    return { success: true, data: res.data?.[0] };
   } catch (err: any) {
     console.error('saveSkillCategoryAction error:', err);
     return { success: false, error: err.message || 'Failed to save skill category.' };

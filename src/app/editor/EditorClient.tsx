@@ -107,7 +107,7 @@ export default function EditorClient({
       if (res.success) {
         triggerToast('Profile info updated successfully!', true);
         setActiveModal(null);
-        window.location.reload();
+        if (res.data) setProfile(res.data);
       } else {
         triggerToast(res.error || 'Failed to update profile.', false);
       }
@@ -194,8 +194,25 @@ export default function EditorClient({
       const res = await saveProjectAction(projectForm);
       if (res.success) {
         triggerToast('Project saved successfully!', true);
+        const savedItem = {
+          ...projectForm,
+          id: res.data?.id || projectForm.id,
+          techStack: typeof projectForm.techStack === 'string' ? JSON.parse(projectForm.techStack) : projectForm.techStack,
+          metrics: typeof projectForm.metrics === 'string' ? JSON.parse(projectForm.metrics) : projectForm.metrics,
+          screenshots: typeof projectForm.screenshots === 'string' ? JSON.parse(projectForm.screenshots) : projectForm.screenshots,
+          position: parseInt(projectForm.position || '0', 10),
+          isFeatured: projectForm.isFeatured,
+          isPinned: projectForm.isPinned,
+          isDraft: projectForm.isDraft,
+        };
+        setProjects(prev => {
+          if (projectForm.id && !projectForm.id.startsWith('project-') && prev.some(p => p.id === projectForm.id)) {
+            return prev.map(p => p.id === projectForm.id ? savedItem : p);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save project.', false);
       }
@@ -209,8 +226,8 @@ export default function EditorClient({
       const res = await deleteProjectAction(id);
       if (res.success) {
         triggerToast('Project deleted successfully!', true);
+        setProjects(prev => prev.filter(p => p.id !== id));
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to delete project.', false);
       }
@@ -267,8 +284,22 @@ export default function EditorClient({
       const res = await saveBlogAction(blogForm);
       if (res.success) {
         triggerToast('Blog post saved successfully!', true);
+        const savedItem = {
+          ...blogForm,
+          id: res.data?.id || blogForm.id,
+          categories: typeof blogForm.categories === 'string' ? JSON.parse(blogForm.categories) : blogForm.categories,
+          tags: typeof blogForm.tags === 'string' ? JSON.parse(blogForm.tags) : blogForm.tags,
+          readingTime: parseInt(blogForm.readingTime || '5', 10),
+          isDraft: blogForm.isDraft,
+        };
+        setBlogs(prev => {
+          if (blogForm.id && !blogForm.id.startsWith('blog-') && prev.some(b => b.id === blogForm.id)) {
+            return prev.map(b => b.id === blogForm.id ? savedItem : b);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save blog post.', false);
       }
@@ -282,8 +313,8 @@ export default function EditorClient({
       const res = await deleteBlogAction(id);
       if (res.success) {
         triggerToast('Blog post deleted successfully!', true);
+        setBlogs(prev => prev.filter(b => b.id !== id));
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to delete blog post.', false);
       }
@@ -312,7 +343,19 @@ export default function EditorClient({
       const res = await saveSkillCategoryAction(categoryForm);
       if (res.success) {
         triggerToast('Skill group saved successfully!', true);
-        window.location.reload();
+        const savedItem = {
+          ...categoryForm,
+          id: res.data?.id || categoryForm.id,
+          position: parseInt(categoryForm.position || '0', 10),
+        };
+        setCategoriesList(prev => {
+          if (categoryForm.id && prev.some(c => c.id === categoryForm.id)) {
+            return prev.map(c => c.id === categoryForm.id ? { ...c, ...savedItem } : c);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
+        handleNewCategory();
       } else {
         triggerToast(res.error || 'Failed to save skill group.', false);
       }
@@ -325,7 +368,8 @@ export default function EditorClient({
       const res = await deleteSkillCategoryAction(id);
       if (res.success) {
         triggerToast('Skill group deleted successfully!', true);
-        window.location.reload();
+        setCategoriesList(prev => prev.filter(c => c.id !== id));
+        setSkills(prev => prev.filter(s => s.categoryId !== id));
       } else {
         triggerToast(res.error || 'Failed to delete skill group.', false);
       }
@@ -355,7 +399,20 @@ export default function EditorClient({
       const res = await saveSkillAction(skillForm);
       if (res.success) {
         triggerToast('Skill saved successfully!', true);
-        window.location.reload();
+        const savedItem = {
+          ...skillForm,
+          id: res.data?.id || skillForm.id,
+          proficiency: parseInt(skillForm.proficiency || '80', 10),
+          position: parseInt(skillForm.position || '0', 10),
+        };
+        setSkills(prev => {
+          if (skillForm.id && !skillForm.id.startsWith('s-') && prev.some(s => s.id === skillForm.id)) {
+            return prev.map(s => s.id === skillForm.id ? savedItem : s);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
+        handleNewSkill();
       } else {
         triggerToast(res.error || 'Failed to save skill.', false);
       }
@@ -368,7 +425,7 @@ export default function EditorClient({
       const res = await deleteSkillAction(id);
       if (res.success) {
         triggerToast('Skill deleted successfully!', true);
-        window.location.reload();
+        setSkills(prev => prev.filter(s => s.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete skill.', false);
       }
@@ -416,8 +473,19 @@ export default function EditorClient({
       const res = await saveTestimonialAction(testimonialForm);
       if (res.success) {
         triggerToast('Testimonial saved successfully!', true);
+        const savedItem = {
+          ...testimonialForm,
+          id: res.data?.id || testimonialForm.id,
+          position: parseInt(testimonialForm.position || '0', 10),
+        };
+        setTestimonials(prev => {
+          if (testimonialForm.id && !testimonialForm.id.startsWith('test-') && prev.some(t => t.id === testimonialForm.id)) {
+            return prev.map(t => t.id === testimonialForm.id ? savedItem : t);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save testimonial.', false);
       }
@@ -430,7 +498,7 @@ export default function EditorClient({
       const res = await deleteTestimonialAction(id);
       if (res.success) {
         triggerToast('Testimonial deleted successfully!', true);
-        window.location.reload();
+        setTestimonials(prev => prev.filter(t => t.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete testimonial.', false);
       }
@@ -472,8 +540,19 @@ export default function EditorClient({
       const res = await saveServiceAction(serviceForm);
       if (res.success) {
         triggerToast('Service saved successfully!', true);
+        const savedItem = {
+          ...serviceForm,
+          id: res.data?.id || serviceForm.id,
+          position: parseInt(serviceForm.position || '0', 10),
+        };
+        setServices(prev => {
+          if (serviceForm.id && !serviceForm.id.startsWith('service-') && prev.some(s => s.id === serviceForm.id)) {
+            return prev.map(s => s.id === serviceForm.id ? savedItem : s);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save service.', false);
       }
@@ -486,7 +565,7 @@ export default function EditorClient({
       const res = await deleteServiceAction(id);
       if (res.success) {
         triggerToast('Service deleted successfully!', true);
-        window.location.reload();
+        setServices(prev => prev.filter(s => s.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete service.', false);
       }
@@ -534,8 +613,19 @@ export default function EditorClient({
       const res = await saveExperienceAction(experienceForm);
       if (res.success) {
         triggerToast('Experience saved successfully!', true);
+        const savedItem = {
+          ...experienceForm,
+          id: res.data?.id || experienceForm.id,
+          position: parseInt(experienceForm.position || '0', 10),
+        };
+        setExperiences(prev => {
+          if (experienceForm.id && !experienceForm.id.startsWith('exp-') && prev.some(e => e.id === experienceForm.id)) {
+            return prev.map(e => e.id === experienceForm.id ? savedItem : e);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save experience.', false);
       }
@@ -548,8 +638,8 @@ export default function EditorClient({
       const res = await deleteExperienceAction(id);
       if (res.success) {
         triggerToast('Experience deleted successfully!', true);
+        setExperiences(prev => prev.filter(e => e.id !== id));
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to delete experience.', false);
       }
@@ -600,8 +690,19 @@ export default function EditorClient({
       const res = await saveEducationAction(educationForm);
       if (res.success) {
         triggerToast('Education saved successfully!', true);
+        const savedItem = {
+          ...educationForm,
+          id: res.data?.id || educationForm.id,
+          position: parseInt(educationForm.position || '0', 10),
+        };
+        setEducations(prev => {
+          if (educationForm.id && !educationForm.id.startsWith('edu-') && prev.some(e => e.id === educationForm.id)) {
+            return prev.map(e => e.id === educationForm.id ? savedItem : e);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save education record.', false);
       }
@@ -614,7 +715,7 @@ export default function EditorClient({
       const res = await deleteEducationAction(id);
       if (res.success) {
         triggerToast('Education deleted successfully!', true);
-        window.location.reload();
+        setEducations(prev => prev.filter(e => e.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete education record.', false);
       }
@@ -665,8 +766,20 @@ export default function EditorClient({
       const res = await saveCertificateAction(certificateForm);
       if (res.success) {
         triggerToast('Certificate saved successfully!', true);
+        const savedItem = {
+          ...certificateForm,
+          id: res.data?.id || certificateForm.id,
+          score: parseInt(certificateForm.score || '100', 10),
+          position: parseInt(certificateForm.position || '0', 10),
+        };
+        setCertificates(prev => {
+          if (certificateForm.id && !certificateForm.id.startsWith('cert-') && prev.some(c => c.id === certificateForm.id)) {
+            return prev.map(c => c.id === certificateForm.id ? savedItem : c);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save certificate.', false);
       }
@@ -679,7 +792,7 @@ export default function EditorClient({
       const res = await deleteCertificateAction(id);
       if (res.success) {
         triggerToast('Certificate deleted successfully!', true);
-        window.location.reload();
+        setCertificates(prev => prev.filter(c => c.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete certificate.', false);
       }
@@ -694,6 +807,7 @@ export default function EditorClient({
       if (res.success) {
         triggerToast('SEO metadata saved successfully!', true);
         setActiveModal(null);
+        if (res.data) setSeo(res.data);
       } else {
         triggerToast(res.error || 'Failed to save SEO metadata.', false);
       }
@@ -720,7 +834,7 @@ export default function EditorClient({
   const dbPosts = blogs.filter(b => !b.isDraft);
 
   // Group skills by category for visual mapping
-  const skillCategoriesMap = skillCategories.map(cat => ({
+  const skillCategoriesMap = categoriesList.map(cat => ({
     ...cat,
     skills: skills.filter(s => s.categoryId === cat.id)
   }));
@@ -1633,7 +1747,7 @@ export default function EditorClient({
                 <span className="block font-mono text-[9px] text-zinc-500 uppercase pb-2 border-b border-white/5">1. Skill Categories</span>
                 
                 <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto">
-                  {skillCategories.map(cat => (
+                  {categoriesList.map(cat => (
                     <div key={cat.id} className="flex justify-between items-center text-[10px] font-mono text-zinc-300 py-1.5 border-b border-white/5 last:border-b-0 group/cat-row">
                       <span className="text-white truncate font-medium">{cat.name}</span>
                       <div className="flex gap-2 opacity-60 hover:opacity-100 transition-opacity">
@@ -1691,7 +1805,7 @@ export default function EditorClient({
                 <span className="block font-mono text-[9px] text-zinc-500 uppercase pb-2 border-b border-white/5">2. Skill Metrics</span>
                 <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
                   {skills.map(s => {
-                    const parentCat = skillCategories.find(c => c.id === s.categoryId);
+                    const parentCat = categoriesList.find(c => c.id === s.categoryId);
                     return (
                       <div key={s.id} className="flex justify-between items-center text-[10px] font-mono text-zinc-300 py-1.5 border-b border-white/5 last:border-b-0">
                         <div className="truncate max-w-[140px] flex flex-col">
@@ -1717,7 +1831,7 @@ export default function EditorClient({
                   <label className="block font-mono text-[8px] text-zinc-500 uppercase mb-1">Skill Category / Group</label>
                   <select value={skillForm.categoryId} onChange={(e) => setSkillForm({ ...skillForm, categoryId: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none">
                     <option value="" disabled>Select category group</option>
-                    {skillCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {categoriesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
