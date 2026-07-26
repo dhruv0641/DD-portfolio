@@ -1472,6 +1472,33 @@ export default function EditorClient({
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
                 />
               </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">GitHub Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.githubUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, githubUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">LinkedIn Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.linkedinUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, linkedinUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Instagram Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.instagramUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, instagramUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
               <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Hero Tagline</label>
                 <input 

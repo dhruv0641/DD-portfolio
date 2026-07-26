@@ -13,6 +13,7 @@ export interface ThemeConfig {
   reduceMotion: string;
   cursorAura: string;
   thoughtWave: string;
+  [key: string]: any;
 }
 
 export interface BlogPostData {

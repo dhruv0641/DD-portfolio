@@ -2,6 +2,7 @@
 
 import React, { useRef, useCallback, useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useThemeSettings } from '@/components/ThemeProvider';
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -284,17 +285,21 @@ const LinkedInIcon = () => (
 // SOCIAL CARDS GROUP — exported for use in page.tsx
 // ════════════════════════════════════════════════════════════════════════════
 export default function SocialCards() {
+  const { settings } = useThemeSettings();
+  const github = settings.githubUrl || "https://github.com/dhruv0641";
+  const linkedin = settings.linkedinUrl || "https://linkedin.com/in/dhruv-dobariya";
+
   return (
     <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-6 border-t border-[var(--grid-line)]">
       <SocialCard
-        href="https://github.com/dhruv0641"
+        href={github}
         label="GitHub"
         tooltip="View source code & open-source work"
         icon={<GitHubIcon />}
         ariaLabel="GitHub Profile — View source code and open-source work"
       />
       <SocialCard
-        href="https://linkedin.com/in/dhruv-dobariya"
+        href={linkedin}
         label="LinkedIn"
         tooltip="Professional profile & experience"
         icon={<LinkedInIcon />}
