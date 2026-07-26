@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { useThemeSettings } from '@/components/ThemeProvider';
 
 // ════════════════════════════════════════════════════════════════════════════
 // ICONS
@@ -45,7 +46,17 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
 
-  if (pathname.startsWith('/editor')) return null;
+  const { settings } = useThemeSettings();
+  const github = settings.githubUrl || "https://github.com/dhruv0641";
+  const linkedin = settings.linkedinUrl || "https://linkedin.com/in/dhruv-dobariya";
+  const instagram = settings.instagramUrl || "https://instagram.com";
+
+  if (
+    pathname.startsWith('/editor') || 
+    (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))
+  ) {
+    return null;
+  }
 
   const handleBackToTop = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -93,7 +104,7 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
           <div className="flex flex-wrap justify-center md:justify-start gap-2.5 max-w-[450px]">
             {/* GitHub */}
             <a
-              href="https://github.com/dhruv0641"
+              href={github}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/[0.04] bg-white/[0.01] text-zinc-400 hover:text-white hover:border-white/10 hover:bg-white/[0.03] transition-all duration-300 shadow-sm"
@@ -107,7 +118,7 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
 
             {/* LinkedIn */}
             <a
-              href="https://linkedin.com/in/dhruv-dobariya"
+              href={linkedin}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/[0.04] bg-white/[0.01] text-zinc-400 hover:text-[#0066FF] hover:border-[#0066FF]/20 hover:bg-[#0066FF]/5 transition-all duration-300 shadow-sm"
@@ -120,7 +131,7 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
 
             {/* Instagram */}
             <a
-              href="https://instagram.com"
+              href={instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/[0.04] bg-white/[0.01] text-zinc-400 hover:text-[#E1306C] hover:border-[#E1306C]/20 hover:bg-[#E1306C]/5 transition-all duration-300 shadow-sm"

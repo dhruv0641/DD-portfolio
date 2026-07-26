@@ -29,7 +29,9 @@ import {
   deleteCertificateAction,
   saveSeoAction,
   logoutAction,
-  initializeDatabaseAction
+  initializeDatabaseAction,
+  saveSkillCategoryAction,
+  deleteSkillCategoryAction
 } from './actions';
 
 type ModalType = 'profile' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo';
@@ -105,7 +107,7 @@ export default function EditorClient({
       if (res.success) {
         triggerToast('Profile info updated successfully!', true);
         setActiveModal(null);
-        window.location.reload();
+        if (res.data) setProfile(res.data);
       } else {
         triggerToast(res.error || 'Failed to update profile.', false);
       }
@@ -192,8 +194,25 @@ export default function EditorClient({
       const res = await saveProjectAction(projectForm);
       if (res.success) {
         triggerToast('Project saved successfully!', true);
+        const savedItem = {
+          ...projectForm,
+          id: res.data?.id || projectForm.id,
+          techStack: typeof projectForm.techStack === 'string' ? JSON.parse(projectForm.techStack) : projectForm.techStack,
+          metrics: typeof projectForm.metrics === 'string' ? JSON.parse(projectForm.metrics) : projectForm.metrics,
+          screenshots: typeof projectForm.screenshots === 'string' ? JSON.parse(projectForm.screenshots) : projectForm.screenshots,
+          position: parseInt(projectForm.position || '0', 10),
+          isFeatured: projectForm.isFeatured,
+          isPinned: projectForm.isPinned,
+          isDraft: projectForm.isDraft,
+        };
+        setProjects(prev => {
+          if (projectForm.id && !projectForm.id.startsWith('project-') && prev.some(p => p.id === projectForm.id)) {
+            return prev.map(p => p.id === projectForm.id ? savedItem : p);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save project.', false);
       }
@@ -207,8 +226,8 @@ export default function EditorClient({
       const res = await deleteProjectAction(id);
       if (res.success) {
         triggerToast('Project deleted successfully!', true);
+        setProjects(prev => prev.filter(p => p.id !== id));
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to delete project.', false);
       }
@@ -265,8 +284,22 @@ export default function EditorClient({
       const res = await saveBlogAction(blogForm);
       if (res.success) {
         triggerToast('Blog post saved successfully!', true);
+        const savedItem = {
+          ...blogForm,
+          id: res.data?.id || blogForm.id,
+          categories: typeof blogForm.categories === 'string' ? JSON.parse(blogForm.categories) : blogForm.categories,
+          tags: typeof blogForm.tags === 'string' ? JSON.parse(blogForm.tags) : blogForm.tags,
+          readingTime: parseInt(blogForm.readingTime || '5', 10),
+          isDraft: blogForm.isDraft,
+        };
+        setBlogs(prev => {
+          if (blogForm.id && !blogForm.id.startsWith('blog-') && prev.some(b => b.id === blogForm.id)) {
+            return prev.map(b => b.id === blogForm.id ? savedItem : b);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save blog post.', false);
       }
@@ -280,8 +313,8 @@ export default function EditorClient({
       const res = await deleteBlogAction(id);
       if (res.success) {
         triggerToast('Blog post deleted successfully!', true);
+        setBlogs(prev => prev.filter(b => b.id !== id));
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to delete blog post.', false);
       }
@@ -290,6 +323,59 @@ export default function EditorClient({
 
   // --- SKILLS ---
   const [skills, setSkills] = useState(initialSkills);
+  const [categoriesList, setCategoriesList] = useState(skillCategories);
+  const [categoryForm, setCategoryForm] = useState({
+    id: '',
+    name: '',
+    position: '0',
+  });
+
+  const handleNewCategory = () => {
+    setCategoryForm({ id: '', name: '', position: '0' });
+  };
+
+  const handleSaveCategory = () => {
+    if (!categoryForm.name) {
+      triggerToast('Please provide a category name.', false);
+      return;
+    }
+    startTransition(async () => {
+      const res = await saveSkillCategoryAction(categoryForm);
+      if (res.success) {
+        triggerToast('Skill group saved successfully!', true);
+        const savedItem = {
+          ...categoryForm,
+          id: res.data?.id || categoryForm.id,
+          position: parseInt(categoryForm.position || '0', 10),
+        };
+        setCategoriesList(prev => {
+          if (categoryForm.id && prev.some(c => c.id === categoryForm.id)) {
+            return prev.map(c => c.id === categoryForm.id ? { ...c, ...savedItem } : c);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
+        handleNewCategory();
+      } else {
+        triggerToast(res.error || 'Failed to save skill group.', false);
+      }
+    });
+  };
+
+  const handleDeleteCategory = (id: string) => {
+    if (!confirm('Warning: Deleting a category will also delete all skills inside it. Proceed?')) return;
+    startTransition(async () => {
+      const res = await deleteSkillCategoryAction(id);
+      if (res.success) {
+        triggerToast('Skill group deleted successfully!', true);
+        setCategoriesList(prev => prev.filter(c => c.id !== id));
+        setSkills(prev => prev.filter(s => s.categoryId !== id));
+      } else {
+        triggerToast(res.error || 'Failed to delete skill group.', false);
+      }
+    });
+  };
+
   const [skillForm, setSkillForm] = useState({
     id: '',
     name: '',
@@ -313,7 +399,20 @@ export default function EditorClient({
       const res = await saveSkillAction(skillForm);
       if (res.success) {
         triggerToast('Skill saved successfully!', true);
-        window.location.reload();
+        const savedItem = {
+          ...skillForm,
+          id: res.data?.id || skillForm.id,
+          proficiency: parseInt(skillForm.proficiency || '80', 10),
+          position: parseInt(skillForm.position || '0', 10),
+        };
+        setSkills(prev => {
+          if (skillForm.id && !skillForm.id.startsWith('s-') && prev.some(s => s.id === skillForm.id)) {
+            return prev.map(s => s.id === skillForm.id ? savedItem : s);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
+        handleNewSkill();
       } else {
         triggerToast(res.error || 'Failed to save skill.', false);
       }
@@ -326,7 +425,7 @@ export default function EditorClient({
       const res = await deleteSkillAction(id);
       if (res.success) {
         triggerToast('Skill deleted successfully!', true);
-        window.location.reload();
+        setSkills(prev => prev.filter(s => s.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete skill.', false);
       }
@@ -374,8 +473,19 @@ export default function EditorClient({
       const res = await saveTestimonialAction(testimonialForm);
       if (res.success) {
         triggerToast('Testimonial saved successfully!', true);
+        const savedItem = {
+          ...testimonialForm,
+          id: res.data?.id || testimonialForm.id,
+          position: parseInt(testimonialForm.position || '0', 10),
+        };
+        setTestimonials(prev => {
+          if (testimonialForm.id && !testimonialForm.id.startsWith('test-') && prev.some(t => t.id === testimonialForm.id)) {
+            return prev.map(t => t.id === testimonialForm.id ? savedItem : t);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save testimonial.', false);
       }
@@ -388,7 +498,7 @@ export default function EditorClient({
       const res = await deleteTestimonialAction(id);
       if (res.success) {
         triggerToast('Testimonial deleted successfully!', true);
-        window.location.reload();
+        setTestimonials(prev => prev.filter(t => t.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete testimonial.', false);
       }
@@ -430,8 +540,19 @@ export default function EditorClient({
       const res = await saveServiceAction(serviceForm);
       if (res.success) {
         triggerToast('Service saved successfully!', true);
+        const savedItem = {
+          ...serviceForm,
+          id: res.data?.id || serviceForm.id,
+          position: parseInt(serviceForm.position || '0', 10),
+        };
+        setServices(prev => {
+          if (serviceForm.id && !serviceForm.id.startsWith('service-') && prev.some(s => s.id === serviceForm.id)) {
+            return prev.map(s => s.id === serviceForm.id ? savedItem : s);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save service.', false);
       }
@@ -444,7 +565,7 @@ export default function EditorClient({
       const res = await deleteServiceAction(id);
       if (res.success) {
         triggerToast('Service deleted successfully!', true);
-        window.location.reload();
+        setServices(prev => prev.filter(s => s.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete service.', false);
       }
@@ -492,8 +613,19 @@ export default function EditorClient({
       const res = await saveExperienceAction(experienceForm);
       if (res.success) {
         triggerToast('Experience saved successfully!', true);
+        const savedItem = {
+          ...experienceForm,
+          id: res.data?.id || experienceForm.id,
+          position: parseInt(experienceForm.position || '0', 10),
+        };
+        setExperiences(prev => {
+          if (experienceForm.id && !experienceForm.id.startsWith('exp-') && prev.some(e => e.id === experienceForm.id)) {
+            return prev.map(e => e.id === experienceForm.id ? savedItem : e);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save experience.', false);
       }
@@ -506,8 +638,8 @@ export default function EditorClient({
       const res = await deleteExperienceAction(id);
       if (res.success) {
         triggerToast('Experience deleted successfully!', true);
+        setExperiences(prev => prev.filter(e => e.id !== id));
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to delete experience.', false);
       }
@@ -558,8 +690,19 @@ export default function EditorClient({
       const res = await saveEducationAction(educationForm);
       if (res.success) {
         triggerToast('Education saved successfully!', true);
+        const savedItem = {
+          ...educationForm,
+          id: res.data?.id || educationForm.id,
+          position: parseInt(educationForm.position || '0', 10),
+        };
+        setEducations(prev => {
+          if (educationForm.id && !educationForm.id.startsWith('edu-') && prev.some(e => e.id === educationForm.id)) {
+            return prev.map(e => e.id === educationForm.id ? savedItem : e);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save education record.', false);
       }
@@ -572,7 +715,7 @@ export default function EditorClient({
       const res = await deleteEducationAction(id);
       if (res.success) {
         triggerToast('Education deleted successfully!', true);
-        window.location.reload();
+        setEducations(prev => prev.filter(e => e.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete education record.', false);
       }
@@ -623,8 +766,20 @@ export default function EditorClient({
       const res = await saveCertificateAction(certificateForm);
       if (res.success) {
         triggerToast('Certificate saved successfully!', true);
+        const savedItem = {
+          ...certificateForm,
+          id: res.data?.id || certificateForm.id,
+          score: parseInt(certificateForm.score || '100', 10),
+          position: parseInt(certificateForm.position || '0', 10),
+        };
+        setCertificates(prev => {
+          if (certificateForm.id && !certificateForm.id.startsWith('cert-') && prev.some(c => c.id === certificateForm.id)) {
+            return prev.map(c => c.id === certificateForm.id ? savedItem : c);
+          } else {
+            return [...prev, savedItem];
+          }
+        });
         setActiveModal(null);
-        window.location.reload();
       } else {
         triggerToast(res.error || 'Failed to save certificate.', false);
       }
@@ -637,7 +792,7 @@ export default function EditorClient({
       const res = await deleteCertificateAction(id);
       if (res.success) {
         triggerToast('Certificate deleted successfully!', true);
-        window.location.reload();
+        setCertificates(prev => prev.filter(c => c.id !== id));
       } else {
         triggerToast(res.error || 'Failed to delete certificate.', false);
       }
@@ -652,6 +807,7 @@ export default function EditorClient({
       if (res.success) {
         triggerToast('SEO metadata saved successfully!', true);
         setActiveModal(null);
+        if (res.data) setSeo(res.data);
       } else {
         triggerToast(res.error || 'Failed to save SEO metadata.', false);
       }
@@ -678,7 +834,7 @@ export default function EditorClient({
   const dbPosts = blogs.filter(b => !b.isDraft);
 
   // Group skills by category for visual mapping
-  const skillCategoriesMap = skillCategories.map(cat => ({
+  const skillCategoriesMap = categoriesList.map(cat => ({
     ...cat,
     skills: skills.filter(s => s.categoryId === cat.id)
   }));
@@ -1316,6 +1472,33 @@ export default function EditorClient({
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
                 />
               </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">GitHub Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.githubUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, githubUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">LinkedIn Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.linkedinUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, linkedinUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Instagram Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.instagramUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, instagramUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
               <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Hero Tagline</label>
                 <input 
@@ -1580,48 +1763,117 @@ export default function EditorClient({
 
       {activeModal === 'skill' && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-5xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Manage Skills Database</h3>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Technical Skills Console</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div className="bg-[#09090b] border border-white/5 rounded-lg p-5 h-[300px] overflow-y-auto">
-                <span className="block font-mono text-[8px] text-zinc-500 uppercase mb-3 pb-2 border-b border-white/5">Active Skills</span>
-                <div className="flex flex-col gap-2">
-                  {skills.map(s => (
-                    <div key={s.id} className="flex justify-between items-center text-[10px] font-mono text-zinc-300 py-1 border-b border-white/5 last:border-b-0">
-                      <span className="text-white truncate max-w-[120px]">{s.name}</span>
-                      <span className="text-zinc-500 font-semibold">{s.proficiency}%</span>
-                      <button onClick={() => handleDeleteSkill(s.id)} className="text-red-400 hover:text-red-300 font-semibold">DEL</button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              
+              {/* Column 1: Manage Skill Categories */}
+              <div className="flex flex-col gap-4 border-r border-white/5 pr-6">
+                <span className="block font-mono text-[9px] text-zinc-500 uppercase pb-2 border-b border-white/5">1. Skill Categories</span>
+                
+                <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto">
+                  {categoriesList.map(cat => (
+                    <div key={cat.id} className="flex justify-between items-center text-[10px] font-mono text-zinc-300 py-1.5 border-b border-white/5 last:border-b-0 group/cat-row">
+                      <span className="text-white truncate font-medium">{cat.name}</span>
+                      <div className="flex gap-2 opacity-60 hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => setCategoryForm({ id: cat.id, name: cat.name, position: String(cat.position || '0') })} 
+                          className="text-zinc-400 hover:text-white text-[8px]"
+                          title="Rename Group"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteCategory(cat.id)} 
+                          className="text-red-400 hover:text-red-300 text-[8px]"
+                          title="Delete Group"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
+
+                <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-2.5">
+                  <span className="block font-mono text-[8px] text-zinc-500 uppercase">
+                    {categoryForm.id ? '✏️ Edit Group Name' : '➕ Create Skill Group'}
+                  </span>
+                  <input 
+                    type="text" 
+                    placeholder="Group Name (e.g., Frontend)"
+                    value={categoryForm.name} 
+                    onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })} 
+                    className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none" 
+                  />
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={handleSaveCategory} 
+                      className="bg-white text-black font-mono text-[9px] uppercase tracking-wider py-1.5 px-3 rounded font-semibold hover:bg-gray-200 transition-colors flex-1"
+                    >
+                      {categoryForm.id ? 'Update' : 'Create'}
+                    </button>
+                    {categoryForm.id && (
+                      <button 
+                        onClick={handleNewCategory} 
+                        className="border border-white/10 text-zinc-400 font-mono text-[9px] uppercase tracking-wider py-1.5 px-3 rounded hover:bg-white/5 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-              
+
+              {/* Column 2: Active Skill Metrics List */}
+              <div className="flex flex-col gap-4 border-r border-white/5 pr-6">
+                <span className="block font-mono text-[9px] text-zinc-500 uppercase pb-2 border-b border-white/5">2. Skill Metrics</span>
+                <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
+                  {skills.map(s => {
+                    const parentCat = categoriesList.find(c => c.id === s.categoryId);
+                    return (
+                      <div key={s.id} className="flex justify-between items-center text-[10px] font-mono text-zinc-300 py-1.5 border-b border-white/5 last:border-b-0">
+                        <div className="truncate max-w-[140px] flex flex-col">
+                          <span className="text-white font-medium">{s.name}</span>
+                          <span className="text-[8px] text-zinc-500 truncate">{parentCat?.name || 'No Group'}</span>
+                        </div>
+                        <span className="text-zinc-500 font-semibold">{s.proficiency}%</span>
+                        <button onClick={() => handleDeleteSkill(s.id)} className="text-red-400 hover:text-red-300 font-semibold">DEL</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Column 3: Add Skill Form */}
               <div className="flex flex-col gap-4">
-                <span className="block font-mono text-[8px] text-zinc-500 uppercase">Add Skill Metric</span>
+                <span className="block font-mono text-[9px] text-zinc-500 uppercase pb-2 border-b border-white/5">3. Add Skill Metric</span>
                 <div>
-                  <label className="block font-mono text-[8px] text-zinc-600 mb-1">Skill Name</label>
-                  <input type="text" value={skillForm.name} onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none" />
+                  <label className="block font-mono text-[8px] text-zinc-500 uppercase mb-1">Skill Name</label>
+                  <input type="text" value={skillForm.name} onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none" placeholder="e.g., TypeScript" />
                 </div>
                 <div>
-                  <label className="block font-mono text-[8px] text-zinc-600 mb-1">Skill Group</label>
+                  <label className="block font-mono text-[8px] text-zinc-500 uppercase mb-1">Skill Category / Group</label>
                   <select value={skillForm.categoryId} onChange={(e) => setSkillForm({ ...skillForm, categoryId: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none">
-                    {skillCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    <option value="" disabled>Select category group</option>
+                    {categoriesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block font-mono text-[8px] text-zinc-600 mb-1">Proficiency (0-100)</label>
-                  <input type="number" value={skillForm.proficiency} onChange={(e) => setSkillForm({ ...skillForm, proficiency: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none" />
+                  <label className="block font-mono text-[8px] text-zinc-500 uppercase mb-1">Proficiency ({skillForm.proficiency}%)</label>
+                  <input type="range" min="0" max="100" value={skillForm.proficiency} onChange={(e) => setSkillForm({ ...skillForm, proficiency: e.target.value })} className="w-full accent-[var(--accent)]" />
                 </div>
                 <button onClick={handleSaveSkill} className="bg-white text-black font-mono text-[9px] uppercase tracking-wider py-2.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors w-full mt-2">
                   Add Skill
                 </button>
               </div>
+
             </div>
             
-            <div className="flex justify-end">
-              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
+            <div className="flex justify-end mt-8 border-t border-white/5 pt-4">
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3 transition-colors duration-150 hover:bg-white/5 rounded-lg">
                 Done
               </button>
             </div>

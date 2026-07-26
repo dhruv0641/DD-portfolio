@@ -236,7 +236,12 @@ export default function Header({ name }: { name: string }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (pathname.startsWith('/editor')) return null;
+  if (
+    pathname.startsWith('/editor') || 
+    (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))
+  ) {
+    return null;
+  }
 
   const pendingScrollRef = useRef<string | null>(null);
 
