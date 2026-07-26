@@ -236,6 +236,8 @@ export default function Header({ name }: { name: string }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  if (pathname.startsWith('/editor')) return null;
+
   const pendingScrollRef = useRef<string | null>(null);
 
   // ── Scroll lock: suppresses IntersectionObserver during programmatic scrolling ──

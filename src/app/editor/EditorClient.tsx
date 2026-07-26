@@ -684,59 +684,57 @@ export default function EditorClient({
   }));
 
   return (
-    <div className="relative min-h-screen bg-[#090909] text-[#F5F5F5] font-sans selection:bg-[var(--accent)] selection:text-white pb-32 pt-16">
+    <div className="relative min-h-screen bg-[#090909] text-[#F5F5F5] font-sans selection:bg-[var(--accent)] selection:text-white pb-32">
       
-      {/* Sticky visual editor header */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-[#0c0c0e]/85 border-b border-white/5 backdrop-blur-xl z-40 px-6 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-          <span className="font-mono text-xs uppercase tracking-widest text-white font-semibold">CMS Visual Customizer</span>
+      {/* Flat static admin controls panel (not fixed, scrolls with page) */}
+      <div className="max-w-[1400px] mx-auto px-[8%] pt-8 pb-4 relative z-20 flex flex-col md:flex-row items-center justify-between border-b border-white/5 gap-4">
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+          <span className="font-mono text-[10px] uppercase tracking-wider text-white">CMS Customizer Console</span>
         </div>
         
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={() => setActiveModal('profile')}
-            className="border border-white/5 bg-[#121216] hover:border-white/20 text-zinc-300 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
             👤 Hero & Bio
           </button>
           <button 
             onClick={() => setActiveModal('seo')}
-            className="border border-white/5 bg-[#121216] hover:border-white/20 text-zinc-300 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
             🔍 SEO Tags
           </button>
           <button 
             onClick={() => { handleNewSkill(); setActiveModal('skill'); }}
-            className="border border-white/5 bg-[#121216] hover:border-white/20 text-zinc-300 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
             🛠️ Skills DB
           </button>
-          <span className="h-4 w-[1px] bg-white/10" />
+          <span className="h-3 w-[1px] bg-white/10 mx-1" />
           <button 
             onClick={() => { handleNewProject(); setActiveModal('project'); }}
-            className="border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+            className="border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
             ➕ Project
           </button>
           <button 
             onClick={() => { handleNewBlog(); setActiveModal('blog'); }}
-            className="border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+            className="border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
             📝 Essay
           </button>
-        </div>
-
-        <div className="flex items-center gap-3">
+          <span className="h-3 w-[1px] bg-white/10 mx-1" />
           <button 
             onClick={handleInitializeDatabase}
-            className="border border-amber-500/20 bg-amber-950/20 hover:border-amber-500 text-amber-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+            className="border border-amber-500/20 bg-amber-950/20 hover:border-amber-500 text-amber-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
             🔄 Sync Defaults
           </button>
           <button 
             onClick={handleLogout}
-            className="border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200"
+            className="border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
             🚪 Sign Out
           </button>

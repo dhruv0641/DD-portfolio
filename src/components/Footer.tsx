@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 // ════════════════════════════════════════════════════════════════════════════
 // ICONS
@@ -41,7 +42,10 @@ const CopyIcon = () => (
 // PREMIUM MINIMAL FOOTER COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 export const Footer = memo(function Footer({ name, email }: { name: string; email: string }) {
+  const pathname = usePathname();
   const [copied, setCopied] = useState(false);
+
+  if (pathname.startsWith('/editor')) return null;
 
   const handleBackToTop = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
