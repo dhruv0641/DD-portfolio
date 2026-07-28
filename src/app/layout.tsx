@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = settings.metaDescription || 'Applied AI Systems Portfolio';
 
   return {
-    title: 'Dhruvkumar Dobariya',
+    title: 'Dhruvkumar Dobarriya',
     description,
     metadataBase: new URL('https://vance.engineering'),
     openGraph: {
