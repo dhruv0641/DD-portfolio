@@ -34,6 +34,9 @@ export async function sendContactEmail(params: SendContactEmailParams): Promise<
       tls: {
         rejectUnauthorized: false,
       },
+      connectionTimeout: 8000, // 8 sec max connection setup timeout
+      greetingTimeout: 5000,  // 5 sec greeting timeout
+      socketTimeout: 10000,   // 10 sec socket timeout
     });
 
     const htmlContent = `

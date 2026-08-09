@@ -47,51 +47,44 @@ export async function submitContactForm(data: ContactInput) {
     const cleanObjective = sanitizeString(trimmedObjective);
     const cleanDetails = sanitizeString(trimmedDetails);
 
-    // 5. Insert into Supabase messages table (graceful fallback if DB fails)
-    const dbResult = await contactService.submitMessage({
-      name: cleanName,
-      email: cleanEmail,
-      objective: cleanObjective,
-      details: cleanDetails,
-    });
-
-    if (!dbResult.success) {
-      console.warn('[Contact Form] DB logging failed, proceeding to email dispatch:', dbResult.error);
-    }
-
-    // 6. Log analytics event to Supabase safely
-    try {
-      await supabase.from('analytics_events').insert([
-        {
-          event_type: 'cta_click',
-          path: '/#contact',
-          referrer: 'contact_form_submit',
-        },
-      ]);
-    } catch (anaErr) {
-      console.error('Error logging contact analytics:', anaErr);
-    }
-
-    // 7. Automated Email Dispatch (SMTP via Nodemailer)
-    try {
-      const mailResult = await sendContactEmail({
+    // 5. Parallel Execution: Run Database log, Analytics, and SMTP Email dispatch concurrently
+    const [dbResult, mailResult] = await Promise.all([
+      contactService.submitMessage({
         name: cleanName,
         email: cleanEmail,
         objective: cleanObjective,
         details: cleanDetails,
-      });
+      }).catch(err => ({ success: false, error: err?.message })),
 
-      if (!mailResult.success) {
-        console.error('[Contact Form] Email delivery failed:', mailResult.error);
-        return { success: false, error: mailResult.error || 'Email delivery failed. Please check server SMTP configuration.' };
-      }
-      
-      console.log('[Contact Form] Email dispatched successfully to recipient.');
-      return { success: true };
-    } catch (mailErr: any) {
-      console.error('[Contact Form] Email dispatch exception:', mailErr);
-      return { success: false, error: mailErr?.message || 'Email dispatch failed.' };
+      sendContactEmail({
+        name: cleanName,
+        email: cleanEmail,
+        objective: cleanObjective,
+        details: cleanDetails,
+      }).catch(err => ({ success: false, error: err?.message })),
+
+      Promise.resolve(
+        supabase.from('analytics_events').insert([
+          {
+            event_type: 'cta_click',
+            path: '/#contact',
+            referrer: 'contact_form_submit',
+          },
+        ])
+      ).catch(() => null),
+    ]);
+
+    if (!dbResult.success) {
+      console.warn('[Contact Form] DB logging warning:', dbResult.error);
     }
+
+    if (!mailResult.success) {
+      console.error('[Contact Form] Email delivery failed:', mailResult.error);
+      return { success: false, error: mailResult.error || 'Email delivery failed. Please check server SMTP configuration.' };
+    }
+
+    console.log('[Contact Form] Inquiry processed and email dispatched successfully in parallel.');
+    return { success: true };
   } catch (error: any) {
     console.error('Contact submit error:', error);
     return { success: false, error: 'Inquiry submission pipeline error occurred.' };
