@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { ContactInput } from '@/types';
 import { rateLimit } from '@/lib/rateLimiter';
 import { validateEmail, sanitizeString } from '@/lib/validation';
+import { sendContactEmail } from '@/lib/email';
 
 export async function submitContactForm(data: ContactInput) {
   try {
@@ -71,50 +72,16 @@ export async function submitContactForm(data: ContactInput) {
       console.error('Error logging contact analytics:', anaErr);
     }
 
-    // 7. External Endpoint Forwarding (Formspree/Web3Forms/Custom API)
-    const endpoint = process.env.CONTACT_FORM_ENDPOINT;
-    if (endpoint) {
-      console.log('Forwarding message to contact endpoint.');
-
-      // Abort controller for a 10-second timeout boundary
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            name: cleanName,
-            email: cleanEmail,
-            objective: cleanObjective,
-            message: cleanDetails,
-            details: cleanDetails,
-          }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          console.error(`External endpoint returned status ${response.status}`);
-          return {
-            success: false,
-            error: 'Failed to deliver message. Please contact via direct email.',
-          };
-        }
-      } catch (fetchErr: any) {
-        clearTimeout(timeoutId);
-        if (fetchErr.name === 'AbortError') {
-          console.error('Request to external contact endpoint timed out.');
-          return { success: false, error: 'Network timeout: mail delivery service did not respond.' };
-        }
-        console.error('Failed to forward to external contact endpoint:', fetchErr);
-        return { success: false, error: 'Network error: could not connect to mail delivery service.' };
-      }
+    // 7. Automated Email Dispatch (SMTP via Nodemailer)
+    try {
+      await sendContactEmail({
+        name: cleanName,
+        email: cleanEmail,
+        objective: cleanObjective,
+        details: cleanDetails,
+      });
+    } catch (mailErr) {
+      console.error('Email dispatch error:', mailErr);
     }
 
     return { success: true };

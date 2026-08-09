@@ -1732,7 +1732,7 @@ export default function EditorClient({
         </div>
       )}
 
-      {/* Dedicated Contact Modal */}
+      {/* Central Contact & Links Sync Modal */}
       {activeModal === 'contact' && (
         <div 
           data-lenis-prevent
@@ -1741,40 +1741,28 @@ export default function EditorClient({
           onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
           className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain"
         >
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-6 md:p-8 relative shadow-2xl my-auto">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-3xl w-full p-6 md:p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Edit Contact & Social Links</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <h3 className="text-lg font-light text-white tracking-tight">Global Contact & Links Sync Console</h3>
+            </div>
+            <p className="text-xs text-zinc-400 mb-6 font-mono">
+              Changes saved here will automatically sync across Header, Footer, Hero, Social Cards, and Email Dispatch in real-time.
+            </p>
+
+            <div className="bg-[#09090b] border border-white/5 rounded-lg p-4 mb-6 flex flex-col gap-2 font-mono text-[10px] text-zinc-400">
+              <div className="flex items-center justify-between text-white border-b border-white/5 pb-2 font-semibold">
+                <span>⚡ Automated Email Pipeline Routing</span>
+                <span className="text-emerald-400">ACTIVE</span>
+              </div>
+              <p>• <strong className="text-zinc-300">Recipient Email (Main Mail):</strong> The address below receives all incoming visitor messages.</p>
+              <p>• <strong className="text-zinc-300">Sender Email (Dummy Service Mail):</strong> Configured via <code className="text-blue-400">SMTP_USER</code> in <code className="text-blue-400">.env.local</code> to send the email securely.</p>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Prefix</label>
-                <input 
-                  type="text" 
-                  value={settings.contactHeadingPrefix || ''} 
-                  onChange={(e) => setSettings({ ...settings, contactHeadingPrefix: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Italic Phrase</label>
-                <input 
-                  type="text" 
-                  value={settings.contactHeadingItalic || ''} 
-                  onChange={(e) => setSettings({ ...settings, contactHeadingItalic: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                />
-              </div>
               <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Paragraph</label>
-                <textarea 
-                  rows={3}
-                  value={settings.contactParagraph || ''} 
-                  onChange={(e) => setSettings({ ...settings, contactParagraph: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Email</label>
+                <label className="block font-mono text-[9px] text-emerald-400 uppercase mb-1 font-semibold">Destination Recipient Email (Main Mail)</label>
                 <input 
                   type="email" 
                   value={settings.contactEmail || profile.contactEmail || ''} 
@@ -1782,41 +1770,92 @@ export default function EditorClient({
                     setSettings({ ...settings, contactEmail: e.target.value });
                     setProfile({ ...profile, contactEmail: e.target.value });
                   }}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                  placeholder="e.g. main.dhruv@gmail.com"
+                  className="w-full bg-[#09090b] border border-emerald-500/30 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
                 />
               </div>
+
               <div>
-                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Location</label>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Physical Location</label>
                 <input 
                   type="text" 
                   value={profile.location || ''} 
                   onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                  placeholder="San Francisco, CA & Remote"
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
                 />
               </div>
+
               <div>
                 <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">GitHub Profile URL</label>
                 <input 
                   type="text" 
                   value={settings.githubUrl || ''} 
                   onChange={(e) => setSettings({ ...settings, githubUrl: e.target.value })}
+                  placeholder="https://github.com/username"
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
                 />
               </div>
+
               <div>
                 <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">LinkedIn Profile URL</label>
                 <input 
                   type="text" 
                   value={settings.linkedinUrl || ''} 
                   onChange={(e) => setSettings({ ...settings, linkedinUrl: e.target.value })}
+                  placeholder="https://linkedin.com/in/username"
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
                 />
               </div>
+
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">X / Twitter Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.twitterUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, twitterUrl: e.target.value })}
+                  placeholder="https://x.com/username"
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+
+              <div className="md:col-span-2 border-t border-white/5 pt-4 mt-2">
+                <span className="block font-mono text-[9px] text-zinc-400 uppercase mb-3">Contact Section Display Texts</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-mono text-[8px] text-zinc-500 uppercase mb-1">Contact Heading Prefix</label>
+                    <input 
+                      type="text" 
+                      value={settings.contactHeadingPrefix || ''} 
+                      onChange={(e) => setSettings({ ...settings, contactHeadingPrefix: e.target.value })}
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[8px] text-zinc-500 uppercase mb-1">Contact Heading Italic Phrase</label>
+                    <input 
+                      type="text" 
+                      value={settings.contactHeadingItalic || ''} 
+                      onChange={(e) => setSettings({ ...settings, contactHeadingItalic: e.target.value })}
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[8px] text-zinc-500 uppercase mb-1">Contact Section Subtitle Paragraph</label>
+                    <textarea 
+                      rows={2}
+                      value={settings.contactParagraph || ''} 
+                      onChange={(e) => setSettings({ ...settings, contactParagraph: e.target.value })}
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex gap-4">
-              <button onClick={() => { handleSaveProfile(); handleSaveSettings(); }} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-                Save Contact Info
+            <div className="flex gap-4 border-t border-white/5 pt-4">
+              <button onClick={() => { handleSaveProfile(); handleSaveSettings(); }} className="bg-emerald-500 text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-bold hover:bg-emerald-400 transition-colors">
+                Save & Synchronize All Contact Links
               </button>
               <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
                 Cancel
