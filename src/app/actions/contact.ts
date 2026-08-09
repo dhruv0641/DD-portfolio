@@ -83,14 +83,15 @@ export async function submitContactForm(data: ContactInput) {
 
       if (!mailResult.success) {
         console.error('[Contact Form] Email delivery failed:', mailResult.error);
-      } else {
-        console.log('[Contact Form] Email dispatched successfully to recipient.');
+        return { success: false, error: mailResult.error || 'Email delivery failed. Please check server SMTP configuration.' };
       }
-    } catch (mailErr) {
+      
+      console.log('[Contact Form] Email dispatched successfully to recipient.');
+      return { success: true };
+    } catch (mailErr: any) {
       console.error('[Contact Form] Email dispatch exception:', mailErr);
+      return { success: false, error: mailErr?.message || 'Email dispatch failed.' };
     }
-
-    return { success: true };
   } catch (error: any) {
     console.error('Contact submit error:', error);
     return { success: false, error: 'Inquiry submission pipeline error occurred.' };
