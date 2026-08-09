@@ -20,6 +20,8 @@ export async function sendContactEmail(params: SendContactEmailParams): Promise<
     return { success: false, error: 'SMTP credentials not configured.' };
   }
 
+  const cleanPass = pass.replace(/\s+/g, '');
+
   try {
     const transporter = nodemailer.createTransport({
       host,
@@ -27,7 +29,10 @@ export async function sendContactEmail(params: SendContactEmailParams): Promise<
       secure: port === 465,
       auth: {
         user,
-        pass,
+        pass: cleanPass,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     });
 

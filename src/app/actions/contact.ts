@@ -74,14 +74,20 @@ export async function submitContactForm(data: ContactInput) {
 
     // 7. Automated Email Dispatch (SMTP via Nodemailer)
     try {
-      await sendContactEmail({
+      const mailResult = await sendContactEmail({
         name: cleanName,
         email: cleanEmail,
         objective: cleanObjective,
         details: cleanDetails,
       });
+
+      if (!mailResult.success) {
+        console.error('[Contact Form] Email delivery failed:', mailResult.error);
+      } else {
+        console.log('[Contact Form] Email dispatched successfully to recipient.');
+      }
     } catch (mailErr) {
-      console.error('Email dispatch error:', mailErr);
+      console.error('[Contact Form] Email dispatch exception:', mailErr);
     }
 
     return { success: true };
