@@ -5,12 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { ContactInput } from '@/types';
 import { rateLimit } from '@/lib/rateLimiter';
 import { validateEmail, sanitizeString } from '@/lib/validation';
-import { sendContactEmail } from '@/lib/email';
 
 export async function submitContactForm(data: ContactInput) {
   try {
-    // 1. Rate Limiting Check: 10 contact submissions per hour for testing flexibility
-    const rateCheck = await rateLimit('contact_form', 10, 0.2);
+    // 1. Rate Limiting Check: 15 contact submissions per hour
+    const rateCheck = await rateLimit('contact_form', 15, 0.25);
     if (!rateCheck.allowed) {
       return { success: false, error: rateCheck.error || 'Too many submissions. Please try again later.' };
     }
@@ -47,43 +46,29 @@ export async function submitContactForm(data: ContactInput) {
     const cleanObjective = sanitizeString(trimmedObjective);
     const cleanDetails = sanitizeString(trimmedDetails);
 
-    // 5. Parallel Execution: Run Database log, Analytics, and SMTP Email dispatch concurrently
-    const [dbResult, mailResult] = await Promise.all([
-      contactService.submitMessage({
-        name: cleanName,
-        email: cleanEmail,
-        objective: cleanObjective,
-        details: cleanDetails,
-      }).catch(err => ({ success: false, error: err?.message })),
-
-      sendContactEmail({
-        name: cleanName,
-        email: cleanEmail,
-        objective: cleanObjective,
-        details: cleanDetails,
-      }).catch(err => ({ success: false, error: err?.message })),
-
-      Promise.resolve(
-        supabase.from('analytics_events').insert([
-          {
-            event_type: 'cta_click',
-            path: '/#contact',
-            referrer: 'contact_form_submit',
-          },
-        ])
-      ).catch(() => null),
-    ]);
+    // 5. Store message in database
+    const dbResult = await contactService.submitMessage({
+      name: cleanName,
+      email: cleanEmail,
+      objective: cleanObjective,
+      details: cleanDetails,
+    });
 
     if (!dbResult.success) {
-      console.warn('[Contact Form] DB logging warning:', dbResult.error);
+      return { success: false, error: dbResult.error || 'Failed to save message.' };
     }
 
-    if (!mailResult.success) {
-      console.error('[Contact Form] Email delivery failed:', mailResult.error);
-      return { success: false, error: mailResult.error || 'Email delivery failed. Please check server SMTP configuration.' };
-    }
+    // 6. Log analytics event in background asynchronously
+    Promise.resolve(
+      supabase.from('analytics_events').insert([
+        {
+          event_type: 'cta_click',
+          path: '/#contact',
+          referrer: 'contact_form_submit',
+        },
+      ])
+    ).catch(() => null);
 
-    console.log('[Contact Form] Inquiry processed and email dispatched successfully in parallel.');
     return { success: true };
   } catch (error: any) {
     console.error('Contact submit error:', error);

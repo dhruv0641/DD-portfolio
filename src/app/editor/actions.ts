@@ -759,3 +759,76 @@ export async function deleteSkillCategoryAction(id: string) {
     return { success: false, error: err.message || 'Failed to delete skill category.' };
   }
 }
+
+// --- MESSAGES INBOX ACTIONS ---
+
+export async function getMessagesAction() {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+    const admin = getAdminClient();
+    const { data, error } = await admin
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (err: any) {
+    console.error('getMessagesAction error:', err);
+    return { success: false, error: err.message || 'Failed to fetch messages.', data: [] };
+  }
+}
+
+export async function updateMessageStatusAction(id: string | number, status: string) {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+    const admin = getAdminClient();
+    const { error } = await admin
+      .from('messages')
+      .update({ status })
+      .eq('id', id);
+
+    if (error) throw error;
+    revalidatePath('/editor');
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateMessageStatusAction error:', err);
+    return { success: false, error: err.message || 'Failed to update message status.' };
+  }
+}
+
+export async function deleteMessageAction(id: string | number) {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+    const admin = getAdminClient();
+    const { error } = await admin
+      .from('messages')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    revalidatePath('/editor');
+    return { success: true };
+  } catch (err: any) {
+    console.error('deleteMessageAction error:', err);
+    return { success: false, error: err.message || 'Failed to delete message.' };
+  }
+}
+
+export async function clearAllMessagesAction() {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+    const admin = getAdminClient();
+    const { error } = await admin
+      .from('messages')
+      .delete()
+      .neq('id', 0);
+
+    if (error) throw error;
+    revalidatePath('/editor');
+    return { success: true };
+  } catch (err: any) {
+    console.error('clearAllMessagesAction error:', err);
+    return { success: false, error: err.message || 'Failed to clear messages.' };
+  }
+}

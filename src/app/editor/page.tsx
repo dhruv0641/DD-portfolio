@@ -10,6 +10,7 @@ import { experienceService } from '@/services/experienceService';
 import { educationService } from '@/services/educationService';
 import { certificateService } from '@/services/certificateService';
 import { seoService } from '@/services/seoService';
+import { contactService } from '@/services/contactService';
 
 import { checkAuthAction } from './actions';
 import LoginForm from './LoginForm';
@@ -25,7 +26,7 @@ export default async function EditorPage() {
     return <LoginForm />;
   }
 
-  // Load all 11 database record sets to feed into the CMS forms
+  // Load database record sets including inbound messages
   const [
     settings,
     profile,
@@ -38,7 +39,8 @@ export default async function EditorPage() {
     experiences,
     educations,
     certificates,
-    seo
+    seo,
+    messages
   ] = await Promise.all([
     settingsService.getSettings(),
     profileService.getProfile(),
@@ -51,7 +53,8 @@ export default async function EditorPage() {
     experienceService.getExperience(),
     educationService.getEducation(),
     certificateService.getCertificates(),
-    seoService.getSeo()
+    seoService.getSeo(),
+    contactService.getMessages()
   ]);
 
   // Flatten the skills list out of categories for easy listing & edit bindings
@@ -80,6 +83,7 @@ export default async function EditorPage() {
       initialEducations={educations}
       initialCertificates={certificates}
       initialSeo={seo || {}}
+      initialMessages={messages || []}
     />
   );
 }

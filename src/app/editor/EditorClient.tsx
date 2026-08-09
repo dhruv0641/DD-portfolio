@@ -31,10 +31,14 @@ import {
   logoutAction,
   initializeDatabaseAction,
   saveSkillCategoryAction,
-  deleteSkillCategoryAction
+  deleteSkillCategoryAction,
+  getMessagesAction,
+  updateMessageStatusAction,
+  deleteMessageAction,
+  clearAllMessagesAction
 } from './actions';
 
-type ModalType = 'profile' | 'hero' | 'about' | 'contact' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo';
+type ModalType = 'profile' | 'hero' | 'about' | 'contact' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo' | 'messages';
 
 interface EditorClientProps {
   initialSettings: Record<string, string>;
@@ -49,6 +53,7 @@ interface EditorClientProps {
   initialEducations: any[];
   initialCertificates: any[];
   initialSeo: any;
+  initialMessages?: any[];
 }
 
 export default function EditorClient({
@@ -64,6 +69,7 @@ export default function EditorClient({
   initialEducations,
   initialCertificates,
   initialSeo,
+  initialMessages = [],
 }: EditorClientProps) {
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -96,6 +102,81 @@ export default function EditorClient({
     setMessage({ text, success });
     setTimeout(() => setMessage(null), 3500);
   };
+
+  // --- INBOUND MESSAGES INBOX STATE ---
+  const [messagesList, setMessagesList] = useState<any[]>(initialMessages || []);
+  const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
+  const [messageFilter, setMessageFilter] = useState<'all' | 'unread' | 'starred' | 'archived'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const unreadCount = messagesList.filter(m => m.status === 'unread').length;
+
+  const handleRefreshMessages = () => {
+    startTransition(async () => {
+      const res = await getMessagesAction();
+      if (res.success && res.data) {
+        setMessagesList(res.data);
+        triggerToast('Inbox refreshed!', true);
+      } else {
+        triggerToast(res.error || 'Failed to refresh inbox.', false);
+      }
+    });
+  };
+
+  const handleUpdateMessageStatus = (id: string | number, newStatus: string) => {
+    startTransition(async () => {
+      const res = await updateMessageStatusAction(id, newStatus);
+      if (res.success) {
+        setMessagesList(prev => prev.map(m => m.id === id ? { ...m, status: newStatus } : m));
+        if (selectedMessage && selectedMessage.id === id) {
+          setSelectedMessage((prev: any) => prev ? { ...prev, status: newStatus } : null);
+        }
+      } else {
+        triggerToast(res.error || 'Failed to update message status.', false);
+      }
+    });
+  };
+
+  const handleDeleteMessage = (id: string | number) => {
+    if (!confirm('Are you sure you want to delete this message?')) return;
+    startTransition(async () => {
+      const res = await deleteMessageAction(id);
+      if (res.success) {
+        setMessagesList(prev => prev.filter(m => m.id !== id));
+        if (selectedMessage && selectedMessage.id === id) {
+          setSelectedMessage(null);
+        }
+        triggerToast('Message deleted.', true);
+      } else {
+        triggerToast(res.error || 'Failed to delete message.', false);
+      }
+    });
+  };
+
+  const handleClearAllMessages = () => {
+    if (!confirm('Are you sure you want to delete ALL messages? This action cannot be undone.')) return;
+    startTransition(async () => {
+      const res = await clearAllMessagesAction();
+      if (res.success) {
+        setMessagesList([]);
+        setSelectedMessage(null);
+        triggerToast('All messages cleared.', true);
+      } else {
+        triggerToast(res.error || 'Failed to clear messages.', false);
+      }
+    });
+  };
+
+  const filteredMessages = messagesList.filter(msg => {
+    const matchesFilter = messageFilter === 'all' || msg.status === messageFilter;
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || 
+      (msg.name || '').toLowerCase().includes(q) || 
+      (msg.email || '').toLowerCase().includes(q) || 
+      (msg.objective || '').toLowerCase().includes(q) || 
+      (msg.details || '').toLowerCase().includes(q);
+    return matchesFilter && matchesSearch;
+  });
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -890,6 +971,22 @@ export default function EditorClient({
             className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
             ✉️ Contact & Links
+          </button>
+          <button 
+            onClick={() => {
+              setActiveModal('messages');
+              if (messagesList.length > 0 && !selectedMessage) {
+                setSelectedMessage(messagesList[0]);
+              }
+            }}
+            className="border border-blue-500/30 bg-blue-950/30 hover:border-blue-500 text-blue-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 flex items-center gap-1.5"
+          >
+            <span>📬 Inbound Messages</span>
+            {unreadCount > 0 && (
+              <span className="bg-blue-500 text-black px-1.5 py-0.2 rounded-full text-[9px] font-bold">
+                {unreadCount}
+              </span>
+            )}
           </button>
           <button 
             onClick={() => setActiveModal('seo')}
@@ -2423,6 +2520,263 @@ export default function EditorClient({
               <button onClick={handleSaveSeo} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">Save SEO Settings</button>
               <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5">Cancel</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'messages' && (
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4 md:p-8 overflow-hidden">
+          <div data-lenis-prevent className="bg-[#0f0f13] border border-white/10 rounded-2xl max-w-6xl w-full h-[88vh] flex flex-col relative shadow-2xl overflow-hidden">
+            
+            {/* Top Toolbar Header */}
+            <div className="px-6 py-4 border-b border-white/5 bg-[#14141a] flex flex-wrap items-center justify-between gap-4 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-mono text-sm font-semibold">
+                  📬
+                </div>
+                <div>
+                  <h3 className="text-base font-medium text-white tracking-tight flex items-center gap-2">
+                    Inbound Messages Console
+                    <span className="font-mono text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full uppercase">
+                      {messagesList.length} Total
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">Direct visitor inquiries submitted via portfolio contact form</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleRefreshMessages}
+                  className="border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                >
+                  🔄 Refresh
+                </button>
+                {messagesList.length > 0 && (
+                  <button
+                    onClick={handleClearAllMessages}
+                    className="border border-red-500/20 bg-red-950/20 hover:bg-red-900/40 text-red-400 hover:text-red-200 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-colors"
+                  >
+                    🗑️ Clear All
+                  </button>
+                )}
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="text-zinc-500 hover:text-white font-mono text-xs px-2 py-1"
+                >
+                  ✕ CLOSE
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Bar & Search */}
+            <div className="px-6 py-3 border-b border-white/5 bg-[#111116] flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-1.5">
+                {(['all', 'unread', 'starred', 'archived'] as const).map(filterTab => {
+                  const count = filterTab === 'all' 
+                    ? messagesList.length 
+                    : messagesList.filter(m => m.status === filterTab).length;
+                  const isActive = messageFilter === filterTab;
+                  return (
+                    <button
+                      key={filterTab}
+                      onClick={() => setMessageFilter(filterTab)}
+                      className={`px-3 py-1 rounded-md font-mono text-[10px] uppercase tracking-wider transition-colors flex items-center gap-1.5 ${
+                        isActive
+                          ? 'bg-[var(--accent)] text-white font-medium'
+                          : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+                      }`}
+                    >
+                      <span>{filterTab}</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[9px] ${isActive ? 'bg-white/20 text-white' : 'bg-white/5 text-zinc-500'}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  placeholder="Search name, email, topic..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#09090c] border border-white/10 rounded-lg px-3 py-1.5 pl-8 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50"
+                />
+                <span className="absolute left-2.5 top-2 text-zinc-500 text-xs">🔍</span>
+              </div>
+            </div>
+
+            {/* Main Content Split-Pane */}
+            <div className="flex-1 flex overflow-hidden">
+              
+              {/* Left Pane: Message List */}
+              <div className="w-full md:w-[380px] lg:w-[420px] border-r border-white/5 bg-[#0b0b0e] overflow-y-auto shrink-0 divide-y divide-white/5">
+                {filteredMessages.length === 0 ? (
+                  <div className="p-12 text-center text-zinc-500 font-mono text-xs flex flex-col items-center gap-3">
+                    <span className="text-3xl">📭</span>
+                    <span>No messages found</span>
+                  </div>
+                ) : (
+                  filteredMessages.map((msg) => {
+                    const isSelected = selectedMessage?.id === msg.id;
+                    const isUnread = msg.status === 'unread';
+                    const isStarred = msg.status === 'starred';
+                    
+                    return (
+                      <div
+                        key={msg.id}
+                        onClick={() => {
+                          setSelectedMessage(msg);
+                          if (isUnread) {
+                            handleUpdateMessageStatus(msg.id, 'read');
+                          }
+                        }}
+                        className={`p-4 cursor-pointer transition-all duration-150 relative ${
+                          isSelected 
+                            ? 'bg-blue-600/10 border-l-2 border-blue-500' 
+                            : 'hover:bg-white/[0.03]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2">
+                            {isUnread && <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0" />}
+                            <span className={`text-xs truncate max-w-[180px] ${isUnread ? 'font-semibold text-white' : 'text-zinc-300'}`}>
+                              {msg.name}
+                            </span>
+                          </div>
+                          <span className="font-mono text-[9px] text-zinc-500 shrink-0">
+                            {msg.created_at ? new Date(msg.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''}
+                          </span>
+                        </div>
+
+                        <div className="text-[11px] text-blue-400 font-mono mb-1 truncate">
+                          {msg.email}
+                        </div>
+
+                        {msg.objective && (
+                          <div className="inline-block bg-white/5 border border-white/5 px-2 py-0.5 rounded text-[9px] font-mono text-zinc-400 uppercase tracking-wider mb-2">
+                            {msg.objective}
+                          </div>
+                        )}
+
+                        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                          {msg.details}
+                        </p>
+
+                        <div className="mt-3 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdateMessageStatus(msg.id, isStarred ? 'read' : 'starred');
+                            }}
+                            className={`hover:text-amber-400 transition-colors ${isStarred ? 'text-amber-400 font-bold' : ''}`}
+                          >
+                            {isStarred ? '★ Starred' : '☆ Star'}
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteMessage(msg.id);
+                            }}
+                            className="hover:text-red-400 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Right Pane: Detailed Message View */}
+              <div className="flex-1 bg-[#0f0f13] overflow-y-auto p-6 md:p-8 flex flex-col justify-between">
+                {selectedMessage ? (
+                  <div>
+                    {/* Message Header */}
+                    <div className="border-b border-white/5 pb-6 mb-6">
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                          <h2 className="text-xl font-light text-white tracking-tight mb-1">
+                            {selectedMessage.name}
+                          </h2>
+                          <a 
+                            href={`mailto:${selectedMessage.email}`} 
+                            className="text-xs font-mono text-blue-400 hover:underline flex items-center gap-1.5"
+                          >
+                            ✉️ {selectedMessage.email}
+                          </a>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleUpdateMessageStatus(selectedMessage.id, selectedMessage.status === 'starred' ? 'read' : 'starred')}
+                            className={`px-3 py-1.5 rounded-lg border font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                              selectedMessage.status === 'starred'
+                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                                : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+                            }`}
+                          >
+                            {selectedMessage.status === 'starred' ? '★ Starred' : '☆ Star'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMessage(selectedMessage.id)}
+                            className="px-3 py-1.5 rounded-lg border border-red-500/20 bg-red-950/20 text-red-400 hover:bg-red-900/40 font-mono text-[10px] uppercase tracking-wider transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-zinc-400">
+                        <span className="bg-blue-500/10 text-blue-300 border border-blue-500/20 px-2.5 py-1 rounded-md uppercase text-[10px]">
+                          Topic: {selectedMessage.objective || 'General Inquiry'}
+                        </span>
+                        <span className="text-zinc-500">
+                          Received: {selectedMessage.created_at ? new Date(selectedMessage.created_at).toLocaleString() : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Message Body */}
+                    <div className="bg-[#14141b] border border-white/5 rounded-xl p-6 mb-8">
+                      <div className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-3">
+                        MESSAGE DETAILS:
+                      </div>
+                      <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap font-sans">
+                        {selectedMessage.details}
+                      </p>
+                    </div>
+
+                    {/* Quick Actions Footer */}
+                    <div className="flex items-center gap-4">
+                      <a
+                        href={`mailto:${selectedMessage.email}?subject=Re: ${encodeURIComponent(selectedMessage.objective || 'Portfolio Inquiry')}`}
+                        className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3 rounded-lg font-semibold hover:bg-zinc-200 transition-colors inline-flex items-center gap-2"
+                      >
+                        ✉️ Reply via Email Client
+                      </a>
+                      <button
+                        onClick={() => handleUpdateMessageStatus(selectedMessage.id, selectedMessage.status === 'unread' ? 'read' : 'unread')}
+                        className="border border-white/10 bg-white/5 text-zinc-300 hover:text-white font-mono text-[10px] uppercase tracking-widest px-5 py-3 rounded-lg hover:bg-white/10 transition-colors"
+                      >
+                        {selectedMessage.status === 'unread' ? 'Mark as Read' : 'Mark as Unread'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-zinc-500 font-mono text-xs gap-3">
+                    <span className="text-4xl opacity-40">📬</span>
+                    <span>Select a message from the list to inspect details</span>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
           </div>
         </div>
       )}
