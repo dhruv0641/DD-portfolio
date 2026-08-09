@@ -7,7 +7,7 @@ export interface InboundMessage {
   email: string;
   objective?: string;
   details: string;
-  status: 'unread' | 'read' | 'starred' | 'archived';
+  status: 'unread' | 'read' | 'starred' | 'archived' | 'trash';
   created_at?: string;
   createdAt?: string;
 }
@@ -94,12 +94,26 @@ export const contactService = {
       const { error } = await supabase
         .from('messages')
         .delete()
-        .neq('id', 0); // Delete all rows
+        .not('id', 'is', null); // Delete all rows cleanly
 
       if (error) return { success: false, error: error.message };
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Failed to clear messages.' };
+    }
+  },
+
+  async emptyTrash(): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('status', 'trash');
+
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to empty recycle bin.' };
     }
   },
 };

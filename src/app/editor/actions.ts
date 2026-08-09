@@ -822,7 +822,7 @@ export async function clearAllMessagesAction() {
     const { error } = await admin
       .from('messages')
       .delete()
-      .neq('id', 0);
+      .not('id', 'is', null);
 
     if (error) throw error;
     revalidatePath('/editor');
@@ -830,5 +830,23 @@ export async function clearAllMessagesAction() {
   } catch (err: any) {
     console.error('clearAllMessagesAction error:', err);
     return { success: false, error: err.message || 'Failed to clear messages.' };
+  }
+}
+
+export async function emptyTrashAction() {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+    const admin = getAdminClient();
+    const { error } = await admin
+      .from('messages')
+      .delete()
+      .eq('status', 'trash');
+
+    if (error) throw error;
+    revalidatePath('/editor');
+    return { success: true };
+  } catch (err: any) {
+    console.error('emptyTrashAction error:', err);
+    return { success: false, error: err.message || 'Failed to empty recycle bin.' };
   }
 }

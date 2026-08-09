@@ -34,7 +34,8 @@ import {
   getMessagesAction,
   updateMessageStatusAction,
   deleteMessageAction,
-  clearAllMessagesAction
+  clearAllMessagesAction,
+  emptyTrashAction
 } from './actions';
 
 type ModalType = 'profile' | 'hero' | 'about' | 'contact' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo' | 'messages';
@@ -105,12 +106,13 @@ export default function EditorClient({
   // --- INBOUND MESSAGES INBOX STATE ---
   const [messagesList, setMessagesList] = useState<any[]>(initialMessages || []);
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
-  const [messageFilter, setMessageFilter] = useState<'all' | 'unread' | 'starred' | 'archived'>('all');
+  const [messageFilter, setMessageFilter] = useState<'all' | 'unread' | 'starred' | 'archived' | 'trash'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMsgTab, setMobileMsgTab] = useState<'list' | 'detail'>('list');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const unreadCount = messagesList.filter(m => m.status === 'unread').length;
+  const trashCount = messagesList.filter(m => m.status === 'trash').length;
 
   const handleRefreshMessages = () => {
     startTransition(async () => {
@@ -132,44 +134,84 @@ export default function EditorClient({
         if (selectedMessage && selectedMessage.id === id) {
           setSelectedMessage((prev: any) => prev ? { ...prev, status: newStatus } : null);
         }
+        if (newStatus === 'trash') {
+          triggerToast('Message moved to Recycle Bin.', true);
+        } else if (newStatus === 'read') {
+          triggerToast('Message restored to Inbox.', true);
+        }
       } else {
         triggerToast(res.error || 'Failed to update message status.', false);
       }
     });
   };
 
-  const handleDeleteMessage = (id: string | number) => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
+  const handleDeleteMessage = (id: string | number, isPermanent = false) => {
+    const target = messagesList.find(m => m.id === id);
+    const inTrash = target?.status === 'trash';
+
+    if (inTrash || isPermanent) {
+      if (!confirm('Permanently delete this message from the database? This cannot be undone.')) return;
+      startTransition(async () => {
+        const res = await deleteMessageAction(id);
+        if (res.success) {
+          setMessagesList(prev => prev.filter(m => m.id !== id));
+          if (selectedMessage && selectedMessage.id === id) {
+            setSelectedMessage(null);
+          }
+          triggerToast('Message permanently deleted.', true);
+        } else {
+          triggerToast(res.error || 'Failed to delete message.', false);
+        }
+      });
+    } else {
+      // Soft-delete: Move to Recycle Bin (Trash)
+      handleUpdateMessageStatus(id, 'trash');
+    }
+  };
+
+  const handleEmptyTrash = () => {
+    if (!confirm('Empty Recycle Bin? All trashed messages will be permanently deleted.')) return;
     startTransition(async () => {
-      const res = await deleteMessageAction(id);
+      const res = await emptyTrashAction();
       if (res.success) {
-        setMessagesList(prev => prev.filter(m => m.id !== id));
-        if (selectedMessage && selectedMessage.id === id) {
+        setMessagesList(prev => prev.filter(m => m.status !== 'trash'));
+        if (selectedMessage && selectedMessage.status === 'trash') {
           setSelectedMessage(null);
         }
-        triggerToast('Message deleted.', true);
+        triggerToast('Recycle Bin emptied.', true);
       } else {
-        triggerToast(res.error || 'Failed to delete message.', false);
+        triggerToast(res.error || 'Failed to empty recycle bin.', false);
       }
     });
   };
 
   const handleClearAllMessages = () => {
-    if (!confirm('Are you sure you want to delete ALL messages? This action cannot be undone.')) return;
+    if (messageFilter === 'trash') {
+      handleEmptyTrash();
+      return;
+    }
+
+    if (!confirm('Move ALL active messages to Recycle Bin?')) return;
     startTransition(async () => {
       const res = await clearAllMessagesAction();
       if (res.success) {
-        setMessagesList([]);
+        setMessagesList(prev => prev.map(m => ({ ...m, status: 'trash' })));
         setSelectedMessage(null);
-        triggerToast('All messages cleared.', true);
+        triggerToast('All messages moved to Recycle Bin.', true);
       } else {
-        triggerToast(res.error || 'Failed to clear messages.', false);
+        triggerToast(res.error || 'Failed to move messages to trash.', false);
       }
     });
   };
 
   const filteredMessages = messagesList.filter(msg => {
-    const matchesFilter = messageFilter === 'all' || msg.status === messageFilter;
+    let matchesFilter = false;
+    if (messageFilter === 'all') {
+      matchesFilter = msg.status !== 'trash';
+    } else {
+      matchesFilter = msg.status === messageFilter;
+    }
+
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch = !q || 
       (msg.name || '').toLowerCase().includes(q) || 
@@ -2696,7 +2738,7 @@ export default function EditorClient({
                   <h3 className="text-base font-medium text-white tracking-tight flex items-center gap-2">
                     Inbound Messages Console
                     <span className="font-mono text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full uppercase">
-                      {messagesList.length} Total
+                      {messagesList.filter(m => m.status !== 'trash').length} Active
                     </span>
                   </h3>
                   <p className="text-[11px] text-zinc-400">Direct visitor inquiries submitted via portfolio contact form</p>
@@ -2710,13 +2752,24 @@ export default function EditorClient({
                 >
                   🔄 Refresh
                 </button>
-                {messagesList.length > 0 && (
-                  <button
-                    onClick={handleClearAllMessages}
-                    className="border border-red-500/20 bg-red-950/20 hover:bg-red-900/40 text-red-400 hover:text-red-200 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-colors"
-                  >
-                    🗑️ Clear All
-                  </button>
+                {messageFilter === 'trash' ? (
+                  trashCount > 0 && (
+                    <button
+                      onClick={handleEmptyTrash}
+                      className="border border-red-500/30 bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-white px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-colors flex items-center gap-1 font-bold"
+                    >
+                      🔥 Empty Recycle Bin ({trashCount})
+                    </button>
+                  )
+                ) : (
+                  messagesList.filter(m => m.status !== 'trash').length > 0 && (
+                    <button
+                      onClick={handleClearAllMessages}
+                      className="border border-red-500/20 bg-red-950/20 hover:bg-red-900/40 text-red-400 hover:text-red-200 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-colors"
+                    >
+                      🗑️ Move All to Trash
+                    </button>
+                  )
                 )}
                 <button 
                   onClick={() => setActiveModal(null)} 
@@ -2730,22 +2783,32 @@ export default function EditorClient({
             {/* Filter Bar & Search */}
             <div className="px-4 md:px-6 py-3 border-b border-white/5 bg-[#111116] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
               <div className="overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1.5 py-0.5 max-w-full">
-                {(['all', 'unread', 'starred', 'archived'] as const).map(filterTab => {
-                  const count = filterTab === 'all' 
-                    ? messagesList.length 
-                    : messagesList.filter(m => m.status === filterTab).length;
+                {(['all', 'unread', 'starred', 'archived', 'trash'] as const).map(filterTab => {
+                  let count = 0;
+                  if (filterTab === 'all') {
+                    count = messagesList.filter(m => m.status !== 'trash').length;
+                  } else {
+                    count = messagesList.filter(m => m.status === filterTab).length;
+                  }
+
                   const isActive = messageFilter === filterTab;
+                  const isTrashTab = filterTab === 'trash';
                   return (
                     <button
                       key={filterTab}
-                      onClick={() => setMessageFilter(filterTab)}
+                      onClick={() => {
+                        setMessageFilter(filterTab);
+                        setSelectedMessage(null);
+                      }}
                       className={`px-3 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-colors flex items-center gap-1.5 shrink-0 min-h-[34px] ${
                         isActive
-                          ? 'bg-[var(--accent)] text-white font-medium shadow-sm'
+                          ? isTrashTab 
+                            ? 'bg-red-900/60 border border-red-500/40 text-white font-medium shadow-sm'
+                            : 'bg-[var(--accent)] text-white font-medium shadow-sm'
                           : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
                       }`}
                     >
-                      <span>{filterTab}</span>
+                      <span>{isTrashTab ? '🗑️ Trash' : filterTab}</span>
                       <span className={`px-1.5 py-0.2 rounded-full text-[9px] ${isActive ? 'bg-white/20 text-white' : 'bg-white/5 text-zinc-500'}`}>
                         {count}
                       </span>
@@ -2775,14 +2838,15 @@ export default function EditorClient({
               }`}>
                 {filteredMessages.length === 0 ? (
                   <div className="p-12 text-center text-zinc-500 font-mono text-xs flex flex-col items-center gap-3">
-                    <span className="text-3xl">📭</span>
-                    <span>No messages found</span>
+                    <span className="text-3xl">{messageFilter === 'trash' ? '🗑️' : '📭'}</span>
+                    <span>{messageFilter === 'trash' ? 'Recycle Bin is empty' : 'No messages found'}</span>
                   </div>
                 ) : (
                   filteredMessages.map((msg) => {
                     const isSelected = selectedMessage?.id === msg.id;
                     const isUnread = msg.status === 'unread';
                     const isStarred = msg.status === 'starred';
+                    const isTrashed = msg.status === 'trash';
                     
                     return (
                       <div
@@ -2827,25 +2891,51 @@ export default function EditorClient({
                         </p>
 
                         <div className="mt-3 flex items-center justify-between text-[10px] font-mono text-zinc-500">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleUpdateMessageStatus(msg.id, isStarred ? 'read' : 'starred');
-                            }}
-                            className={`p-1 hover:text-amber-400 transition-colors ${isStarred ? 'text-amber-400 font-bold' : ''}`}
-                          >
-                            {isStarred ? '★ Starred' : '☆ Star'}
-                          </button>
+                          {isTrashed ? (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUpdateMessageStatus(msg.id, 'read');
+                                }}
+                                className="p-1 text-emerald-400 hover:underline font-bold"
+                              >
+                                ♻️ Restore
+                              </button>
 
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteMessage(msg.id);
-                            }}
-                            className="p-1 hover:text-red-400 transition-colors"
-                          >
-                            Delete
-                          </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteMessage(msg.id, true);
+                                }}
+                                className="p-1 text-red-400 hover:underline font-bold"
+                              >
+                                ❌ Delete Forever
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUpdateMessageStatus(msg.id, isStarred ? 'read' : 'starred');
+                                }}
+                                className={`p-1 hover:text-amber-400 transition-colors ${isStarred ? 'text-amber-400 font-bold' : ''}`}
+                              >
+                                {isStarred ? '★ Starred' : '☆ Star'}
+                              </button>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteMessage(msg.id);
+                                }}
+                                className="p-1 hover:text-red-400 transition-colors"
+                              >
+                                🗑️ Trash
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     );
@@ -2884,22 +2974,41 @@ export default function EditorClient({
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={() => handleUpdateMessageStatus(selectedMessage.id, selectedMessage.status === 'starred' ? 'read' : 'starred')}
-                            className={`px-3 py-2 rounded-lg border font-mono text-[10px] uppercase tracking-wider transition-colors min-h-[38px] ${
-                              selectedMessage.status === 'starred'
-                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                                : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
-                            }`}
-                          >
-                            {selectedMessage.status === 'starred' ? '★ Starred' : '☆ Star'}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMessage(selectedMessage.id)}
-                            className="px-3 py-2 rounded-lg border border-red-500/20 bg-red-950/20 text-red-400 hover:bg-red-900/40 font-mono text-[10px] uppercase tracking-wider transition-colors min-h-[38px]"
-                          >
-                            Delete
-                          </button>
+                          {selectedMessage.status === 'trash' ? (
+                            <>
+                              <button
+                                onClick={() => handleUpdateMessageStatus(selectedMessage.id, 'read')}
+                                className="px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/40 font-mono text-[10px] uppercase tracking-wider transition-colors min-h-[38px] font-bold"
+                              >
+                                ♻️ Restore to Inbox
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMessage(selectedMessage.id, true)}
+                                className="px-3 py-2 rounded-lg border border-red-500/30 bg-red-950/30 text-red-400 hover:bg-red-900/50 font-mono text-[10px] uppercase tracking-wider transition-colors min-h-[38px] font-bold"
+                              >
+                                ❌ Delete Forever
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleUpdateMessageStatus(selectedMessage.id, selectedMessage.status === 'starred' ? 'read' : 'starred')}
+                                className={`px-3 py-2 rounded-lg border font-mono text-[10px] uppercase tracking-wider transition-colors min-h-[38px] ${
+                                  selectedMessage.status === 'starred'
+                                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                                    : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+                                }`}
+                              >
+                                {selectedMessage.status === 'starred' ? '★ Starred' : '☆ Star'}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMessage(selectedMessage.id)}
+                                className="px-3 py-2 rounded-lg border border-red-500/20 bg-red-950/20 text-red-400 hover:bg-red-900/40 font-mono text-[10px] uppercase tracking-wider transition-colors min-h-[38px]"
+                              >
+                                🗑️ Move to Trash
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -2931,18 +3040,20 @@ export default function EditorClient({
                       >
                         ✉️ Reply via Email Client
                       </a>
-                      <button
-                        onClick={() => handleUpdateMessageStatus(selectedMessage.id, selectedMessage.status === 'unread' ? 'read' : 'unread')}
-                        className="border border-white/10 bg-white/5 text-zinc-300 hover:text-white font-mono text-[10px] uppercase tracking-widest px-5 py-3.5 rounded-xl hover:bg-white/10 active:scale-[0.98] transition-all min-h-[44px]"
-                      >
-                        {selectedMessage.status === 'unread' ? 'Mark as Read' : 'Mark as Unread'}
-                      </button>
+                      {selectedMessage.status !== 'trash' && (
+                        <button
+                          onClick={() => handleUpdateMessageStatus(selectedMessage.id, selectedMessage.status === 'unread' ? 'read' : 'unread')}
+                          className="border border-white/10 bg-white/5 text-zinc-300 hover:text-white font-mono text-[10px] uppercase tracking-widest px-5 py-3.5 rounded-xl hover:bg-white/10 active:scale-[0.98] transition-all min-h-[44px]"
+                        >
+                          {selectedMessage.status === 'unread' ? 'Mark as Read' : 'Mark as Unread'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-zinc-500 font-mono text-xs gap-3">
-                    <span className="text-4xl opacity-40">📬</span>
-                    <span>Select a message from the list to inspect details</span>
+                    <span className="text-4xl opacity-40">{messageFilter === 'trash' ? '🗑️' : '📬'}</span>
+                    <span>{messageFilter === 'trash' ? 'Select a trashed message to inspect or restore' : 'Select a message from the list to inspect details'}</span>
                   </div>
                 )}
               </div>
