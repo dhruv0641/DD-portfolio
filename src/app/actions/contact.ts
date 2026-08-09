@@ -9,8 +9,8 @@ import { sendContactEmail } from '@/lib/email';
 
 export async function submitContactForm(data: ContactInput) {
   try {
-    // 1. Rate Limiting Check: 3 contact submissions per hour (approx 0.05 refill rate)
-    const rateCheck = await rateLimit('contact_form', 3, 0.05);
+    // 1. Rate Limiting Check: 10 contact submissions per hour for testing flexibility
+    const rateCheck = await rateLimit('contact_form', 10, 0.2);
     if (!rateCheck.allowed) {
       return { success: false, error: rateCheck.error || 'Too many submissions. Please try again later.' };
     }
@@ -47,7 +47,7 @@ export async function submitContactForm(data: ContactInput) {
     const cleanObjective = sanitizeString(trimmedObjective);
     const cleanDetails = sanitizeString(trimmedDetails);
 
-    // 5. Insert into Supabase messages table
+    // 5. Insert into Supabase messages table (graceful fallback if DB fails)
     const dbResult = await contactService.submitMessage({
       name: cleanName,
       email: cleanEmail,
@@ -56,7 +56,7 @@ export async function submitContactForm(data: ContactInput) {
     });
 
     if (!dbResult.success) {
-      return { success: false, error: 'Failed to submit inquiry.' };
+      console.warn('[Contact Form] DB logging failed, proceeding to email dispatch:', dbResult.error);
     }
 
     // 6. Log analytics event to Supabase safely

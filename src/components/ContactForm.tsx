@@ -13,6 +13,7 @@ export default function ContactForm() {
   });
   
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [serverError, setServerError] = useState('');
   const [messageId, setMessageId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
@@ -133,14 +134,15 @@ export default function ContactForm() {
         }, 8000);
       } else {
         setStatus('error');
-        // If server action reported validation errors, we can focus nameRef or submitBtn
+        setServerError(result.error || 'Something went wrong. Please try again.');
         if (nameRef.current) {
           nameRef.current.focus();
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Submission request failed:', err);
       setStatus('error');
+      setServerError(err?.message || 'Submission request failed. Please try again.');
     }
   };
 
@@ -254,11 +256,14 @@ export default function ContactForm() {
           {status === 'error' && (
             <div className="form-message" style={{ display: 'block', color: '#EF4444' }} role="alert" aria-live="assertive">
               <div className="font-mono text-xs text-red-500 mb-2">$ TRANSACTION ERROR</div>
-              <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                Something went wrong. Please try again or email me directly at{' '}
+              <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-2">
+                {serverError || 'Something went wrong. Please try again or email me directly at:'}
+              </p>
+              <p className="text-xs text-[var(--text-dim)]">
+                Email directly: {' '}
                 <a href="mailto:dobariyadhruvv@gmail.com" className="text-red-400 underline hover:text-red-300 transition-colors">
                   dobariyadhruvv@gmail.com
-                </a>.
+                </a>
               </p>
             </div>
           )}
