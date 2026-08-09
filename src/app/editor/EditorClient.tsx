@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import ThoughtWave from '@/components/ThoughtWave';
 import AIPipelineViz from '@/components/AIPipelineViz';
 import Certifications from '@/components/Certifications';
@@ -68,6 +68,29 @@ export default function EditorClient({
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; success: boolean } | null>(null);
+
+  useEffect(() => {
+    if (activeModal) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      if (typeof window !== 'undefined' && (window as any).lenis) {
+        (window as any).lenis.stop();
+      }
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      if (typeof window !== 'undefined' && (window as any).lenis) {
+        (window as any).lenis.start();
+      }
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      if (typeof window !== 'undefined' && (window as any).lenis) {
+        (window as any).lenis.start();
+      }
+    };
+  }, [activeModal]);
 
   const triggerToast = (text: string, success: boolean) => {
     setMessage({ text, success });
@@ -1445,8 +1468,14 @@ export default function EditorClient({
       {/* ==================== OVERLAY CUSTOMIZER MODALS ==================== */}
 
       {activeModal === 'profile' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div 
+          data-lenis-prevent
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain"
+        >
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-4xl w-full p-6 md:p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Full Site Content & Identity Customizer</h3>
             
@@ -1788,6 +1817,200 @@ export default function EditorClient({
                   </div>
                   <div className="md:col-span-2">
                     <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Paragraph</label>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Paragraph 2</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.aboutParagraph2 || ''} 
+                      onChange={(e) => setSettings({ ...settings, aboutParagraph2: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION C: CORE BELIEFS */}
+              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">3. Core Beliefs Cards</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Belief 1 */}
+                  <div className="flex flex-col gap-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 01 Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.belief1Title || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief1Title: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 01 Description</label>
+                    <textarea 
+                      rows={4}
+                      value={settings.belief1Desc || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief1Desc: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  {/* Belief 2 */}
+                  <div className="flex flex-col gap-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 02 Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.belief2Title || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief2Title: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 02 Description</label>
+                    <textarea 
+                      rows={4}
+                      value={settings.belief2Desc || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief2Desc: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  {/* Belief 3 */}
+                  <div className="flex flex-col gap-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 03 Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.belief3Title || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief3Title: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 03 Description</label>
+                    <textarea 
+                      rows={4}
+                      value={settings.belief3Desc || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief3Desc: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION D: ENGINEERING CASE STUDY */}
+              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">4. Engineering Case Study Details</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Main Case Study Heading</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyHeading || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyHeading: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Role Label</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyRole || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyRole: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Timeline Label</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyTimeline || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyTimeline: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Technologies Used</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyTech || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyTech: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Context Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyContextTitle || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyContextTitle: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none mb-2"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Context Description</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.caseStudyContextText || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyContextText: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Challenge Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyChallengeTitle || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyChallengeTitle: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none mb-2"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Challenge Description</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.caseStudyChallengeText || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyChallengeText: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION E: PROCESS & CONTACT */}
+              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">5. Process & Contact Sections</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Heading Prefix</label>
+                    <input 
+                      type="text" 
+                      value={settings.processHeadingPrefix || ''} 
+                      onChange={(e) => setSettings({ ...settings, processHeadingPrefix: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Heading Italic Phrase</label>
+                    <input 
+                      type="text" 
+                      value={settings.processHeadingItalic || ''} 
+                      onChange={(e) => setSettings({ ...settings, processHeadingItalic: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Subtitle</label>
+                    <input 
+                      type="text" 
+                      value={settings.processSubtitle || ''} 
+                      onChange={(e) => setSettings({ ...settings, processSubtitle: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Prefix</label>
+                    <input 
+                      type="text" 
+                      value={settings.contactHeadingPrefix || ''} 
+                      onChange={(e) => setSettings({ ...settings, contactHeadingPrefix: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Italic Phrase</label>
+                    <input 
+                      type="text" 
+                      value={settings.contactHeadingItalic || ''} 
+                      onChange={(e) => setSettings({ ...settings, contactHeadingItalic: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
                     <textarea 
                       rows={3}
                       value={settings.contactParagraph || ''} 
@@ -1836,7 +2059,6 @@ export default function EditorClient({
                   </div>
                 </div>
               </div>
-
             </div>
 
             <div className="flex gap-4 sticky bottom-0 bg-[#111115] pt-4 border-t border-white/5 z-30">
@@ -1852,8 +2074,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'project' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">
               {selectedProject ? `Modify Case Study: ${selectedProject.title}` : 'Draft New Project Case Study'}
@@ -2027,8 +2249,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'blog' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">
               {selectedBlog ? `Modify Essay: ${selectedBlog.title}` : 'Draft New Essay Journal'}
@@ -2083,8 +2305,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'skill' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-5xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-5xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Technical Skills Console</h3>
             
@@ -2203,8 +2425,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'testimonial' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Recommendation</h3>
             
@@ -2239,8 +2461,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'service' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Service Card</h3>
             
@@ -2271,8 +2493,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'experience' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Employment Record</h3>
             
@@ -2307,8 +2529,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'education' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Education Record</h3>
             
@@ -2343,8 +2565,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'certificate' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Certificate</h3>
             
@@ -2383,8 +2605,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'seo' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Meta SEO Configurations</h3>
             
