@@ -108,6 +108,7 @@ export default function EditorClient({
   const [messageFilter, setMessageFilter] = useState<'all' | 'unread' | 'starred' | 'archived'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMsgTab, setMobileMsgTab] = useState<'list' | 'detail'>('list');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const unreadCount = messagesList.filter(m => m.status === 'unread').length;
 
@@ -932,83 +933,259 @@ export default function EditorClient({
   return (
     <div className="relative min-h-screen bg-[#090909] text-[#F5F5F5] font-sans selection:bg-[var(--accent)] selection:text-white pb-32">
       
-      {/* Flat static admin controls panel (not fixed, scrolls with page) */}
-      <div className="max-w-[1400px] mx-auto px-[8%] pt-8 pb-4 relative z-20 flex flex-col md:flex-row items-center justify-between border-b border-white/5 gap-4">
-        <div className="flex items-center gap-2.5">
-          <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-          <span className="font-mono text-[10px] uppercase tracking-wider text-white">CMS Customizer Console</span>
-        </div>
+      {/* Static Admin Controls Header Panel */}
+      <div className="max-w-[1400px] mx-auto px-4 md:px-[8%] pt-4 md:pt-8 pb-4 relative z-30 border-b border-white/5">
         
-        <div className="w-full md:w-auto overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-2 py-1 px-1 snap-x shrink-0">
-          <button 
-            onClick={() => setActiveModal('hero')}
-            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            ✨ Hero Section
-          </button>
-          <button 
-            onClick={() => setActiveModal('about')}
-            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            👤 Identity & Beliefs
-          </button>
-          <button 
-            onClick={() => setActiveModal('contact')}
-            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            ✉️ Contact & Links
-          </button>
-          <button 
-            onClick={() => {
-              setActiveModal('messages');
-              setMobileMsgTab('list');
-              if (messagesList.length > 0 && !selectedMessage) {
-                setSelectedMessage(messagesList[0]);
-              }
-            }}
-            className="snap-start shrink-0 border border-blue-500/30 bg-blue-950/30 hover:border-blue-500 text-blue-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 flex items-center gap-1.5 min-h-[36px]"
-          >
-            <span>📬 Inbound Messages</span>
-            {unreadCount > 0 && (
-              <span className="bg-blue-500 text-black px-1.5 py-0.2 rounded-full text-[9px] font-bold">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-          <button 
-            onClick={() => setActiveModal('seo')}
-            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            🔍 SEO Tags
-          </button>
-          <button 
-            onClick={() => { handleNewSkill(); setActiveModal('skill'); }}
-            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            🛠️ Skills DB
-          </button>
-          <span className="h-4 w-[1px] bg-white/10 mx-1 shrink-0" />
-          <button 
-            onClick={() => { handleNewProject(); setActiveModal('project'); }}
-            className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            ➕ Project
-          </button>
-          <button 
-            onClick={() => { handleNewBlog(); setActiveModal('blog'); }}
-            className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            📝 Essay
-          </button>
+        {/* Mobile Sticky / Top Bar (< md) */}
+        <div className="flex md:hidden items-center justify-between gap-2 bg-[#121217]/90 border border-white/10 p-3 rounded-2xl backdrop-blur-xl shadow-xl">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-white">CMS Console</span>
+          </div>
 
-          <button 
-            onClick={handleLogout}
-            className="snap-start shrink-0 border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            🚪 Sign Out
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => {
+                setActiveModal('messages');
+                setMobileMsgTab('list');
+                if (messagesList.length > 0 && !selectedMessage) {
+                  setSelectedMessage(messagesList[0]);
+                }
+              }}
+              className="bg-blue-500/10 border border-blue-500/30 text-blue-400 px-3 py-1.5 rounded-xl font-mono text-[10px] uppercase font-bold flex items-center gap-1.5 active:scale-95 transition-transform"
+            >
+              <span>📬 Inbox</span>
+              {unreadCount > 0 && (
+                <span className="bg-blue-500 text-black px-1.5 py-0.2 rounded-full text-[9px]">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="bg-white text-black px-3.5 py-1.5 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 active:scale-95 transition-transform shadow-md"
+            >
+              <span>⚡ MENU</span>
+              <span>{mobileMenuOpen ? '✕' : '☰'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Navigation Toolbar (>= md) */}
+        <div className="hidden md:flex items-center justify-between gap-4 w-full">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <span className="font-mono text-[10px] uppercase tracking-wider text-white">CMS Customizer Console</span>
+          </div>
+          
+          <div className="overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-2 py-1 px-1 snap-x shrink-0">
+            <button 
+              onClick={() => setActiveModal('hero')}
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+            >
+              ✨ Hero Section
+            </button>
+            <button 
+              onClick={() => setActiveModal('about')}
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+            >
+              👤 Identity & Beliefs
+            </button>
+            <button 
+              onClick={() => setActiveModal('contact')}
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+            >
+              ✉️ Contact & Links
+            </button>
+            <button 
+              onClick={() => {
+                setActiveModal('messages');
+                setMobileMsgTab('list');
+                if (messagesList.length > 0 && !selectedMessage) {
+                  setSelectedMessage(messagesList[0]);
+                }
+              }}
+              className="snap-start shrink-0 border border-blue-500/30 bg-blue-950/30 hover:border-blue-500 text-blue-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 flex items-center gap-1.5 min-h-[36px]"
+            >
+              <span>📬 Inbound Messages</span>
+              {unreadCount > 0 && (
+                <span className="bg-blue-500 text-black px-1.5 py-0.2 rounded-full text-[9px] font-bold">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            <button 
+              onClick={() => setActiveModal('seo')}
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+            >
+              🔍 SEO Tags
+            </button>
+            <button 
+              onClick={() => { handleNewSkill(); setActiveModal('skill'); }}
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+            >
+              🛠️ Skills DB
+            </button>
+            <span className="h-4 w-[1px] bg-white/10 mx-1 shrink-0" />
+            <button 
+              onClick={() => { handleNewProject(); setActiveModal('project'); }}
+              className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+            >
+              ➕ Project
+            </button>
+            <button 
+              onClick={() => { handleNewBlog(); setActiveModal('blog'); }}
+              className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+            >
+              📝 Essay
+            </button>
+
+            <button 
+              onClick={handleLogout}
+              className="snap-start shrink-0 border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+            >
+              🚪 Sign Out
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Glassmorphic Mobile Drawer Menu Modal */}
+      {mobileMenuOpen && (
+        <div 
+          data-lenis-prevent
+          className="fixed inset-0 bg-black/95 backdrop-blur-2xl z-50 p-6 overflow-y-auto flex flex-col justify-between md:hidden"
+        >
+          <div>
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+                <h3 className="font-mono text-sm font-bold uppercase tracking-wider text-white">Admin Quick Menu</h3>
+              </div>
+              <button 
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white text-sm font-bold active:scale-95"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Category 1: Customizers */}
+              <div>
+                <div className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <span>🎨</span>
+                  <span>Section Customizers</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    onClick={() => { setActiveModal('hero'); setMobileMenuOpen(false); }}
+                    className="p-3.5 bg-[#14141a] border border-white/10 rounded-xl text-left hover:border-white/30 active:scale-98 transition-all flex flex-col gap-1 min-h-[56px]"
+                  >
+                    <span className="text-sm">✨ Hero Section</span>
+                    <span className="font-mono text-[9px] text-zinc-500 uppercase">Titles & CTA</span>
+                  </button>
+                  <button
+                    onClick={() => { setActiveModal('about'); setMobileMenuOpen(false); }}
+                    className="p-3.5 bg-[#14141a] border border-white/10 rounded-xl text-left hover:border-white/30 active:scale-98 transition-all flex flex-col gap-1 min-h-[56px]"
+                  >
+                    <span className="text-sm">👤 Identity & Beliefs</span>
+                    <span className="font-mono text-[9px] text-zinc-500 uppercase">Bio & Philosophy</span>
+                  </button>
+                  <button
+                    onClick={() => { setActiveModal('contact'); setMobileMenuOpen(false); }}
+                    className="p-3.5 bg-[#14141a] border border-white/10 rounded-xl text-left hover:border-white/30 active:scale-98 transition-all flex flex-col gap-1 min-h-[56px]"
+                  >
+                    <span className="text-sm">✉️ Contact & Links</span>
+                    <span className="font-mono text-[9px] text-zinc-500 uppercase">Social Handles</span>
+                  </button>
+                  <button
+                    onClick={() => { setActiveModal('seo'); setMobileMenuOpen(false); }}
+                    className="p-3.5 bg-[#14141a] border border-white/10 rounded-xl text-left hover:border-white/30 active:scale-98 transition-all flex flex-col gap-1 min-h-[56px]"
+                  >
+                    <span className="text-sm">🔍 SEO Tags</span>
+                    <span className="font-mono text-[9px] text-zinc-500 uppercase">Meta Descriptions</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Category 2: Messages & Database */}
+              <div>
+                <div className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <span>📂</span>
+                  <span>Data & Management</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    onClick={() => {
+                      setActiveModal('messages');
+                      setMobileMsgTab('list');
+                      if (messagesList.length > 0 && !selectedMessage) {
+                        setSelectedMessage(messagesList[0]);
+                      }
+                      setMobileMenuOpen(false);
+                    }}
+                    className="p-3.5 bg-blue-950/20 border border-blue-500/30 rounded-xl text-left hover:border-blue-500 active:scale-98 transition-all flex flex-col gap-1 min-h-[56px] relative"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-300 font-medium">📬 Messages</span>
+                      {unreadCount > 0 && (
+                        <span className="bg-blue-500 text-black px-2 py-0.5 rounded-full text-[9px] font-bold">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono text-[9px] text-blue-400/70 uppercase">Inbound Inquiries</span>
+                  </button>
+
+                  <button
+                    onClick={() => { handleNewSkill(); setActiveModal('skill'); setMobileMenuOpen(false); }}
+                    className="p-3.5 bg-[#14141a] border border-white/10 rounded-xl text-left hover:border-white/30 active:scale-98 transition-all flex flex-col gap-1 min-h-[56px]"
+                  >
+                    <span className="text-sm">🛠️ Skills DB</span>
+                    <span className="font-mono text-[9px] text-zinc-500 uppercase">Category Mapping</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Category 3: Content Creation */}
+              <div>
+                <div className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <span>✏️</span>
+                  <span>Content Creation</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    onClick={() => { handleNewProject(); setActiveModal('project'); setMobileMenuOpen(false); }}
+                    className="p-3.5 bg-emerald-950/20 border border-emerald-500/30 rounded-xl text-left hover:border-emerald-500 active:scale-98 transition-all flex flex-col gap-1 min-h-[56px]"
+                  >
+                    <span className="text-sm text-emerald-300">➕ Add Project</span>
+                    <span className="font-mono text-[9px] text-emerald-500/70 uppercase">Case Study Entry</span>
+                  </button>
+
+                  <button
+                    onClick={() => { handleNewBlog(); setActiveModal('blog'); setMobileMenuOpen(false); }}
+                    className="p-3.5 bg-emerald-950/20 border border-emerald-500/30 rounded-xl text-left hover:border-emerald-500 active:scale-98 transition-all flex flex-col gap-1 min-h-[56px]"
+                  >
+                    <span className="text-sm text-emerald-300">📝 Add Essay</span>
+                    <span className="font-mono text-[9px] text-emerald-500/70 uppercase">Blog / Article</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-white/10 mt-8">
+            <button
+              onClick={handleLogout}
+              className="w-full bg-red-950/30 border border-red-500/30 text-red-400 py-3.5 rounded-xl font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 active:scale-98 transition-all min-h-[48px]"
+            >
+              <span>🚪 Sign Out of Admin</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Editorial Grid Lines */}
       <div className="fixed inset-0 pointer-events-none max-w-[1600px] mx-auto px-[8%] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 z-0 opacity-15">
@@ -1020,7 +1197,7 @@ export default function EditorClient({
 
       {/* Dynamic Saving Indicator overlay */}
       {isPending && (
-        <div className="fixed top-20 right-[8%] z-50 bg-[#111115] border border-white/5 px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-3 font-mono text-[10px] text-white">
+        <div className="fixed top-20 left-4 right-4 md:left-auto md:right-[8%] z-50 bg-[#111115]/95 border border-white/10 px-4 py-3 rounded-xl shadow-2xl flex items-center justify-center gap-3 font-mono text-[10px] text-white backdrop-blur-xl">
           <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-ping" />
           <span>UPDATING DATABASE...</span>
         </div>
@@ -1029,13 +1206,13 @@ export default function EditorClient({
       {/* Floating Status Toast */}
       {message && (
         <div 
-          className={`fixed bottom-6 right-[8%] z-50 px-4 py-3 rounded-lg border shadow-xl flex items-center gap-3 font-mono text-[10px] ${
+          className={`fixed top-20 left-4 right-4 md:left-auto md:right-[8%] z-50 px-4 py-3 rounded-xl border shadow-2xl flex items-center justify-center gap-3 font-mono text-[10px] backdrop-blur-xl ${
             message.success 
-              ? 'bg-[#0f1712] border-emerald-500/20 text-emerald-400' 
-              : 'bg-[#1a1112] border-red-500/20 text-red-400'
+              ? 'bg-[#0f1712]/95 border-emerald-500/30 text-emerald-400' 
+              : 'bg-[#1a1112]/95 border-red-500/30 text-red-400'
           }`}
         >
-          <div className={`w-1.5 h-1.5 rounded-full ${message.success ? 'bg-emerald-500' : 'bg-red-500'}`} />
+          <div className={`w-2 h-2 rounded-full shrink-0 ${message.success ? 'bg-emerald-500' : 'bg-red-500'}`} />
           <span>{message.text}</span>
         </div>
       )}
@@ -1045,10 +1222,10 @@ export default function EditorClient({
         <div className="absolute top-[20%] left-[50%] -translate-x-[50%] w-[500px] h-[500px] rounded-full bg-[rgba(var(--accent-rgb),0.05)] blur-[120px] pointer-events-none z-0" />
         
         {/* Floating section modifier overlay */}
-        <div className="absolute top-4 right-8 opacity-0 group-hover/hero:opacity-100 transition-opacity z-20 flex gap-2">
+        <div className="absolute top-4 right-4 md:right-8 opacity-100 md:opacity-0 md:group-hover/hero:opacity-100 transition-opacity z-20 flex gap-2">
           <button 
             onClick={() => setActiveModal('hero')}
-            className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white flex items-center gap-1.5 shadow-md font-semibold"
+            className="bg-[#111115]/90 backdrop-blur-md border border-white/15 hover:border-white rounded-xl px-3.5 py-2 font-mono text-[10px] md:text-[9px] uppercase tracking-wider text-white flex items-center gap-1.5 shadow-xl font-semibold active:scale-95"
           >
             ✏️ Edit Hero Info
           </button>
@@ -1090,10 +1267,10 @@ export default function EditorClient({
 
       {/* SECTION 2: IDENTITY */}
       <section id="identity" className="py-40 border-b border-[var(--grid-line)] relative group/about hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 rounded-xl m-2">
-        <div className="absolute top-4 right-8 opacity-0 group-hover/about:opacity-100 transition-opacity z-20">
+        <div className="absolute top-4 right-4 md:right-8 opacity-100 md:opacity-0 md:group-hover/about:opacity-100 transition-opacity z-20">
           <button 
             onClick={() => setActiveModal('about')}
-            className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white shadow-md font-semibold"
+            className="bg-[#111115]/90 backdrop-blur-md border border-white/15 hover:border-white rounded-xl px-3.5 py-2 font-mono text-[10px] md:text-[9px] uppercase tracking-wider text-white shadow-xl font-semibold active:scale-95"
           >
             ✏️ Edit Identity Details
           </button>
