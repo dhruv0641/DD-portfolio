@@ -26,6 +26,9 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
     });
 
     lenisRef.current = lenis;
+    if (typeof window !== 'undefined') {
+      (window as any).lenis = lenis;
+    }
 
     let rafId: number;
 
@@ -40,6 +43,9 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
       cancelAnimationFrame(rafId);
       lenis.destroy();
       lenisRef.current = null;
+      if (typeof window !== 'undefined') {
+        delete (window as any).lenis;
+      }
     };
   }, [settings.reduceMotion]); // Only depends on reduceMotion — NOT pathname
 
