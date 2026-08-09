@@ -949,7 +949,11 @@ export default function EditorClient({
             </div>
 
             <h1 className="text-[clamp(2.5rem,7.5vw,6rem)] font-light leading-[1.05] tracking-tight text-white">
-              Designing <span className="serif-italic text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-zinc-400">deterministic</span> workflows <br />for AI agents.
+              {settings.heroTitlePrefix || 'Designing'}{' '}
+              <span className="serif-italic text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-zinc-400">
+                {settings.heroTitleItalic || 'deterministic'}
+              </span>{' '}
+              {settings.heroTitleSuffix || 'workflows for AI agents.'}
             </h1>
 
             <p className="text-[clamp(1.1rem,2vw,1.4rem)] text-[var(--text-muted)] max-w-[680px] leading-[1.6] font-light">
@@ -957,11 +961,11 @@ export default function EditorClient({
             </p>
 
             <div className="flex flex-wrap gap-4 mt-4">
-              <a href="#work" className="bg-white text-black text-xs font-mono uppercase tracking-widest px-8 py-4 rounded-lg hover:bg-gray-200 transition-all font-semibold">
-                Explore Case Studies
+              <a href={settings.heroCta1Link || '#work'} className="bg-white text-black text-xs font-mono uppercase tracking-widest px-8 py-4 rounded-lg hover:bg-gray-200 transition-all font-semibold">
+                {settings.heroCta1Text || 'Explore Case Studies'}
               </a>
-              <a href="#build" className="border border-[rgba(255,255,255,0.08)] bg-[#0d0d10] text-white text-xs font-mono uppercase tracking-widest px-8 py-4 rounded-lg hover:bg-gray-900 transition-all">
-                Let&apos;s Build Together
+              <a href={settings.heroCta2Link || '#build'} className="border border-[rgba(255,255,255,0.08)] bg-[#0d0d10] text-white text-xs font-mono uppercase tracking-widest px-8 py-4 rounded-lg hover:bg-gray-900 transition-all">
+                {settings.heroCta2Text || "Let's Build Together"}
               </a>
             </div>
           </div>
@@ -988,15 +992,25 @@ export default function EditorClient({
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-20">
             <h2 className="text-[clamp(2rem,4vw,3.2rem)] leading-[1.2] font-light text-white tracking-tight">
-              Building software <br /><span className="serif-italic text-[var(--text-muted)]">that solves real problems.</span>
+              {settings.aboutTitlePrefix || 'Building software'} <br />
+              <span className="serif-italic text-[var(--text-muted)]">
+                {settings.aboutTitleItalic || 'that solves real problems.'}
+              </span>
             </h2>
             <div className="flex flex-col gap-8">
               <p className="text-[var(--text-muted)] text-[1.1rem] leading-[1.7] font-light font-sans">
-                {profile.bio || 'Professional biography details loaded dynamically.'}
+                {settings.aboutParagraph1 || profile.bio || 'I operate at the intersection of machine cognition and human agency...'}
+              </p>
+              <p className="text-[var(--text-muted)] text-[1.1rem] leading-[1.7] font-light font-sans">
+                {settings.aboutParagraph2 || 'I write robust, multi-agent state machines...'}
               </p>
             </div>
           </div>
-          <CoreBeliefs />
+          <CoreBeliefs items={[
+            { num: '01', title: settings.belief1Title || 'Human first, model second', desc: settings.belief1Desc || 'AI should elevate and extend human capability...' },
+            { num: '02', title: settings.belief2Title || 'Deterministic guardrails', desc: settings.belief2Desc || 'Stochastic models produce unpredictable results...' },
+            { num: '03', title: settings.belief3Title || 'Performance is respect', desc: settings.belief3Desc || 'Lag is cognitive drag...' }
+          ]} />
         </div>
       </section>
 
@@ -1377,9 +1391,20 @@ export default function EditorClient({
         </div>
       </section>
 
-      {/* SECTION 12: CONTACT */}
-      <section id="build" className="py-40 relative overflow-hidden">
+      {/* SECTION 12: CONTACT (WITH EDIT HOVER HIGHLIGHT) */}
+      <section id="build" className="py-40 relative overflow-hidden group/contact hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 rounded-xl m-2">
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 80%, rgba(var(--accent-rgb), 0.04) 0%, transparent 70%)' }} />
+        
+        {/* Floating section modifier overlay */}
+        <div className="absolute top-4 right-8 opacity-0 group-hover/contact:opacity-100 transition-opacity z-20 flex gap-2">
+          <button 
+            onClick={() => setActiveModal('profile')}
+            className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white flex items-center gap-1.5 shadow-md font-semibold"
+          >
+            ✏️ Edit Contact & Links
+          </button>
+        </div>
+
         <div className="max-w-[1400px] mx-auto px-[8%] relative z-10">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[var(--text-dim)] mb-20 flex items-center gap-2">
             <span>11 / Contact</span>
@@ -1395,8 +1420,16 @@ export default function EditorClient({
                 </h3>
               </div>
               <div className="flex flex-col gap-5 font-mono text-xs">
-                <div className="flex items-center gap-3 text-[var(--text-muted)]">
+                <a
+                  href={`mailto:${settings.contactEmail || 'dhruv.dobariya0641@gmail.com'}`}
+                  className="group/mail flex items-center gap-3 text-[var(--text-muted)] hover:text-white transition-colors duration-300"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-40 group-hover/mail:opacity-100 transition-opacity"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
                   <span>{settings.contactEmail || 'dhruv.dobariya0641@gmail.com'}</span>
+                </a>
+                <div className="flex items-center gap-3 text-[var(--text-muted)]">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-40"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                  <span>{profile.location || 'San Francisco, CA & Remote'}</span>
                 </div>
                 <SocialCards />
               </div>
@@ -1413,114 +1446,402 @@ export default function EditorClient({
 
       {activeModal === 'profile' && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
+          <div className="bg-[#111115] border border-white/5 rounded-xl max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto relative shadow-2xl">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Edit Profile & Hero Identity</h3>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Full Site Content & Identity Customizer</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Availability Status</label>
-                <input 
-                  type="text" 
-                  value={settings.status || ''} 
-                  onChange={(e) => setSettings({ ...settings, status: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
-                />
+            <div className="flex flex-col gap-10 mb-8">
+              
+              {/* SECTION A: HERO CUSTOMIZER */}
+              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">1. Hero Section</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Availability Badge Status</label>
+                    <input 
+                      type="text" 
+                      value={settings.status || ''} 
+                      onChange={(e) => setSettings({ ...settings, status: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Full Name</label>
+                    <input 
+                      type="text" 
+                      value={profile.name || ''} 
+                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Prefix</label>
+                    <input 
+                      type="text" 
+                      value={settings.heroTitlePrefix || ''} 
+                      onChange={(e) => setSettings({ ...settings, heroTitlePrefix: e.target.value })}
+                      placeholder="Designing"
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Italic Word</label>
+                    <input 
+                      type="text" 
+                      value={settings.heroTitleItalic || ''} 
+                      onChange={(e) => setSettings({ ...settings, heroTitleItalic: e.target.value })}
+                      placeholder="deterministic"
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Suffix</label>
+                    <input 
+                      type="text" 
+                      value={settings.heroTitleSuffix || ''} 
+                      onChange={(e) => setSettings({ ...settings, heroTitleSuffix: e.target.value })}
+                      placeholder="workflows for AI agents."
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Bio Paragraph</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.bio || profile.bio || ''} 
+                      onChange={(e) => {
+                        setSettings({ ...settings, bio: e.target.value });
+                        setProfile({ ...profile, bio: e.target.value });
+                      }}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 1 Button Text</label>
+                    <input 
+                      type="text" 
+                      value={settings.heroCta1Text || ''} 
+                      onChange={(e) => setSettings({ ...settings, heroCta1Text: e.target.value })}
+                      placeholder="Explore Case Studies"
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 1 Target Link / Anchor</label>
+                    <input 
+                      type="text" 
+                      value={settings.heroCta1Link || ''} 
+                      onChange={(e) => setSettings({ ...settings, heroCta1Link: e.target.value })}
+                      placeholder="#work"
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 2 Button Text</label>
+                    <input 
+                      type="text" 
+                      value={settings.heroCta2Text || ''} 
+                      onChange={(e) => setSettings({ ...settings, heroCta2Text: e.target.value })}
+                      placeholder="Let's Build Together"
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 2 Target Link / Anchor</label>
+                    <input 
+                      type="text" 
+                      value={settings.heroCta2Link || ''} 
+                      onChange={(e) => setSettings({ ...settings, heroCta2Link: e.target.value })}
+                      placeholder="#build"
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Full Name</label>
-                <input 
-                  type="text" 
-                  value={profile.name || ''} 
-                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+
+              {/* SECTION B: ABOUT & IDENTITY */}
+              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">2. About & Identity Section</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Title Prefix</label>
+                    <input 
+                      type="text" 
+                      value={settings.aboutTitlePrefix || ''} 
+                      onChange={(e) => setSettings({ ...settings, aboutTitlePrefix: e.target.value })}
+                      placeholder="Building software"
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Title Italic Phrase</label>
+                    <input 
+                      type="text" 
+                      value={settings.aboutTitleItalic || ''} 
+                      onChange={(e) => setSettings({ ...settings, aboutTitleItalic: e.target.value })}
+                      placeholder="that solves real problems."
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Paragraph 1</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.aboutParagraph1 || ''} 
+                      onChange={(e) => setSettings({ ...settings, aboutParagraph1: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Paragraph 2</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.aboutParagraph2 || ''} 
+                      onChange={(e) => setSettings({ ...settings, aboutParagraph2: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Job Title</label>
-                <input 
-                  type="text" 
-                  value={profile.title || ''} 
-                  onChange={(e) => setProfile({ ...profile, title: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+
+              {/* SECTION C: CORE BELIEFS */}
+              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">3. Core Beliefs Cards</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Belief 1 */}
+                  <div className="flex flex-col gap-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 01 Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.belief1Title || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief1Title: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 01 Description</label>
+                    <textarea 
+                      rows={4}
+                      value={settings.belief1Desc || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief1Desc: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  {/* Belief 2 */}
+                  <div className="flex flex-col gap-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 02 Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.belief2Title || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief2Title: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 02 Description</label>
+                    <textarea 
+                      rows={4}
+                      value={settings.belief2Desc || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief2Desc: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  {/* Belief 3 */}
+                  <div className="flex flex-col gap-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 03 Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.belief3Title || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief3Title: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 03 Description</label>
+                    <textarea 
+                      rows={4}
+                      value={settings.belief3Desc || ''} 
+                      onChange={(e) => setSettings({ ...settings, belief3Desc: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Contact Email</label>
-                <input 
-                  type="email" 
-                  value={profile.contactEmail || ''} 
-                  onChange={(e) => setProfile({ ...profile, contactEmail: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+
+              {/* SECTION D: ENGINEERING CASE STUDY */}
+              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">4. Engineering Case Study Details</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Main Case Study Heading</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyHeading || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyHeading: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Role Label</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyRole || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyRole: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Timeline Label</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyTimeline || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyTimeline: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Technologies Used</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyTech || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyTech: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Context Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyContextTitle || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyContextTitle: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none mb-2"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Context Description</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.caseStudyContextText || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyContextText: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Challenge Title</label>
+                    <input 
+                      type="text" 
+                      value={settings.caseStudyChallengeTitle || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyChallengeTitle: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none mb-2"
+                    />
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Challenge Description</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.caseStudyChallengeText || ''} 
+                      onChange={(e) => setSettings({ ...settings, caseStudyChallengeText: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Location</label>
-                <input 
-                  type="text" 
-                  value={profile.location || ''} 
-                  onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
+
+              {/* SECTION E: PROCESS & CONTACT */}
+              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">5. Process & Contact Sections</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Heading Prefix</label>
+                    <input 
+                      type="text" 
+                      value={settings.processHeadingPrefix || ''} 
+                      onChange={(e) => setSettings({ ...settings, processHeadingPrefix: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Heading Italic Phrase</label>
+                    <input 
+                      type="text" 
+                      value={settings.processHeadingItalic || ''} 
+                      onChange={(e) => setSettings({ ...settings, processHeadingItalic: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Subtitle</label>
+                    <input 
+                      type="text" 
+                      value={settings.processSubtitle || ''} 
+                      onChange={(e) => setSettings({ ...settings, processSubtitle: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Prefix</label>
+                    <input 
+                      type="text" 
+                      value={settings.contactHeadingPrefix || ''} 
+                      onChange={(e) => setSettings({ ...settings, contactHeadingPrefix: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Italic Phrase</label>
+                    <input 
+                      type="text" 
+                      value={settings.contactHeadingItalic || ''} 
+                      onChange={(e) => setSettings({ ...settings, contactHeadingItalic: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Paragraph</label>
+                    <textarea 
+                      rows={3}
+                      value={settings.contactParagraph || ''} 
+                      onChange={(e) => setSettings({ ...settings, contactParagraph: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Email</label>
+                    <input 
+                      type="email" 
+                      value={settings.contactEmail || profile.contactEmail || ''} 
+                      onChange={(e) => {
+                        setSettings({ ...settings, contactEmail: e.target.value });
+                        setProfile({ ...profile, contactEmail: e.target.value });
+                      }}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Location</label>
+                    <input 
+                      type="text" 
+                      value={profile.location || ''} 
+                      onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">GitHub Profile URL</label>
+                    <input 
+                      type="text" 
+                      value={settings.githubUrl || ''} 
+                      onChange={(e) => setSettings({ ...settings, githubUrl: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">LinkedIn Profile URL</label>
+                    <input 
+                      type="text" 
+                      value={settings.linkedinUrl || ''} 
+                      onChange={(e) => setSettings({ ...settings, linkedinUrl: e.target.value })}
+                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Resume / Document URL</label>
-                <input 
-                  type="text" 
-                  value={profile.resumeUrl || ''} 
-                  onChange={(e) => setProfile({ ...profile, resumeUrl: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">GitHub Profile URL</label>
-                <input 
-                  type="text" 
-                  value={settings.githubUrl || ''} 
-                  onChange={(e) => setSettings({ ...settings, githubUrl: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">LinkedIn Profile URL</label>
-                <input 
-                  type="text" 
-                  value={settings.linkedinUrl || ''} 
-                  onChange={(e) => setSettings({ ...settings, linkedinUrl: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
-                />
-              </div>
-              <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Instagram Profile URL</label>
-                <input 
-                  type="text" 
-                  value={settings.instagramUrl || ''} 
-                  onChange={(e) => setSettings({ ...settings, instagramUrl: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none font-mono"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Hero Tagline</label>
-                <input 
-                  type="text" 
-                  value={profile.tagline || ''} 
-                  onChange={(e) => setProfile({ ...profile, tagline: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Biography Paragraph</label>
-                <textarea 
-                  rows={4}
-                  value={profile.bio || ''} 
-                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none leading-relaxed"
-                />
-              </div>
+
             </div>
-            <div className="flex gap-4">
+
+            <div className="flex gap-4 sticky bottom-0 bg-[#111115] pt-4 border-t border-white/5 z-30">
               <button onClick={() => { handleSaveProfile(); handleSaveSettings(); }} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-                Save Hero & Bio Details
+                Save All Content Changes
               </button>
               <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
                 Cancel
