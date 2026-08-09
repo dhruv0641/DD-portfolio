@@ -65,10 +65,17 @@
     color-scheme: dark;
   }
 
-  /* Prevent image dragging globally */
-  img {
-    -webkit-user-drag: none;
-    user-drag: none;
+  /* Prevent unwanted mobile browser auto-zoom on input focus */
+  @media (max-width: 768px) {
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    input[type="url"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 }
 

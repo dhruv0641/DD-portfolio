@@ -108,6 +108,7 @@ export default function EditorClient({
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
   const [messageFilter, setMessageFilter] = useState<'all' | 'unread' | 'starred' | 'archived'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileMsgTab, setMobileMsgTab] = useState<'list' | 'detail'>('list');
 
   const unreadCount = messagesList.filter(m => m.status === 'unread').length;
 
@@ -953,33 +954,34 @@ export default function EditorClient({
           <span className="font-mono text-[10px] uppercase tracking-wider text-white">CMS Customizer Console</span>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="w-full md:w-auto overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-2 py-1 px-1 snap-x shrink-0">
           <button 
             onClick={() => setActiveModal('hero')}
-            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             ✨ Hero Section
           </button>
           <button 
             onClick={() => setActiveModal('about')}
-            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             👤 Identity & Beliefs
           </button>
           <button 
             onClick={() => setActiveModal('contact')}
-            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             ✉️ Contact & Links
           </button>
           <button 
             onClick={() => {
               setActiveModal('messages');
+              setMobileMsgTab('list');
               if (messagesList.length > 0 && !selectedMessage) {
                 setSelectedMessage(messagesList[0]);
               }
             }}
-            className="border border-blue-500/30 bg-blue-950/30 hover:border-blue-500 text-blue-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 flex items-center gap-1.5"
+            className="snap-start shrink-0 border border-blue-500/30 bg-blue-950/30 hover:border-blue-500 text-blue-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 flex items-center gap-1.5 min-h-[36px]"
           >
             <span>📬 Inbound Messages</span>
             {unreadCount > 0 && (
@@ -990,39 +992,39 @@ export default function EditorClient({
           </button>
           <button 
             onClick={() => setActiveModal('seo')}
-            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             🔍 SEO Tags
           </button>
           <button 
             onClick={() => { handleNewSkill(); setActiveModal('skill'); }}
-            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             🛠️ Skills DB
           </button>
-          <span className="h-3 w-[1px] bg-white/10 mx-1" />
+          <span className="h-4 w-[1px] bg-white/10 mx-1 shrink-0" />
           <button 
             onClick={() => { handleNewProject(); setActiveModal('project'); }}
-            className="border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             ➕ Project
           </button>
           <button 
             onClick={() => { handleNewBlog(); setActiveModal('blog'); }}
-            className="border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             📝 Essay
           </button>
-          <span className="h-3 w-[1px] bg-white/10 mx-1" />
+          <span className="h-4 w-[1px] bg-white/10 mx-1 shrink-0" />
           <button 
             onClick={handleInitializeDatabase}
-            className="border border-amber-500/20 bg-amber-950/20 hover:border-amber-500 text-amber-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-amber-500/20 bg-amber-950/20 hover:border-amber-500 text-amber-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             🔄 Sync Defaults
           </button>
           <button 
             onClick={handleLogout}
-            className="border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+            className="snap-start shrink-0 border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
           >
             🚪 Sign Out
           </button>
@@ -2570,8 +2572,8 @@ export default function EditorClient({
             </div>
 
             {/* Filter Bar & Search */}
-            <div className="px-6 py-3 border-b border-white/5 bg-[#111116] flex flex-wrap items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-1.5">
+            <div className="px-4 md:px-6 py-3 border-b border-white/5 bg-[#111116] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
+              <div className="overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1.5 py-0.5 max-w-full">
                 {(['all', 'unread', 'starred', 'archived'] as const).map(filterTab => {
                   const count = filterTab === 'all' 
                     ? messagesList.length 
@@ -2581,9 +2583,9 @@ export default function EditorClient({
                     <button
                       key={filterTab}
                       onClick={() => setMessageFilter(filterTab)}
-                      className={`px-3 py-1 rounded-md font-mono text-[10px] uppercase tracking-wider transition-colors flex items-center gap-1.5 ${
+                      className={`px-3 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-colors flex items-center gap-1.5 shrink-0 min-h-[34px] ${
                         isActive
-                          ? 'bg-[var(--accent)] text-white font-medium'
+                          ? 'bg-[var(--accent)] text-white font-medium shadow-sm'
                           : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
                       }`}
                     >
@@ -2596,23 +2598,25 @@ export default function EditorClient({
                 })}
               </div>
 
-              <div className="relative w-full sm:w-64">
+              <div className="relative w-full sm:w-64 shrink-0">
                 <input
                   type="text"
                   placeholder="Search name, email, topic..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#09090c] border border-white/10 rounded-lg px-3 py-1.5 pl-8 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50"
+                  className="w-full bg-[#09090c] border border-white/10 rounded-lg px-3 py-2 pl-8 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 min-h-[38px]"
                 />
-                <span className="absolute left-2.5 top-2 text-zinc-500 text-xs">🔍</span>
+                <span className="absolute left-2.5 top-2.5 text-zinc-500 text-xs">🔍</span>
               </div>
             </div>
 
-            {/* Main Content Split-Pane */}
+            {/* Main Content Responsive Split-Pane */}
             <div className="flex-1 flex overflow-hidden">
               
-              {/* Left Pane: Message List */}
-              <div className="w-full md:w-[380px] lg:w-[420px] border-r border-white/5 bg-[#0b0b0e] overflow-y-auto shrink-0 divide-y divide-white/5">
+              {/* Left Pane: Message List (Full width on mobile if list tab active) */}
+              <div className={`w-full md:w-[380px] lg:w-[420px] border-r border-white/5 bg-[#0b0b0e] overflow-y-auto shrink-0 divide-y divide-white/5 ${
+                mobileMsgTab === 'detail' ? 'hidden md:block' : 'block'
+              }`}>
                 {filteredMessages.length === 0 ? (
                   <div className="p-12 text-center text-zinc-500 font-mono text-xs flex flex-col items-center gap-3">
                     <span className="text-3xl">📭</span>
@@ -2629,11 +2633,12 @@ export default function EditorClient({
                         key={msg.id}
                         onClick={() => {
                           setSelectedMessage(msg);
+                          setMobileMsgTab('detail');
                           if (isUnread) {
                             handleUpdateMessageStatus(msg.id, 'read');
                           }
                         }}
-                        className={`p-4 cursor-pointer transition-all duration-150 relative ${
+                        className={`p-4 cursor-pointer transition-all duration-150 relative active:bg-blue-900/20 ${
                           isSelected 
                             ? 'bg-blue-600/10 border-l-2 border-blue-500' 
                             : 'hover:bg-white/[0.03]'
@@ -2671,7 +2676,7 @@ export default function EditorClient({
                               e.stopPropagation();
                               handleUpdateMessageStatus(msg.id, isStarred ? 'read' : 'starred');
                             }}
-                            className={`hover:text-amber-400 transition-colors ${isStarred ? 'text-amber-400 font-bold' : ''}`}
+                            className={`p-1 hover:text-amber-400 transition-colors ${isStarred ? 'text-amber-400 font-bold' : ''}`}
                           >
                             {isStarred ? '★ Starred' : '☆ Star'}
                           </button>
@@ -2681,7 +2686,7 @@ export default function EditorClient({
                               e.stopPropagation();
                               handleDeleteMessage(msg.id);
                             }}
-                            className="hover:text-red-400 transition-colors"
+                            className="p-1 hover:text-red-400 transition-colors"
                           >
                             Delete
                           </button>
@@ -2692,29 +2697,40 @@ export default function EditorClient({
                 )}
               </div>
 
-              {/* Right Pane: Detailed Message View */}
-              <div className="flex-1 bg-[#0f0f13] overflow-y-auto p-6 md:p-8 flex flex-col justify-between">
+              {/* Right Pane: Detailed Message View (Full width on mobile if detail tab active) */}
+              <div className={`flex-1 bg-[#0f0f13] overflow-y-auto p-4 md:p-8 flex flex-col justify-between ${
+                mobileMsgTab === 'list' ? 'hidden md:flex' : 'flex'
+              }`}>
                 {selectedMessage ? (
-                  <div>
+                  <div className="w-full">
+                    {/* Mobile Back Button */}
+                    <button
+                      onClick={() => setMobileMsgTab('list')}
+                      className="md:hidden flex items-center gap-2 text-xs font-mono text-blue-400 mb-6 bg-blue-500/10 border border-blue-500/20 px-3 py-2 rounded-lg active:scale-95 transition-all"
+                    >
+                      <span>←</span>
+                      <span>Back to Messages List</span>
+                    </button>
+
                     {/* Message Header */}
                     <div className="border-b border-white/5 pb-6 mb-6">
-                      <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                         <div>
                           <h2 className="text-xl font-light text-white tracking-tight mb-1">
                             {selectedMessage.name}
                           </h2>
                           <a 
                             href={`mailto:${selectedMessage.email}`} 
-                            className="text-xs font-mono text-blue-400 hover:underline flex items-center gap-1.5"
+                            className="text-xs font-mono text-blue-400 hover:underline flex items-center gap-1.5 break-all"
                           >
                             ✉️ {selectedMessage.email}
                           </a>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <button
                             onClick={() => handleUpdateMessageStatus(selectedMessage.id, selectedMessage.status === 'starred' ? 'read' : 'starred')}
-                            className={`px-3 py-1.5 rounded-lg border font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                            className={`px-3 py-2 rounded-lg border font-mono text-[10px] uppercase tracking-wider transition-colors min-h-[38px] ${
                               selectedMessage.status === 'starred'
                                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                                 : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
@@ -2724,7 +2740,7 @@ export default function EditorClient({
                           </button>
                           <button
                             onClick={() => handleDeleteMessage(selectedMessage.id)}
-                            className="px-3 py-1.5 rounded-lg border border-red-500/20 bg-red-950/20 text-red-400 hover:bg-red-900/40 font-mono text-[10px] uppercase tracking-wider transition-colors"
+                            className="px-3 py-2 rounded-lg border border-red-500/20 bg-red-950/20 text-red-400 hover:bg-red-900/40 font-mono text-[10px] uppercase tracking-wider transition-colors min-h-[38px]"
                           >
                             Delete
                           </button>
@@ -2742,7 +2758,7 @@ export default function EditorClient({
                     </div>
 
                     {/* Message Body */}
-                    <div className="bg-[#14141b] border border-white/5 rounded-xl p-6 mb-8">
+                    <div className="bg-[#14141b] border border-white/5 rounded-xl p-5 md:p-6 mb-8">
                       <div className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-3">
                         MESSAGE DETAILS:
                       </div>
@@ -2752,16 +2768,16 @@ export default function EditorClient({
                     </div>
 
                     {/* Quick Actions Footer */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <a
                         href={`mailto:${selectedMessage.email}?subject=Re: ${encodeURIComponent(selectedMessage.objective || 'Portfolio Inquiry')}`}
-                        className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3 rounded-lg font-semibold hover:bg-zinc-200 transition-colors inline-flex items-center gap-2"
+                        className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-xl font-semibold hover:bg-zinc-200 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2 min-h-[44px]"
                       >
                         ✉️ Reply via Email Client
                       </a>
                       <button
                         onClick={() => handleUpdateMessageStatus(selectedMessage.id, selectedMessage.status === 'unread' ? 'read' : 'unread')}
-                        className="border border-white/10 bg-white/5 text-zinc-300 hover:text-white font-mono text-[10px] uppercase tracking-widest px-5 py-3 rounded-lg hover:bg-white/10 transition-colors"
+                        className="border border-white/10 bg-white/5 text-zinc-300 hover:text-white font-mono text-[10px] uppercase tracking-widest px-5 py-3.5 rounded-xl hover:bg-white/10 active:scale-[0.98] transition-all min-h-[44px]"
                       >
                         {selectedMessage.status === 'unread' ? 'Mark as Read' : 'Mark as Unread'}
                       </button>

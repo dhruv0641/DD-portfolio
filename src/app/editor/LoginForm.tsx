@@ -63,7 +63,8 @@ export default function LoginForm() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors"
+                autoComplete="username"
+                className="w-full bg-[#09090b] border border-white/10 rounded-xl p-3.5 text-base md:text-xs text-white focus:outline-none focus:border-[var(--accent)] transition-colors min-h-[44px]"
                 placeholder="Enter username"
               />
             </div>
@@ -75,13 +76,14 @@ export default function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white focus:outline-none focus:border-zinc-700 transition-colors"
+                autoComplete="current-password"
+                className="w-full bg-[#09090b] border border-white/10 rounded-xl p-3.5 text-base md:text-xs text-white focus:outline-none focus:border-[var(--accent)] transition-colors min-h-[44px]"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="bg-red-950/20 border border-red-500/20 rounded-lg p-3 text-center">
+              <div className="bg-red-950/20 border border-red-500/20 rounded-xl p-3 text-center">
                 <span className="font-mono text-[10px] text-red-400">{error}</span>
               </div>
             )}
@@ -89,7 +91,7 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-white text-black font-mono text-[10px] uppercase tracking-widest py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50"
+              className="w-full bg-white text-black font-mono text-[10px] uppercase tracking-widest py-4 rounded-xl font-semibold hover:bg-gray-200 active:scale-[0.98] transition-all min-h-[48px] disabled:opacity-50 shadow-lg"
             >
               {isPending ? 'Authenticating...' : 'Sign In'}
             </button>
