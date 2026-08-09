@@ -34,7 +34,7 @@ import {
   deleteSkillCategoryAction
 } from './actions';
 
-type ModalType = 'profile' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo';
+type ModalType = 'profile' | 'hero' | 'about' | 'contact' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo';
 
 interface EditorClientProps {
   initialSettings: Record<string, string>;
@@ -874,10 +874,22 @@ export default function EditorClient({
         
         <div className="flex flex-wrap items-center gap-2">
           <button 
-            onClick={() => setActiveModal('profile')}
+            onClick={() => setActiveModal('hero')}
             className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
           >
-            👤 Hero & Bio
+            ✨ Hero Section
+          </button>
+          <button 
+            onClick={() => setActiveModal('about')}
+            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+          >
+            👤 Identity & Beliefs
+          </button>
+          <button 
+            onClick={() => setActiveModal('contact')}
+            className="border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3 py-1.5 rounded font-mono text-[9px] uppercase tracking-wider transition-colors duration-150"
+          >
+            ✉️ Contact & Links
           </button>
           <button 
             onClick={() => setActiveModal('seo')}
@@ -957,7 +969,7 @@ export default function EditorClient({
         {/* Floating section modifier overlay */}
         <div className="absolute top-4 right-8 opacity-0 group-hover/hero:opacity-100 transition-opacity z-20 flex gap-2">
           <button 
-            onClick={() => setActiveModal('profile')}
+            onClick={() => setActiveModal('hero')}
             className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white flex items-center gap-1.5 shadow-md font-semibold"
           >
             ✏️ Edit Hero Info
@@ -1002,7 +1014,7 @@ export default function EditorClient({
       <section id="identity" className="py-40 border-b border-[var(--grid-line)] relative group/about hover:outline hover:outline-dashed hover:outline-[var(--accent)]/30 rounded-xl m-2">
         <div className="absolute top-4 right-8 opacity-0 group-hover/about:opacity-100 transition-opacity z-20">
           <button 
-            onClick={() => setActiveModal('profile')}
+            onClick={() => setActiveModal('about')}
             className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white shadow-md font-semibold"
           >
             ✏️ Edit Identity Details
@@ -1421,7 +1433,7 @@ export default function EditorClient({
         {/* Floating section modifier overlay */}
         <div className="absolute top-4 right-8 opacity-0 group-hover/contact:opacity-100 transition-opacity z-20 flex gap-2">
           <button 
-            onClick={() => setActiveModal('profile')}
+            onClick={() => setActiveModal('contact')}
             className="bg-[#111115] border border-white/10 hover:border-white rounded px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider text-white flex items-center gap-1.5 shadow-md font-semibold"
           >
             ✏️ Edit Contact & Links
@@ -1464,10 +1476,10 @@ export default function EditorClient({
         </div>
       </section>
 
-
       {/* ==================== OVERLAY CUSTOMIZER MODALS ==================== */}
 
-      {activeModal === 'profile' && (
+      {/* Dedicated Hero Modal */}
+      {activeModal === 'hero' && (
         <div 
           data-lenis-prevent
           onWheel={(e) => e.stopPropagation()}
@@ -1475,167 +1487,183 @@ export default function EditorClient({
           onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
           className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain"
         >
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-4xl w-full p-6 md:p-8 relative shadow-2xl my-auto">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-6 md:p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
-            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Full Site Content & Identity Customizer</h3>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Edit Hero Section</h3>
             
-            <div className="flex flex-col gap-10 mb-8">
-              
-              {/* SECTION A: HERO CUSTOMIZER */}
-              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
-                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">1. Hero Section</span>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Availability Badge Status</label>
-                    <input 
-                      type="text" 
-                      value={settings.status || ''} 
-                      onChange={(e) => setSettings({ ...settings, status: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Full Name</label>
-                    <input 
-                      type="text" 
-                      value={profile.name || ''} 
-                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Prefix</label>
-                    <input 
-                      type="text" 
-                      value={settings.heroTitlePrefix || ''} 
-                      onChange={(e) => setSettings({ ...settings, heroTitlePrefix: e.target.value })}
-                      placeholder="Designing"
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Italic Word</label>
-                    <input 
-                      type="text" 
-                      value={settings.heroTitleItalic || ''} 
-                      onChange={(e) => setSettings({ ...settings, heroTitleItalic: e.target.value })}
-                      placeholder="deterministic"
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Suffix</label>
-                    <input 
-                      type="text" 
-                      value={settings.heroTitleSuffix || ''} 
-                      onChange={(e) => setSettings({ ...settings, heroTitleSuffix: e.target.value })}
-                      placeholder="workflows for AI agents."
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Bio Paragraph</label>
-                    <textarea 
-                      rows={3}
-                      value={settings.bio || profile.bio || ''} 
-                      onChange={(e) => {
-                        setSettings({ ...settings, bio: e.target.value });
-                        setProfile({ ...profile, bio: e.target.value });
-                      }}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 1 Button Text</label>
-                    <input 
-                      type="text" 
-                      value={settings.heroCta1Text || ''} 
-                      onChange={(e) => setSettings({ ...settings, heroCta1Text: e.target.value })}
-                      placeholder="Explore Case Studies"
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 1 Target Link / Anchor</label>
-                    <input 
-                      type="text" 
-                      value={settings.heroCta1Link || ''} 
-                      onChange={(e) => setSettings({ ...settings, heroCta1Link: e.target.value })}
-                      placeholder="#work"
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 2 Button Text</label>
-                    <input 
-                      type="text" 
-                      value={settings.heroCta2Text || ''} 
-                      onChange={(e) => setSettings({ ...settings, heroCta2Text: e.target.value })}
-                      placeholder="Let's Build Together"
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 2 Target Link / Anchor</label>
-                    <input 
-                      type="text" 
-                      value={settings.heroCta2Link || ''} 
-                      onChange={(e) => setSettings({ ...settings, heroCta2Link: e.target.value })}
-                      placeholder="#build"
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
-                    />
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Availability Badge Status</label>
+                <input 
+                  type="text" 
+                  value={settings.status || ''} 
+                  onChange={(e) => setSettings({ ...settings, status: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Full Name</label>
+                <input 
+                  type="text" 
+                  value={profile.name || ''} 
+                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Prefix</label>
+                <input 
+                  type="text" 
+                  value={settings.heroTitlePrefix || ''} 
+                  onChange={(e) => setSettings({ ...settings, heroTitlePrefix: e.target.value })}
+                  placeholder="Designing"
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Italic Word</label>
+                <input 
+                  type="text" 
+                  value={settings.heroTitleItalic || ''} 
+                  onChange={(e) => setSettings({ ...settings, heroTitleItalic: e.target.value })}
+                  placeholder="deterministic"
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Title Suffix</label>
+                <input 
+                  type="text" 
+                  value={settings.heroTitleSuffix || ''} 
+                  onChange={(e) => setSettings({ ...settings, heroTitleSuffix: e.target.value })}
+                  placeholder="workflows for AI agents."
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Hero Bio Paragraph</label>
+                <textarea 
+                  rows={3}
+                  value={settings.bio || profile.bio || ''} 
+                  onChange={(e) => {
+                    setSettings({ ...settings, bio: e.target.value });
+                    setProfile({ ...profile, bio: e.target.value });
+                  }}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 1 Button Text</label>
+                <input 
+                  type="text" 
+                  value={settings.heroCta1Text || ''} 
+                  onChange={(e) => setSettings({ ...settings, heroCta1Text: e.target.value })}
+                  placeholder="Explore Case Studies"
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 1 Target Link / Anchor</label>
+                <input 
+                  type="text" 
+                  value={settings.heroCta1Link || ''} 
+                  onChange={(e) => setSettings({ ...settings, heroCta1Link: e.target.value })}
+                  placeholder="#work"
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 2 Button Text</label>
+                <input 
+                  type="text" 
+                  value={settings.heroCta2Text || ''} 
+                  onChange={(e) => setSettings({ ...settings, heroCta2Text: e.target.value })}
+                  placeholder="Let's Build Together"
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">CTA 2 Target Link / Anchor</label>
+                <input 
+                  type="text" 
+                  value={settings.heroCta2Link || ''} 
+                  onChange={(e) => setSettings({ ...settings, heroCta2Link: e.target.value })}
+                  placeholder="#build"
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button onClick={() => { handleSaveProfile(); handleSaveSettings(); }} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                Save Hero Section
+              </button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dedicated Identity Modal */}
+      {activeModal === 'about' && (
+        <div 
+          data-lenis-prevent
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain"
+        >
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-3xl w-full p-6 md:p-8 relative shadow-2xl my-auto">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Edit Identity & Core Beliefs</h3>
+            
+            <div className="flex flex-col gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Title Prefix</label>
+                  <input 
+                    type="text" 
+                    value={settings.aboutTitlePrefix || ''} 
+                    onChange={(e) => setSettings({ ...settings, aboutTitlePrefix: e.target.value })}
+                    placeholder="Building software"
+                    className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Title Italic Phrase</label>
+                  <input 
+                    type="text" 
+                    value={settings.aboutTitleItalic || ''} 
+                    onChange={(e) => setSettings({ ...settings, aboutTitleItalic: e.target.value })}
+                    placeholder="that solves real problems."
+                    className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Paragraph 1</label>
+                  <textarea 
+                    rows={3}
+                    value={settings.aboutParagraph1 || ''} 
+                    onChange={(e) => setSettings({ ...settings, aboutParagraph1: e.target.value })}
+                    className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Paragraph 2</label>
+                  <textarea 
+                    rows={3}
+                    value={settings.aboutParagraph2 || ''} 
+                    onChange={(e) => setSettings({ ...settings, aboutParagraph2: e.target.value })}
+                    className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                  />
                 </div>
               </div>
 
-              {/* SECTION B: ABOUT & IDENTITY */}
-              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
-                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">2. About & Identity Section</span>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Title Prefix</label>
-                    <input 
-                      type="text" 
-                      value={settings.aboutTitlePrefix || ''} 
-                      onChange={(e) => setSettings({ ...settings, aboutTitlePrefix: e.target.value })}
-                      placeholder="Building software"
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Title Italic Phrase</label>
-                    <input 
-                      type="text" 
-                      value={settings.aboutTitleItalic || ''} 
-                      onChange={(e) => setSettings({ ...settings, aboutTitleItalic: e.target.value })}
-                      placeholder="that solves real problems."
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Paragraph 1</label>
-                    <textarea 
-                      rows={3}
-                      value={settings.aboutParagraph1 || ''} 
-                      onChange={(e) => setSettings({ ...settings, aboutParagraph1: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Paragraph 2</label>
-                    <textarea 
-                      rows={3}
-                      value={settings.aboutParagraph2 || ''} 
-                      onChange={(e) => setSettings({ ...settings, aboutParagraph2: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION C: CORE BELIEFS */}
-              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
-                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">3. Core Beliefs Cards</span>
+              {/* Core Beliefs */}
+              <div className="border-t border-white/5 pt-6 flex flex-col gap-4">
+                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">Core Beliefs Cards</span>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Belief 1 */}
                   <div className="flex flex-col gap-2">
@@ -1644,14 +1672,14 @@ export default function EditorClient({
                       type="text" 
                       value={settings.belief1Title || ''} 
                       onChange={(e) => setSettings({ ...settings, belief1Title: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
                     />
                     <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 01 Description</label>
                     <textarea 
-                      rows={4}
+                      rows={3}
                       value={settings.belief1Desc || ''} 
                       onChange={(e) => setSettings({ ...settings, belief1Desc: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
                     />
                   </div>
                   {/* Belief 2 */}
@@ -1661,14 +1689,14 @@ export default function EditorClient({
                       type="text" 
                       value={settings.belief2Title || ''} 
                       onChange={(e) => setSettings({ ...settings, belief2Title: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
                     />
                     <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 02 Description</label>
                     <textarea 
-                      rows={4}
+                      rows={3}
                       value={settings.belief2Desc || ''} 
                       onChange={(e) => setSettings({ ...settings, belief2Desc: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
                     />
                   </div>
                   {/* Belief 3 */}
@@ -1678,392 +1706,117 @@ export default function EditorClient({
                       type="text" 
                       value={settings.belief3Title || ''} 
                       onChange={(e) => setSettings({ ...settings, belief3Title: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
                     />
                     <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 03 Description</label>
                     <textarea 
-                      rows={4}
+                      rows={3}
                       value={settings.belief3Desc || ''} 
                       onChange={(e) => setSettings({ ...settings, belief3Desc: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION D: ENGINEERING CASE STUDY */}
-              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
-                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">4. Engineering Case Study Details</span>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Main Case Study Heading</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyHeading || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyHeading: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Role Label</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyRole || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyRole: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Timeline Label</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyTimeline || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyTimeline: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Technologies Used</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyTech || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyTech: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Context Title</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyContextTitle || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyContextTitle: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none mb-2"
-                    />
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Context Description</label>
-                    <textarea 
-                      rows={3}
-                      value={settings.caseStudyContextText || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyContextText: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Challenge Title</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyChallengeTitle || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyChallengeTitle: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none mb-2"
-                    />
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Challenge Description</label>
-                    <textarea 
-                      rows={3}
-                      value={settings.caseStudyChallengeText || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyChallengeText: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION E: PROCESS & CONTACT */}
-              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
-                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">5. Process & Contact Sections</span>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Heading Prefix</label>
-                    <input 
-                      type="text" 
-                      value={settings.processHeadingPrefix || ''} 
-                      onChange={(e) => setSettings({ ...settings, processHeadingPrefix: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Heading Italic Phrase</label>
-                    <input 
-                      type="text" 
-                      value={settings.processHeadingItalic || ''} 
-                      onChange={(e) => setSettings({ ...settings, processHeadingItalic: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Subtitle</label>
-                    <input 
-                      type="text" 
-                      value={settings.processSubtitle || ''} 
-                      onChange={(e) => setSettings({ ...settings, processSubtitle: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Prefix</label>
-                    <input 
-                      type="text" 
-                      value={settings.contactHeadingPrefix || ''} 
-                      onChange={(e) => setSettings({ ...settings, contactHeadingPrefix: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Italic Phrase</label>
-                    <input 
-                      type="text" 
-                      value={settings.contactHeadingItalic || ''} 
-                      onChange={(e) => setSettings({ ...settings, contactHeadingItalic: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Paragraph</label>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">About Paragraph 2</label>
-                    <textarea 
-                      rows={3}
-                      value={settings.aboutParagraph2 || ''} 
-                      onChange={(e) => setSettings({ ...settings, aboutParagraph2: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION C: CORE BELIEFS */}
-              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
-                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">3. Core Beliefs Cards</span>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Belief 1 */}
-                  <div className="flex flex-col gap-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 01 Title</label>
-                    <input 
-                      type="text" 
-                      value={settings.belief1Title || ''} 
-                      onChange={(e) => setSettings({ ...settings, belief1Title: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
-                    />
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 01 Description</label>
-                    <textarea 
-                      rows={4}
-                      value={settings.belief1Desc || ''} 
-                      onChange={(e) => setSettings({ ...settings, belief1Desc: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                  {/* Belief 2 */}
-                  <div className="flex flex-col gap-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 02 Title</label>
-                    <input 
-                      type="text" 
-                      value={settings.belief2Title || ''} 
-                      onChange={(e) => setSettings({ ...settings, belief2Title: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
-                    />
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 02 Description</label>
-                    <textarea 
-                      rows={4}
-                      value={settings.belief2Desc || ''} 
-                      onChange={(e) => setSettings({ ...settings, belief2Desc: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                  {/* Belief 3 */}
-                  <div className="flex flex-col gap-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase">Belief 03 Title</label>
-                    <input 
-                      type="text" 
-                      value={settings.belief3Title || ''} 
-                      onChange={(e) => setSettings({ ...settings, belief3Title: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
-                    />
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mt-1">Belief 03 Description</label>
-                    <textarea 
-                      rows={4}
-                      value={settings.belief3Desc || ''} 
-                      onChange={(e) => setSettings({ ...settings, belief3Desc: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION D: ENGINEERING CASE STUDY */}
-              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
-                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">4. Engineering Case Study Details</span>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Main Case Study Heading</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyHeading || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyHeading: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Role Label</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyRole || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyRole: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Timeline Label</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyTimeline || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyTimeline: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Technologies Used</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyTech || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyTech: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Context Title</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyContextTitle || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyContextTitle: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none mb-2"
-                    />
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Context Description</label>
-                    <textarea 
-                      rows={3}
-                      value={settings.caseStudyContextText || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyContextText: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Challenge Title</label>
-                    <input 
-                      type="text" 
-                      value={settings.caseStudyChallengeTitle || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyChallengeTitle: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none mb-2"
-                    />
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Challenge Description</label>
-                    <textarea 
-                      rows={3}
-                      value={settings.caseStudyChallengeText || ''} 
-                      onChange={(e) => setSettings({ ...settings, caseStudyChallengeText: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION E: PROCESS & CONTACT */}
-              <div className="border border-white/5 bg-[#09090b] rounded-xl p-6 flex flex-col gap-6">
-                <span className="font-mono text-xs text-[var(--accent)] uppercase tracking-wider font-semibold">5. Process & Contact Sections</span>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Heading Prefix</label>
-                    <input 
-                      type="text" 
-                      value={settings.processHeadingPrefix || ''} 
-                      onChange={(e) => setSettings({ ...settings, processHeadingPrefix: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Heading Italic Phrase</label>
-                    <input 
-                      type="text" 
-                      value={settings.processHeadingItalic || ''} 
-                      onChange={(e) => setSettings({ ...settings, processHeadingItalic: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Process Subtitle</label>
-                    <input 
-                      type="text" 
-                      value={settings.processSubtitle || ''} 
-                      onChange={(e) => setSettings({ ...settings, processSubtitle: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Prefix</label>
-                    <input 
-                      type="text" 
-                      value={settings.contactHeadingPrefix || ''} 
-                      onChange={(e) => setSettings({ ...settings, contactHeadingPrefix: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Italic Phrase</label>
-                    <input 
-                      type="text" 
-                      value={settings.contactHeadingItalic || ''} 
-                      onChange={(e) => setSettings({ ...settings, contactHeadingItalic: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <textarea 
-                      rows={3}
-                      value={settings.contactParagraph || ''} 
-                      onChange={(e) => setSettings({ ...settings, contactParagraph: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Email</label>
-                    <input 
-                      type="email" 
-                      value={settings.contactEmail || profile.contactEmail || ''} 
-                      onChange={(e) => {
-                        setSettings({ ...settings, contactEmail: e.target.value });
-                        setProfile({ ...profile, contactEmail: e.target.value });
-                      }}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Location</label>
-                    <input 
-                      type="text" 
-                      value={profile.location || ''} 
-                      onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">GitHub Profile URL</label>
-                    <input 
-                      type="text" 
-                      value={settings.githubUrl || ''} 
-                      onChange={(e) => setSettings({ ...settings, githubUrl: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">LinkedIn Profile URL</label>
-                    <input 
-                      type="text" 
-                      value={settings.linkedinUrl || ''} 
-                      onChange={(e) => setSettings({ ...settings, linkedinUrl: e.target.value })}
-                      className="w-full bg-[#111115] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                      className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none leading-relaxed"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-4 sticky bottom-0 bg-[#111115] pt-4 border-t border-white/5 z-30">
+            <div className="flex gap-4">
               <button onClick={() => { handleSaveProfile(); handleSaveSettings(); }} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
-                Save All Content Changes
+                Save Identity Details
+              </button>
+              <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dedicated Contact Modal */}
+      {activeModal === 'contact' && (
+        <div 
+          data-lenis-prevent
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain"
+        >
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-6 md:p-8 relative shadow-2xl my-auto">
+            <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
+            <h3 className="text-lg font-light mb-6 text-white tracking-tight">Edit Contact & Social Links</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Prefix</label>
+                <input 
+                  type="text" 
+                  value={settings.contactHeadingPrefix || ''} 
+                  onChange={(e) => setSettings({ ...settings, contactHeadingPrefix: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Heading Italic Phrase</label>
+                <input 
+                  type="text" 
+                  value={settings.contactHeadingItalic || ''} 
+                  onChange={(e) => setSettings({ ...settings, contactHeadingItalic: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Paragraph</label>
+                <textarea 
+                  rows={3}
+                  value={settings.contactParagraph || ''} 
+                  onChange={(e) => setSettings({ ...settings, contactParagraph: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none leading-relaxed"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Contact Email</label>
+                <input 
+                  type="email" 
+                  value={settings.contactEmail || profile.contactEmail || ''} 
+                  onChange={(e) => {
+                    setSettings({ ...settings, contactEmail: e.target.value });
+                    setProfile({ ...profile, contactEmail: e.target.value });
+                  }}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">Location</label>
+                <input 
+                  type="text" 
+                  value={profile.location || ''} 
+                  onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">GitHub Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.githubUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, githubUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-zinc-400 uppercase mb-1">LinkedIn Profile URL</label>
+                <input 
+                  type="text" 
+                  value={settings.linkedinUrl || ''} 
+                  onChange={(e) => setSettings({ ...settings, linkedinUrl: e.target.value })}
+                  className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button onClick={() => { handleSaveProfile(); handleSaveSettings(); }} className="bg-white text-black font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                Save Contact Info
               </button>
               <button onClick={() => setActiveModal(null)} className="border border-white/5 text-zinc-400 font-mono text-[10px] uppercase tracking-widest px-6 py-3.5 rounded-lg hover:bg-white/5 transition-colors">
                 Cancel
