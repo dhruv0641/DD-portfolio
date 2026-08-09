@@ -18,7 +18,7 @@ import { testimonialService } from '@/services/testimonialService';
 import { coreService } from '@/services/coreService';
 import { profileService } from '@/services/profileService';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Enable ISR edge caching (instant <50ms loading)
 
 export default async function Page() {
   // 1. Fetch Dynamic Data from Supabase Services
