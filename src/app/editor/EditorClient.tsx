@@ -72,17 +72,20 @@ export default function EditorClient({
   useEffect(() => {
     if (activeModal) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       if (typeof window !== 'undefined' && (window as any).lenis) {
         (window as any).lenis.stop();
       }
     } else {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
       if (typeof window !== 'undefined' && (window as any).lenis) {
         (window as any).lenis.start();
       }
     }
     return () => {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
       if (typeof window !== 'undefined' && (window as any).lenis) {
         (window as any).lenis.start();
       }
@@ -1470,9 +1473,9 @@ export default function EditorClient({
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
           onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 md:p-8 overflow-y-auto"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain"
         >
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-4xl w-full p-6 md:p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-4xl w-full p-6 md:p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Full Site Content & Identity Customizer</h3>
             
@@ -2071,8 +2074,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'project' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">
               {selectedProject ? `Modify Case Study: ${selectedProject.title}` : 'Draft New Project Case Study'}
@@ -2246,8 +2249,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'blog' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">
               {selectedBlog ? `Modify Essay: ${selectedBlog.title}` : 'Draft New Essay Journal'}
@@ -2302,8 +2305,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'skill' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-5xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-5xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Technical Skills Console</h3>
             
@@ -2422,8 +2425,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'testimonial' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Recommendation</h3>
             
@@ -2458,8 +2461,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'service' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Service Card</h3>
             
@@ -2490,8 +2493,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'experience' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Employment Record</h3>
             
@@ -2526,8 +2529,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'education' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Education Record</h3>
             
@@ -2562,8 +2565,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'certificate' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Add / Modify Certificate</h3>
             
@@ -2602,8 +2605,8 @@ export default function EditorClient({
       )}
 
       {activeModal === 'seo' && (
-        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 max-h-[85vh] overflow-y-auto overscroll-contain relative shadow-2xl">
+        <div data-lenis-prevent onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }} className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-start md:items-center justify-center z-50 p-4 md:p-8 py-8 overflow-y-auto overscroll-contain">
+          <div data-lenis-prevent className="bg-[#111115] border border-white/5 rounded-xl max-w-2xl w-full p-8 relative shadow-2xl my-auto">
             <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white font-mono text-xs">✕ CLOSE</button>
             <h3 className="text-lg font-light mb-6 text-white tracking-tight">Meta SEO Configurations</h3>
             
