@@ -29,7 +29,6 @@ import {
   deleteCertificateAction,
   saveSeoAction,
   logoutAction,
-  initializeDatabaseAction,
   saveSkillCategoryAction,
   deleteSkillCategoryAction,
   getMessagesAction,
@@ -919,20 +918,6 @@ export default function EditorClient({
     });
   };
 
-  // --- DATABASE INITIALIZER ---
-  const handleInitializeDatabase = () => {
-    if (!confirm('This will reset your database to default settings, projects, essays, and layouts. Proceed?')) return;
-    startTransition(async () => {
-      const res = await initializeDatabaseAction();
-      if (res.success) {
-        triggerToast('Database initialized successfully! Reloading...', true);
-        setTimeout(() => window.location.reload(), 1500);
-      } else {
-        triggerToast(res.error || 'Failed to initialize database.', false);
-      }
-    });
-  };
-
   const bio = settings.bio || 'Applied AI Systems Architect.';
   const availability = settings.status || 'AVAILABLE FOR NEW WORK';
   const dbProjects = projects.filter(p => !p.isDraft);
@@ -1015,13 +1000,7 @@ export default function EditorClient({
           >
             📝 Essay
           </button>
-          <span className="h-4 w-[1px] bg-white/10 mx-1 shrink-0" />
-          <button 
-            onClick={handleInitializeDatabase}
-            className="snap-start shrink-0 border border-amber-500/20 bg-amber-950/20 hover:border-amber-500 text-amber-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
-          >
-            🔄 Sync Defaults
-          </button>
+
           <button 
             onClick={handleLogout}
             className="snap-start shrink-0 border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[10px] md:text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
