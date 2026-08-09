@@ -30,6 +30,43 @@ export const fallbackSettings: Record<string, string> = {
   reduceMotion: '0',
   cursorAura: '1',
   thoughtWave: '1',
+  // Hero section settings
+  heroTitlePrefix: 'Designing',
+  heroTitleItalic: 'deterministic',
+  heroTitleSuffix: 'workflows for AI agents.',
+  heroCta1Text: 'Explore Case Studies',
+  heroCta1Link: '#work',
+  heroCta2Text: "Let's Build Together",
+  heroCta2Link: '#build',
+  // About / Identity section settings
+  aboutTitlePrefix: 'Building software',
+  aboutTitleItalic: 'that solves real problems.',
+  aboutParagraph1: 'I operate at the intersection of machine cognition and human agency. Most modern AI products expose the raw, chaotic mechanics of underlying models. I believe software should tame that chaos—delivering high-utility, predictable, and deeply respectful interactions.',
+  aboutParagraph2: 'I write robust, multi-agent state machines, optimized retrieval schemas, and evaluation harnesses. My work is built to be fast, production-ready, and architected to safeguard user attention instead of taxing it.',
+  // Core Beliefs settings
+  belief1Title: 'Human first, model second',
+  belief1Desc: 'AI should elevate and extend human capability, not replace or simulate it. We construct software to empower human intent, not to create automated noise.',
+  belief2Title: 'Deterministic guardrails',
+  belief2Desc: 'Stochastic models produce unpredictable results. We wrap intelligence in mathematical guardrails, ensuring reliability in high-stakes environments.',
+  belief3Title: 'Performance is respect',
+  belief3Desc: 'Lag is cognitive drag. Orchestration, retrieval, and interface rendering are optimized for zero latency, respecting the flow state of the operator.',
+  // Engineering Case Study settings
+  caseStudyHeading: 'Designing scalable software for production environments.',
+  caseStudyRole: 'Lead AI Engineer',
+  caseStudyTimeline: '12 Weeks (Q1 2026)',
+  caseStudyTech: 'Python, LangGraph, Qdrant, Claude 3.5 Sonnet, AWS ECS',
+  caseStudyContextTitle: 'The Context',
+  caseStudyContextText: 'Enterprise workflows were heavily dependent on manual data entry and unstructured review steps, creating a 12-hour turnaround bottleneck. Automated scripts failed to handle variance in document formats and unstructured inputs.',
+  caseStudyChallengeTitle: 'The Challenge',
+  caseStudyChallengeText: 'Parsing unstructured data tables and files into strict schema formats. Standard retrieval-augmented generation suffered from context leakage and output hallucination loops, causing errors in downstream production databases.',
+  // Process section settings
+  processHeadingPrefix: 'How I design and build',
+  processHeadingItalic: 'production systems.',
+  processSubtitle: 'A live simulation of the complete request lifecycle—from query ingestion to production processing and delivery.',
+  // Contact section settings
+  contactHeadingPrefix: "Let's build software",
+  contactHeadingItalic: 'that solves real problems.',
+  contactParagraph: "Whether you are looking to design robust backend architectures, scale query systems, or integrate intelligence into high-touch interfaces, I'm always open to talking design and implementation.",
 };
 
 export const fallbackProfile = {

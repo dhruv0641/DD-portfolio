@@ -30,34 +30,48 @@ async function main() {
 
   // 2. Initialize Dynamic Layout & Visual Settings
   const defaultSettings = [
-    // Category: Hero
-    { category: 'hero', key: 'name', value: 'Dhruv Dobariya' },
-    { category: 'hero', key: 'title', value: 'Applied AI Engineer' },
-    { category: 'hero', key: 'tagline', value: 'I build intelligent systems that feel human.' },
-    { category: 'hero', key: 'bio', value: 'An Applied AI Engineer designing the orchestration structures, state guardrails, and validation pipelines that transform stochastic model outputs into robust, deterministic systems.' },
-    { category: 'hero', key: 'ctaText', value: 'Explore Selected Work' },
-    { category: 'hero', key: 'contactEmail', value: 'dhruv.dobariya0641@gmail.com' },
-    
-    // Category: Theme Options
-    { category: 'theme', key: 'themeMode', value: 'dark' },
-    { category: 'theme', key: 'colorBg', value: '#090909' },
-    { category: 'theme', key: 'colorSurface', value: '#111111' },
-    { category: 'theme', key: 'colorText', value: '#F5F5F5' },
-    { category: 'theme', key: 'colorTextMuted', value: '#A1A1AA' },
-    { category: 'theme', key: 'colorAccent', value: '#0066FF' }, // Electric Blue
-    { category: 'theme', key: 'colorAccentRgb', value: '0, 102, 255' },
-    { category: 'theme', key: 'radius', value: '8px' },
-    { category: 'theme', key: 'showNoise', value: '1' }, // 1 = true
-    
-    // Category: Animations
-    { category: 'animations', key: 'reduceMotion', value: '0' },
-    { category: 'animations', key: 'cursorAura', value: '1' },
-    { category: 'animations', key: 'thoughtWave', value: '1' },
-    { category: 'animations', key: 'scrollSpeed', value: '1' },
+    // Category: Hero Text & Actions
+    { category: 'hero', key: 'heroTitlePrefix', value: 'Designing' },
+    { category: 'hero', key: 'heroTitleItalic', value: 'deterministic' },
+    { category: 'hero', key: 'heroTitleSuffix', value: 'workflows for AI agents.' },
+    { category: 'hero', key: 'heroCta1Text', value: 'Explore Case Studies' },
+    { category: 'hero', key: 'heroCta1Link', value: '#work' },
+    { category: 'hero', key: 'heroCta2Text', value: "Let's Build Together" },
+    { category: 'hero', key: 'heroCta2Link', value: '#build' },
 
-    // Category: SEO / Metadata
-    { category: 'seo', key: 'metaDescription', value: 'Portfolio of Dhruv Dobariya, an Applied AI Engineer building robust, deterministic agentic products.' },
-    { category: 'seo', key: 'ogImage', value: '/uploads/hero_visual.png' },
+    // Category: Identity / About
+    { category: 'about', key: 'aboutTitlePrefix', value: 'Building software' },
+    { category: 'about', key: 'aboutTitleItalic', value: 'that solves real problems.' },
+    { category: 'about', key: 'aboutParagraph1', value: 'I operate at the intersection of machine cognition and human agency. Most modern AI products expose the raw, chaotic mechanics of underlying models. I believe software should tame that chaos—delivering high-utility, predictable, and deeply respectful interactions.' },
+    { category: 'about', key: 'aboutParagraph2', value: 'I write robust, multi-agent state machines, optimized retrieval schemas, and evaluation harnesses. My work is built to be fast, production-ready, and architected to safeguard user attention instead of taxing it.' },
+
+    // Category: Core Beliefs
+    { category: 'beliefs', key: 'belief1Title', value: 'Human first, model second' },
+    { category: 'beliefs', key: 'belief1Desc', value: 'AI should elevate and extend human capability, not replace or simulate it. We construct software to empower human intent, not to create automated noise.' },
+    { category: 'beliefs', key: 'belief2Title', value: 'Deterministic guardrails' },
+    { category: 'beliefs', key: 'belief2Desc', value: 'Stochastic models produce unpredictable results. We wrap intelligence in mathematical guardrails, ensuring reliability in high-stakes environments.' },
+    { category: 'beliefs', key: 'belief3Title', value: 'Performance is respect' },
+    { category: 'beliefs', key: 'belief3Desc', value: 'Lag is cognitive drag. Orchestration, retrieval, and interface rendering are optimized for zero latency, respecting the flow state of the operator.' },
+
+    // Category: Engineering Case Study
+    { category: 'casestudy', key: 'caseStudyHeading', value: 'Designing scalable software for production environments.' },
+    { category: 'casestudy', key: 'caseStudyRole', value: 'Lead AI Engineer' },
+    { category: 'casestudy', key: 'caseStudyTimeline', value: '12 Weeks (Q1 2026)' },
+    { category: 'casestudy', key: 'caseStudyTech', value: 'Python, LangGraph, Qdrant, Claude 3.5 Sonnet, AWS ECS' },
+    { category: 'casestudy', key: 'caseStudyContextTitle', value: 'The Context' },
+    { category: 'casestudy', key: 'caseStudyContextText', value: 'Enterprise workflows were heavily dependent on manual data entry and unstructured review steps, creating a 12-hour turnaround bottleneck. Automated scripts failed to handle variance in document formats and unstructured inputs.' },
+    { category: 'casestudy', key: 'caseStudyChallengeTitle', value: 'The Challenge' },
+    { category: 'casestudy', key: 'caseStudyChallengeText', value: 'Parsing unstructured data tables and files into strict schema formats. Standard retrieval-augmented generation suffered from context leakage and output hallucination loops, causing errors in downstream production databases.' },
+
+    // Category: Process
+    { category: 'process', key: 'processHeadingPrefix', value: 'How I design and build' },
+    { category: 'process', key: 'processHeadingItalic', value: 'production systems.' },
+    { category: 'process', key: 'processSubtitle', value: 'A live simulation of the complete request lifecycle—from query ingestion to production processing and delivery.' },
+
+    // Category: Contact
+    { category: 'contact', key: 'contactHeadingPrefix', value: "Let's build software" },
+    { category: 'contact', key: 'contactHeadingItalic', value: 'that solves real problems.' },
+    { category: 'contact', key: 'contactParagraph', value: "Whether you are looking to design robust backend architectures, scale query systems, or integrate intelligence into high-touch interfaces, I'm always open to talking design and implementation." },
   ];
 
   for (const set of defaultSettings) {

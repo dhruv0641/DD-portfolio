@@ -27,11 +27,17 @@ const beliefs: BeliefItem[] = [
   }
 ];
 
+interface CoreBeliefsProps {
+  items?: BeliefItem[];
+}
+
 // Component representing the entire beliefs container
-export default function CoreBeliefs() {
+export default function CoreBeliefs({ items }: CoreBeliefsProps) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
+
+  const activeBeliefs = items && items.length > 0 ? items : beliefs;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -54,10 +60,10 @@ export default function CoreBeliefs() {
       ref={containerRef}
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-32 relative z-10 w-full"
     >
-      {beliefs.map((belief, idx) => (
+      {activeBeliefs.map((belief, idx) => (
         <BeliefCard
-          key={belief.num}
-          num={belief.num}
+          key={belief.num || `belief-${idx}`}
+          num={belief.num || `0${idx + 1}`}
           title={belief.title}
           desc={belief.desc}
           index={idx}

@@ -50,6 +50,24 @@ export default async function Page() {
   const bio = settings.bio || 'Applied AI Systems Architect.';
   const availability = settings.status || 'AVAILABLE FOR NEW WORK';
 
+  const beliefItems = [
+    {
+      num: '01',
+      title: settings.belief1Title || 'Human first, model second',
+      desc: settings.belief1Desc || 'AI should elevate and extend human capability, not replace or simulate it. We construct software to empower human intent, not to create automated noise.'
+    },
+    {
+      num: '02',
+      title: settings.belief2Title || 'Deterministic guardrails',
+      desc: settings.belief2Desc || 'Stochastic models produce unpredictable results. We wrap intelligence in mathematical guardrails, ensuring reliability in high-stakes environments.'
+    },
+    {
+      num: '03',
+      title: settings.belief3Title || 'Performance is respect',
+      desc: settings.belief3Desc || 'Lag is cognitive drag. Orchestration, retrieval, and interface rendering are optimized for zero latency, respecting the flow state of the operator.'
+    }
+  ];
+
   return (
     <>
       {/* SECTION 1: DYNAMIC PREMIUM HERO */}
@@ -66,7 +84,11 @@ export default async function Page() {
             </div>
 
             <h1 className="text-[clamp(2.5rem,7.5vw,6rem)] font-light leading-[1.05] tracking-tight text-white">
-              Designing <span className="serif-italic text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-zinc-400">deterministic</span> workflows <br />for AI agents.
+              {settings.heroTitlePrefix || 'Designing'}{' '}
+              <span className="serif-italic text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-zinc-400">
+                {settings.heroTitleItalic || 'deterministic'}
+              </span>{' '}
+              {settings.heroTitleSuffix || 'workflows for AI agents.'}
             </h1>
 
             <p className="text-[clamp(1.1rem,2vw,1.4rem)] text-[var(--text-muted)] max-w-[680px] leading-[1.6] font-light">
@@ -75,16 +97,16 @@ export default async function Page() {
 
             <div className="flex flex-wrap gap-4 mt-4">
               <a
-                href="#work"
+                href={settings.heroCta1Link || '#work'}
                 className="bg-white text-black text-xs font-mono uppercase tracking-widest px-8 py-4 rounded-lg hover:bg-gray-200 transition-all duration-300 font-semibold"
               >
-                Explore Case Studies
+                {settings.heroCta1Text || 'Explore Case Studies'}
               </a>
               <a
-                href="#build"
+                href={settings.heroCta2Link || '#build'}
                 className="border border-[rgba(255,255,255,0.08)] bg-[#0d0d10] text-white text-xs font-mono uppercase tracking-widest px-8 py-4 rounded-lg hover:bg-gray-900 transition-all duration-300"
               >
-                Let&apos;s Build Together
+                {settings.heroCta2Text || "Let's Build Together"}
               </a>
             </div>
           </div>
@@ -105,20 +127,23 @@ export default async function Page() {
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-20">
             <h2 className="text-[clamp(2rem,4vw,3.2rem)] leading-[1.2] font-light text-white tracking-tight">
-              Building software <br /><span className="serif-italic text-[var(--text-muted)]">that solves real problems.</span>
+              {settings.aboutTitlePrefix || 'Building software'} <br />
+              <span className="serif-italic text-[var(--text-muted)]">
+                {settings.aboutTitleItalic || 'that solves real problems.'}
+              </span>
             </h2>
             <div className="flex flex-col gap-8">
-              <p className="text-[var(--text-muted)] text-[1.1rem] leading-[1.7] font-light">
-                I operate at the intersection of machine cognition and human agency. Most modern AI products expose the raw, chaotic mechanics of underlying models. I believe software should tame that chaos—delivering high-utility, predictable, and deeply respectful interactions.
+              <p className="text-[var(--text-muted)] text-[1.1rem] leading-[1.7] font-light font-sans">
+                {settings.aboutParagraph1 || 'I operate at the intersection of machine cognition and human agency. Most modern AI products expose the raw, chaotic mechanics of underlying models. I believe software should tame that chaos—delivering high-utility, predictable, and deeply respectful interactions.'}
               </p>
-              <p className="text-[var(--text-muted)] text-[1.1rem] leading-[1.7] font-light">
-                I write robust, multi-agent state machines, optimized retrieval schemas, and evaluation harnesses. My work is built to be fast, production-ready, and architected to safeguard user attention instead of taxing it.
+              <p className="text-[var(--text-muted)] text-[1.1rem] leading-[1.7] font-light font-sans">
+                {settings.aboutParagraph2 || 'I write robust, multi-agent state machines, optimized retrieval schemas, and evaluation harnesses. My work is built to be fast, production-ready, and architected to safeguard user attention instead of taxing it.'}
               </p>
             </div>
           </div>
 
           {/* Core Beliefs Grid */}
-          <CoreBeliefs />
+          <CoreBeliefs items={beliefItems} />
         </div>
       </section>
 
@@ -199,7 +224,7 @@ export default async function Page() {
 
           <div className="max-w-[900px] mb-20">
             <h2 className="text-[clamp(2rem,5vw,4.2rem)] leading-[1.15] text-white font-light tracking-tight">
-              Designing scalable software for production environments.
+              {settings.caseStudyHeading || 'Designing scalable software for production environments.'}
             </h2>
           </div>
 
@@ -207,29 +232,29 @@ export default async function Page() {
             <div className="font-mono text-xs text-[var(--text-dim)] flex flex-col gap-6">
               <div>
                 <h4 className="text-[var(--text-dim)] font-medium mb-1 uppercase tracking-wider">Role</h4>
-                <p className="text-[var(--text-muted)]">Lead AI Engineer</p>
+                <p className="text-[var(--text-muted)]">{settings.caseStudyRole || 'Lead AI Engineer'}</p>
               </div>
               <div>
                 <h4 className="text-[var(--text-dim)] font-medium mb-1 uppercase tracking-wider">Timeline</h4>
-                <p className="text-[var(--text-muted)]">12 Weeks (Q1 2026)</p>
+                <p className="text-[var(--text-muted)]">{settings.caseStudyTimeline || '12 Weeks (Q1 2026)'}</p>
               </div>
               <div>
                 <h4 className="text-[var(--text-dim)] font-medium mb-1 uppercase tracking-wider">Technologies</h4>
-                <p className="text-[var(--text-muted)]">Python, LangGraph, Qdrant, Claude 3.5 Sonnet, AWS ECS</p>
+                <p className="text-[var(--text-muted)]">{settings.caseStudyTech || 'Python, LangGraph, Qdrant, Claude 3.5 Sonnet, AWS ECS'}</p>
               </div>
             </div>
 
             <div className="flex flex-col gap-10">
               <div>
-                <h3 className="text-xl mb-4 text-white font-medium">The Context</h3>
+                <h3 className="text-xl mb-4 text-white font-medium">{settings.caseStudyContextTitle || 'The Context'}</h3>
                 <p className="text-[var(--text-muted)] leading-[1.7] font-light">
-                  Enterprise workflows were heavily dependent on manual data entry and unstructured review steps, creating a 12-hour turnaround bottleneck. Automated scripts failed to handle variance in document formats and unstructured inputs.
+                  {settings.caseStudyContextText || 'Enterprise workflows were heavily dependent on manual data entry and unstructured review steps, creating a 12-hour turnaround bottleneck. Automated scripts failed to handle variance in document formats and unstructured inputs.'}
                 </p>
               </div>
               <div>
-                <h3 className="text-xl mb-4 text-white font-medium">The Challenge</h3>
+                <h3 className="text-xl mb-4 text-white font-medium">{settings.caseStudyChallengeTitle || 'The Challenge'}</h3>
                 <p className="text-[var(--text-muted)] leading-[1.7] font-light">
-                  Parsing unstructured data tables and files into strict schema formats. Standard retrieval-augmented generation suffered from context leakage and output hallucination loops, causing errors in downstream production databases.
+                  {settings.caseStudyChallengeText || 'Parsing unstructured data tables and files into strict schema formats. Standard retrieval-augmented generation suffered from context leakage and output hallucination loops, causing errors in downstream production databases.'}
                 </p>
               </div>
             </div>
@@ -394,10 +419,13 @@ export default async function Page() {
           </div>
           <div className="max-w-[800px] mb-12">
             <h2 className="text-[clamp(1.8rem,4vw,2.8rem)] font-light text-white tracking-tight leading-snug mb-4">
-              How I design and build <span className="serif-italic text-[var(--text-muted)]">production systems.</span>
+              {settings.processHeadingPrefix || 'How I design and build'}{' '}
+              <span className="serif-italic text-[var(--text-muted)]">
+                {settings.processHeadingItalic || 'production systems.'}
+              </span>
             </h2>
             <p className="text-[var(--text-muted)] text-sm leading-relaxed font-light max-w-[600px]">
-              A live simulation of the complete request lifecycle—from query ingestion to production processing and delivery.
+              {settings.processSubtitle || 'A live simulation of the complete request lifecycle—from query ingestion to production processing and delivery.'}
             </p>
           </div>
           <AIPipelineViz />
@@ -468,12 +496,12 @@ export default async function Page() {
             <div className="flex flex-col justify-between">
               <div>
                 <h3 className="text-[clamp(2.2rem,4.5vw,3.8rem)] mb-10 font-light leading-[1.15] tracking-tight">
-                  <span className="text-white">Let&apos;s build software</span>
+                  <span className="text-white">{settings.contactHeadingPrefix || "Let's build software"}</span>
                   <br />
-                  <span className="serif-italic text-[var(--text-muted)]">that solves real problems.</span>
+                  <span className="serif-italic text-[var(--text-muted)]">{settings.contactHeadingItalic || 'that solves real problems.'}</span>
                 </h3>
                 <p className="text-[var(--text-muted)] font-light mb-16 leading-[1.8] text-[0.95rem] max-w-[480px]">
-                  Whether you are looking to design robust backend architectures, scale query systems, or integrate intelligence into high-touch interfaces, I&apos;m always open to talking design and implementation.
+                  {settings.contactParagraph || "Whether you are looking to design robust backend architectures, scale query systems, or integrate intelligence into high-touch interfaces, I'm always open to talking design and implementation."}
                 </p>
               </div>
 
