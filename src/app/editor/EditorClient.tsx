@@ -35,7 +35,9 @@ import {
   updateMessageStatusAction,
   deleteMessageAction,
   clearAllMessagesAction,
-  emptyTrashAction
+  emptyTrashAction,
+  uploadResumeAction,
+  deleteResumeAction
 } from './actions';
 
 type ModalType = 'profile' | 'hero' | 'about' | 'contact' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo' | 'messages';
@@ -257,6 +259,43 @@ export default function EditorClient({
         if (res.data) setProfile(res.data);
       } else {
         triggerToast(res.error || 'Failed to update profile.', false);
+      }
+    });
+  };
+
+  // --- RESUME UPLOAD & DELETE HANDLERS ---
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const handleUploadResumeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingResume(true);
+    const formData = new FormData();
+    formData.append('resume', file);
+
+    startTransition(async () => {
+      const res = await uploadResumeAction(formData);
+      setIsUploadingResume(false);
+      if (res.success && res.resumeUrl) {
+        setSettings((prev: any) => ({ ...prev, resumeUrl: res.resumeUrl }));
+        setProfile((prev: any) => ({ ...prev, resumeUrl: res.resumeUrl }));
+        triggerToast('Resume document uploaded successfully!', true);
+      } else {
+        triggerToast(res.error || 'Failed to upload resume.', false);
+      }
+    });
+  };
+
+  const handleDeleteResumeFile = () => {
+    if (!confirm('Are you sure you want to delete the uploaded resume file?')) return;
+    startTransition(async () => {
+      const res = await deleteResumeAction();
+      if (res.success) {
+        setSettings((prev: any) => ({ ...prev, resumeUrl: '' }));
+        setProfile((prev: any) => ({ ...prev, resumeUrl: '' }));
+        triggerToast('Resume deleted successfully!', true);
+      } else {
+        triggerToast(res.error || 'Failed to delete resume.', false);
       }
     });
   };
@@ -2114,6 +2153,79 @@ export default function EditorClient({
                   placeholder="https://x.com/username"
                   className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2.5 text-xs text-white focus:outline-none font-mono"
                 />
+              </div>
+
+              {/* Dedicated Resume Document Management Section */}
+              <div className="md:col-span-2 border-t border-b border-white/5 py-4 my-2">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-mono text-[9px] text-emerald-400 uppercase font-semibold flex items-center gap-1.5">
+                    📄 Resume Document Management (Upload & Delete)
+                  </span>
+                  {(settings.resumeUrl || profile.resumeUrl) ? (
+                    <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[9px] px-2 py-0.5 rounded font-semibold">
+                      RESUME ACTIVE
+                    </span>
+                  ) : (
+                    <span className="bg-zinc-800 text-zinc-400 font-mono text-[9px] px-2 py-0.5 rounded font-semibold">
+                      NO FILE UPLOADED
+                    </span>
+                  )}
+                </div>
+
+                <div className="bg-[#09090b] border border-white/5 rounded-lg p-3.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex flex-col gap-1 font-mono text-xs overflow-hidden">
+                    <span className="text-zinc-300 font-medium">Current Resume Link:</span>
+                    <span className="text-zinc-500 text-[10px] truncate max-w-md">
+                      {settings.resumeUrl || profile.resumeUrl || 'Not uploaded yet (defaults to /resume.pdf)'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                    <label className={`cursor-pointer border border-emerald-500/30 bg-emerald-950/30 hover:bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-bold flex items-center gap-1.5 transition-all ${isUploadingResume ? 'opacity-50 pointer-events-none' : ''}`}>
+                      <span>{isUploadingResume ? '⏳ Uploading...' : '📤 Upload Resume'}</span>
+                      <input 
+                        type="file" 
+                        accept=".pdf,.doc,.docx" 
+                        onChange={handleUploadResumeFile} 
+                        className="hidden" 
+                      />
+                    </label>
+
+                    {(settings.resumeUrl || profile.resumeUrl) && (
+                      <>
+                        <a
+                          href={settings.resumeUrl || profile.resumeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="border border-white/10 bg-white/5 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-semibold transition-all flex items-center gap-1"
+                        >
+                          👁️ View
+                        </a>
+                        <button
+                          type="button"
+                          onClick={handleDeleteResumeFile}
+                          className="border border-red-500/30 bg-red-950/30 hover:bg-red-950/60 text-red-400 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-bold transition-all flex items-center gap-1"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <label className="block font-mono text-[8px] text-zinc-500 uppercase mb-1">Custom Resume URL / Cloud Link (Alternative to uploading a file)</label>
+                  <input 
+                    type="text" 
+                    value={settings.resumeUrl || profile.resumeUrl || ''} 
+                    onChange={(e) => {
+                      setSettings({ ...settings, resumeUrl: e.target.value });
+                      setProfile({ ...profile, resumeUrl: e.target.value });
+                    }}
+                    placeholder="e.g. /uploads/resume.pdf or https://drive.google.com/file/d/..."
+                    className="w-full bg-[#09090b] border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none font-mono"
+                  />
+                </div>
               </div>
 
               <div className="md:col-span-2 border-t border-white/5 pt-4 mt-2">

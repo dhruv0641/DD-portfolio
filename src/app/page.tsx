@@ -520,7 +520,7 @@ export default async function Page() {
                 </div>
 
                 {/* Social links */}
-                <SocialCards />
+                <SocialCards resumeUrl={profile?.resumeUrl || settings?.resumeUrl} />
               </div>
             </div>
 

@@ -282,12 +282,26 @@ const LinkedInIcon = () => (
 );
 
 // ════════════════════════════════════════════════════════════════════════════
+// RESUME ICON
+// ════════════════════════════════════════════════════════════════════════════
+const ResumeIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <line x1="10" y1="9" x2="8" y2="9" />
+  </svg>
+);
+
+// ════════════════════════════════════════════════════════════════════════════
 // SOCIAL CARDS GROUP — exported for use in page.tsx
 // ════════════════════════════════════════════════════════════════════════════
-export default function SocialCards() {
+export default function SocialCards({ resumeUrl }: { resumeUrl?: string }) {
   const { settings } = useThemeSettings();
   const github = settings.githubUrl || "https://github.com/dhruv0641";
   const linkedin = settings.linkedinUrl || "https://linkedin.com/in/dhruv-dobariya";
+  const resume = resumeUrl || settings.resumeUrl || "/resume.pdf";
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-6 border-t border-[var(--grid-line)]">
@@ -305,6 +319,14 @@ export default function SocialCards() {
         icon={<LinkedInIcon />}
         ariaLabel="LinkedIn Profile — Professional profile and experience"
       />
+      <SocialCard
+        href={resume}
+        label="Resume"
+        tooltip="View or download resume"
+        icon={<ResumeIcon />}
+        ariaLabel="Resume — View or download official resume"
+      />
     </div>
   );
 }
+

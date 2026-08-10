@@ -50,6 +50,7 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
   const github = settings.githubUrl || "https://github.com/dhruv0641";
   const linkedin = settings.linkedinUrl || "https://linkedin.com/in/dhruv-dobariya";
   const instagram = settings.instagramUrl || "https://instagram.com";
+  const resume = settings.resumeUrl || "/resume.pdf";
 
   if (
     pathname.startsWith('/editor') || 
@@ -185,7 +186,7 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
           </span>
           <div className="flex flex-col gap-2.5 text-[10px] uppercase tracking-wider items-center md:items-end">
             <a
-              href="/resume.pdf"
+              href={resume}
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-1.5 text-zinc-500 hover:text-white transition-colors duration-300"

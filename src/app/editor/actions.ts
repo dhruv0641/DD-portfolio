@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { 
   fallbackSettings, 
   fallbackProfile, 
@@ -850,3 +852,96 @@ export async function emptyTrashAction() {
     return { success: false, error: err.message || 'Failed to empty recycle bin.' };
   }
 }
+
+export async function uploadResumeAction(formData: FormData) {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+    
+    const file = (formData.get('file') as File) || (formData.get('resume') as File);
+    if (!file || typeof file === 'string') {
+      throw new Error('No valid resume file provided.');
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const origName = file.name || 'resume.pdf';
+    const ext = path.extname(origName) || '.pdf';
+    const filename = `resume_${Date.now()}${ext}`;
+    const filePath = path.join(uploadsDir, filename);
+
+    fs.writeFileSync(filePath, buffer);
+
+    const publicUrl = `/uploads/${filename}`;
+
+    try {
+      const admin = getAdminClient();
+      await admin.from('site_settings').upsert({
+        key: 'resumeUrl',
+        value: publicUrl,
+        category: 'general',
+        status: 'active',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+
+      const { data: profiles } = await admin.from('profiles').select('id').eq('status', 'active').limit(1);
+      if (profiles && profiles.length > 0) {
+        await admin.from('profiles').update({
+          resume_url: publicUrl,
+          updated_at: new Date().toISOString()
+        }).eq('id', profiles[0].id);
+      }
+    } catch (dbErr) {
+      console.warn('DB update failed during resume upload, saved locally to public folder:', dbErr);
+    }
+
+    revalidatePath('/');
+    revalidatePath('/editor');
+
+    return { success: true, resumeUrl: publicUrl };
+  } catch (err: any) {
+    console.error('uploadResumeAction error:', err);
+    return { success: false, error: err.message || 'Failed to upload resume file.' };
+  }
+}
+
+export async function deleteResumeAction() {
+  try {
+    if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
+
+    try {
+      const admin = getAdminClient();
+      await admin.from('site_settings').upsert({
+        key: 'resumeUrl',
+        value: '',
+        category: 'general',
+        status: 'active',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+
+      const { data: profiles } = await admin.from('profiles').select('id').eq('status', 'active').limit(1);
+      if (profiles && profiles.length > 0) {
+        await admin.from('profiles').update({
+          resume_url: '',
+          updated_at: new Date().toISOString()
+        }).eq('id', profiles[0].id);
+      }
+    } catch (dbErr) {
+      console.warn('DB update failed during resume delete:', dbErr);
+    }
+
+    revalidatePath('/');
+    revalidatePath('/editor');
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('deleteResumeAction error:', err);
+    return { success: false, error: err.message || 'Failed to delete resume.' };
+  }
+}
+
