@@ -7,4 +7,3 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # Git Constraints
 - NEVER run any git commands (including git add, git commit, git push, git merge, etc.) directly on the workspace.
 - Always perform code changes and verify compilation locally, then present the git commands as code blocks for the user to execute themselves.
-
