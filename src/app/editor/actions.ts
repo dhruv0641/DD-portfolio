@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
-import fs from 'fs';
 import path from 'path';
 import { 
   fallbackSettings, 
@@ -865,22 +864,46 @@ export async function uploadResumeAction(formData: FormData) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
+    const admin = getAdminClient();
 
+    // Build a unique filename for Supabase Storage
     const origName = file.name || 'resume.pdf';
     const ext = path.extname(origName) || '.pdf';
     const filename = `resume_${Date.now()}${ext}`;
-    const filePath = path.join(uploadsDir, filename);
 
-    fs.writeFileSync(filePath, buffer);
-
-    const publicUrl = `/uploads/${filename}`;
-
+    // Clean up old resume files in the bucket to avoid stale copies
     try {
-      const admin = getAdminClient();
+      const { data: existingFiles } = await admin.storage.from('resume').list('', { limit: 100 });
+      if (existingFiles && existingFiles.length > 0) {
+        const oldPaths = existingFiles.map((f: { name: string }) => f.name);
+        await admin.storage.from('resume').remove(oldPaths);
+      }
+    } catch (cleanupErr) {
+      console.warn('Could not clean up old resume files:', cleanupErr);
+    }
+
+    // Upload to Supabase Storage 'resume' bucket
+    const { error: uploadError } = await admin.storage
+      .from('resume')
+      .upload(filename, buffer, {
+        contentType: file.type || 'application/pdf',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(`Supabase Storage upload failed: ${uploadError.message}`);
+    }
+
+    // Get the public URL from Supabase Storage
+    const { data: urlData } = admin.storage.from('resume').getPublicUrl(filename);
+    const publicUrl = urlData?.publicUrl;
+
+    if (!publicUrl) {
+      throw new Error('Failed to generate public URL for uploaded resume.');
+    }
+
+    // Update the resume URL in site_settings and profiles tables
+    try {
       await admin.from('site_settings').upsert({
         key: 'resumeUrl',
         value: publicUrl,
@@ -897,7 +920,7 @@ export async function uploadResumeAction(formData: FormData) {
         }).eq('id', profiles[0].id);
       }
     } catch (dbErr) {
-      console.warn('DB update failed during resume upload, saved locally to public folder:', dbErr);
+      console.warn('DB update failed during resume upload (file is in Supabase Storage):', dbErr);
     }
 
     revalidatePath('/');
@@ -914,8 +937,21 @@ export async function deleteResumeAction() {
   try {
     if (!(await checkAuthAction())) throw new Error('Unauthorized access.');
 
+    const admin = getAdminClient();
+
+    // Remove all files from the 'resume' bucket
     try {
-      const admin = getAdminClient();
+      const { data: existingFiles } = await admin.storage.from('resume').list('', { limit: 100 });
+      if (existingFiles && existingFiles.length > 0) {
+        const filePaths = existingFiles.map((f: { name: string }) => f.name);
+        await admin.storage.from('resume').remove(filePaths);
+      }
+    } catch (storageErr) {
+      console.warn('Could not remove resume files from Supabase Storage:', storageErr);
+    }
+
+    // Clear the resume URL in site_settings and profiles tables
+    try {
       await admin.from('site_settings').upsert({
         key: 'resumeUrl',
         value: '',
