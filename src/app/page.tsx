@@ -492,7 +492,7 @@ export default async function Page() {
             <div className="flex-1 h-[1px] bg-[var(--grid-line)]" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-24">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.3fr] gap-16 lg:gap-28">
             <div className="flex flex-col justify-between">
               <div>
                 <h3 className="text-[clamp(2.2rem,4.5vw,3.8rem)] mb-10 font-light leading-[1.15] tracking-tight">
@@ -524,7 +524,9 @@ export default async function Page() {
               </div>
             </div>
 
-            <ContactForm />
+            <div className="lg:pl-6">
+              <ContactForm />
+            </div>
           </div>
         </div>
       </section>

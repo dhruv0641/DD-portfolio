@@ -380,8 +380,8 @@ textarea:-webkit-autofill:active,
   justify-content: center;
   position: relative;
   overflow: hidden;
-  align-self: flex-start;
-  margin-top: 1.5rem;
+  align-self: center;
+  margin-top: 2rem;
   transition: border-color 0.4s ease, color 0.3s ease, box-shadow 0.4s ease, transform 0.15s ease;
   backdrop-filter: blur(4px);
 }
