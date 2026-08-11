@@ -188,7 +188,7 @@ export default function ContactForm() {
             />
             <label className="form-label" htmlFor="formName">Name</label>
             {errors.name && (
-              <span id="name-error" className="absolute bottom-[-1.6rem] left-0 text-[9px] font-mono text-red-500 uppercase tracking-wider" role="alert">
+              <span id="name-error" className="block px-1.5 pt-1.5 pb-0.5 text-[9px] font-mono text-red-500 uppercase tracking-wider" role="alert">
                 {errors.name}
               </span>
             )}
@@ -211,7 +211,7 @@ export default function ContactForm() {
             />
             <label className="form-label" htmlFor="formEmail">Email</label>
             {errors.email && (
-              <span id="email-error" className="absolute bottom-[-1.6rem] left-0 text-[9px] font-mono text-red-500 uppercase tracking-wider" role="alert">
+              <span id="email-error" className="block px-1.5 pt-1.5 pb-0.5 text-[9px] font-mono text-red-500 uppercase tracking-wider" role="alert">
                 {errors.email}
               </span>
             )}
@@ -247,7 +247,7 @@ export default function ContactForm() {
             />
             <label className="form-label" htmlFor="formDetails">Details</label>
             {errors.details && (
-              <span id="details-error" className="absolute bottom-[-1.6rem] left-0 text-[9px] font-mono text-red-500 uppercase tracking-wider" role="alert">
+              <span id="details-error" className="block px-1.5 pt-1.5 pb-0.5 text-[9px] font-mono text-red-500 uppercase tracking-wider" role="alert">
                 {errors.details}
               </span>
             )}
