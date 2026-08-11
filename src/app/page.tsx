@@ -524,7 +524,7 @@ export default async function Page() {
               </div>
             </div>
 
-            <div className="lg:pl-6">
+            <div className="lg:pl-14">
               <ContactForm />
             </div>
           </div>
