@@ -128,10 +128,10 @@ export default function ContactForm() {
         setFormData({ name: '', email: '', objective: '', details: '', website: '' });
         setHasAttemptedSubmit(false);
         
-        // Reset confirmation view back to idle after 8 seconds
+        // Reset confirmation view back to idle after 10 seconds (synced with countdown bar)
         setTimeout(() => {
           setStatus('idle');
-        }, 8000);
+        }, 10000);
       } else {
         setStatus('error');
         setServerError(result.error || 'Something went wrong. Please try again.');
@@ -149,12 +149,149 @@ export default function ContactForm() {
   return (
     <div>
       {status === 'success' ? (
-        <div className="form-message" style={{ display: 'block' }} role="status" aria-live="polite">
-          <div className="font-mono text-xs text-[var(--accent)] mb-2">$ TRANSACTION RECEIVED</div>
-          <div className="font-mono text-sm text-[var(--text)] mb-4">ID: {messageId}</div>
-          <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-            Your objective parameters have been cataloged. Response protocol will initiate within 24 hours.
-          </p>
+        <div 
+          className="relative overflow-hidden rounded-2xl border border-[rgba(var(--accent-rgb),0.2)] bg-[rgba(var(--accent-rgb),0.03)]"
+          style={{
+            animation: 'successFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          }}
+          role="status" 
+          aria-live="polite"
+        >
+          {/* Top accent glow line */}
+          <div 
+            className="absolute top-0 left-0 right-0 h-[2px]"
+            style={{
+              background: 'linear-gradient(90deg, transparent, var(--accent), transparent)',
+              animation: 'glowSlide 2s ease-in-out infinite',
+            }}
+          />
+
+          <div className="p-8 sm:p-10">
+            {/* Animated checkmark circle */}
+            <div 
+              className="flex items-center justify-center mb-6"
+              style={{ animation: 'checkPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both' }}
+            >
+              <div className="relative w-16 h-16">
+                {/* Outer ring pulse */}
+                <div 
+                  className="absolute inset-0 rounded-full border border-[rgba(var(--accent-rgb),0.3)]"
+                  style={{ animation: 'ringPulse 2s ease-in-out infinite' }}
+                />
+                {/* Inner circle */}
+                <div className="absolute inset-1 rounded-full bg-[rgba(var(--accent-rgb),0.08)] flex items-center justify-center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-[var(--accent)]">
+                    <path 
+                      d="M5 13l4 4L19 7" 
+                      stroke="currentColor" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      style={{
+                        strokeDasharray: 24,
+                        strokeDashoffset: 24,
+                        animation: 'checkDraw 0.4s ease-out 0.5s forwards',
+                      }}
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Status label */}
+            <div 
+              className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--accent)] mb-3 text-center"
+              style={{ animation: 'staggerUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both' }}
+            >
+              ✦ Message Delivered Successfully
+            </div>
+
+            {/* Main heading */}
+            <h4 
+              className="text-xl sm:text-2xl font-light text-[var(--text)] text-center mb-3 tracking-tight"
+              style={{ animation: 'staggerUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both' }}
+            >
+              Thank you for reaching out!
+            </h4>
+
+            {/* Message body */}
+            <p 
+              className="text-sm text-[var(--text-muted)] leading-relaxed text-center max-w-md mx-auto mb-6"
+              style={{ animation: 'staggerUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both' }}
+            >
+              I&apos;ve received your message and will get back to you within 24 hours. Looking forward to exploring how we can work together.
+            </p>
+
+            {/* Reference ID chip */}
+            <div 
+              className="flex justify-center mb-6"
+              style={{ animation: 'staggerUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.65s both' }}
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-mono text-[11px] text-[var(--text-dim)] tracking-wider">
+                  REF: {messageId}
+                </span>
+              </div>
+            </div>
+
+            {/* Send another button */}
+            <div 
+              className="flex justify-center"
+              style={{ animation: 'staggerUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.75s both' }}
+            >
+              <button
+                onClick={() => setStatus('idle')}
+                className="group font-mono text-[11px] uppercase tracking-[0.15em] text-[var(--text-dim)] hover:text-[var(--accent)] transition-colors duration-300 flex items-center gap-2"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40 group-hover:opacity-100 transition-opacity rotate-0 group-hover:-rotate-45 duration-300">
+                  <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                </svg>
+                Send another message
+              </button>
+            </div>
+          </div>
+
+          {/* Auto-dismiss countdown bar */}
+          <div className="h-[2px] bg-[rgba(255,255,255,0.03)]">
+            <div 
+              className="h-full bg-[var(--accent)] opacity-40"
+              style={{
+                animation: 'countdownShrink 10s linear forwards',
+              }}
+            />
+          </div>
+
+          {/* Keyframe animations */}
+          <style>{`
+            @keyframes successFadeIn {
+              from { opacity: 0; transform: translateY(16px) scale(0.98); }
+              to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            @keyframes checkPop {
+              from { opacity: 0; transform: scale(0.5); }
+              to { opacity: 1; transform: scale(1); }
+            }
+            @keyframes checkDraw {
+              to { stroke-dashoffset: 0; }
+            }
+            @keyframes staggerUp {
+              from { opacity: 0; transform: translateY(12px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes ringPulse {
+              0%, 100% { transform: scale(1); opacity: 0.3; }
+              50% { transform: scale(1.08); opacity: 0.6; }
+            }
+            @keyframes glowSlide {
+              0%, 100% { opacity: 0.4; }
+              50% { opacity: 1; }
+            }
+            @keyframes countdownShrink {
+              from { width: 100%; }
+              to { width: 0%; }
+            }
+          `}</style>
         </div>
       ) : (
         <form className="contact-form" onSubmit={handleSubmit} noValidate>
