@@ -233,7 +233,7 @@
 .form-group {
   position: relative;
   margin-bottom: 0.25rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: #0d0d10;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 0 1.25rem;
@@ -244,12 +244,12 @@
 
 .form-group:hover {
   border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.025);
+  background: #121216;
 }
 
 .form-group:focus-within {
   border-color: rgba(var(--accent-rgb), 0.4);
-  background: rgba(var(--accent-rgb), 0.03);
+  background: #0f121d;
   box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.06),
               0 4px 20px rgba(0, 0, 0, 0.15);
 }
