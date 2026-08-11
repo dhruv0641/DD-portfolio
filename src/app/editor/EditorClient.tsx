@@ -1063,19 +1063,19 @@ export default function EditorClient({
           <div className="overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-2 py-1 px-1 snap-x shrink-0">
             <button 
               onClick={() => setActiveModal('hero')}
-              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 hover:bg-[#13131a] hover:-translate-y-[1px] active:scale-95 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
             >
               ✨ Hero Section
             </button>
             <button 
               onClick={() => setActiveModal('about')}
-              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 hover:bg-[#13131a] hover:-translate-y-[1px] active:scale-95 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
             >
               👤 Identity & Beliefs
             </button>
             <button 
               onClick={() => setActiveModal('contact')}
-              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 hover:bg-[#13131a] hover:-translate-y-[1px] active:scale-95 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
             >
               ✉️ Contact & Links
             </button>
@@ -1087,7 +1087,7 @@ export default function EditorClient({
                   setSelectedMessage(messagesList[0]);
                 }
               }}
-              className="snap-start shrink-0 border border-blue-500/30 bg-blue-950/30 hover:border-blue-500 text-blue-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 flex items-center gap-1.5 min-h-[36px]"
+              className="snap-start shrink-0 border border-blue-500/30 bg-blue-950/20 hover:border-blue-500 hover:bg-blue-950/40 hover:-translate-y-[1px] active:scale-95 text-blue-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out flex items-center gap-1.5 min-h-[36px] shadow-sm"
             >
               <span>📬 Inbound Messages</span>
               {unreadCount > 0 && (
@@ -1098,33 +1098,33 @@ export default function EditorClient({
             </button>
             <button 
               onClick={() => setActiveModal('seo')}
-              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 hover:bg-[#13131a] hover:-translate-y-[1px] active:scale-95 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
             >
               🔍 SEO Tags
             </button>
             <button 
               onClick={() => { handleNewSkill(); setActiveModal('skill'); }}
-              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+              className="snap-start shrink-0 border border-white/5 bg-[#0f0f13] hover:border-white/20 hover:bg-[#13131a] hover:-translate-y-[1px] active:scale-95 text-zinc-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
             >
               🛠️ Skills DB
             </button>
             <span className="h-4 w-[1px] bg-white/10 mx-1 shrink-0" />
             <button 
               onClick={() => { handleNewProject(); setActiveModal('project'); }}
-              className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+              className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/10 hover:border-emerald-500 hover:bg-emerald-950/30 hover:-translate-y-[1px] active:scale-95 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
             >
               ➕ Project
             </button>
             <button 
               onClick={() => { handleNewBlog(); setActiveModal('blog'); }}
-              className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/20 hover:border-emerald-500 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+              className="snap-start shrink-0 border border-emerald-500/20 bg-emerald-950/10 hover:border-emerald-500 hover:bg-emerald-950/30 hover:-translate-y-[1px] active:scale-95 text-emerald-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
             >
               📝 Essay
             </button>
 
             <button 
               onClick={handleLogout}
-              className="snap-start shrink-0 border border-red-500/20 bg-red-950/20 hover:border-red-500 text-red-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-colors duration-150 min-h-[36px] flex items-center"
+              className="snap-start shrink-0 border border-red-500/20 bg-red-950/10 hover:border-red-500 hover:bg-red-950/30 hover:-translate-y-[1px] active:scale-95 text-red-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
             >
               🚪 Sign Out
             </button>
@@ -2181,7 +2181,7 @@ export default function EditorClient({
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                    <label className={`cursor-pointer border border-emerald-500/30 bg-emerald-950/30 hover:bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-bold flex items-center gap-1.5 transition-all ${isUploadingResume ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <label className={`cursor-pointer border border-emerald-500/30 bg-emerald-950/30 hover:bg-emerald-500/20 hover:-translate-y-[1px] active:scale-95 text-emerald-300 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-bold flex items-center gap-1.5 transition-all duration-200 ease-out shadow-sm ${isUploadingResume ? 'opacity-50 pointer-events-none' : ''}`}>
                       <span>{isUploadingResume ? '⏳ Uploading...' : '📤 Upload Resume'}</span>
                       <input 
                         type="file" 
@@ -2197,14 +2197,14 @@ export default function EditorClient({
                           href={settings.resumeUrl || profile.resumeUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="border border-white/10 bg-white/5 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-semibold transition-all flex items-center gap-1"
+                          className="border border-white/10 bg-white/5 hover:bg-white/10 hover:-translate-y-[1px] active:scale-95 text-white px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-semibold transition-all duration-200 ease-out flex items-center gap-1 shadow-sm"
                         >
                           👁️ View
                         </a>
                         <button
                           type="button"
                           onClick={handleDeleteResumeFile}
-                          className="border border-red-500/30 bg-red-950/30 hover:bg-red-950/60 text-red-400 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-bold transition-all flex items-center gap-1"
+                          className="border border-red-500/30 bg-red-950/30 hover:bg-red-950/50 hover:-translate-y-[1px] active:scale-95 text-red-400 px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase font-bold transition-all duration-200 ease-out flex items-center gap-1 shadow-sm"
                         >
                           🗑️ Delete
                         </button>
