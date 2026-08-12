@@ -1,9 +1,11 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { BlogPostData } from '@/types';
 import { fallbackBlogs } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export const blogService = {
-  async getBlogPosts(includeDrafts = false): Promise<BlogPostData[]> {
+  getBlogPosts: cache(async (includeDrafts = false): Promise<BlogPostData[]> => {
     try {
       let query = supabase
         .from('blogs')
@@ -14,7 +16,7 @@ export const blogService = {
         query = query.eq('is_draft', false).eq('status', 'active');
       }
 
-      const { data, error } = await query;
+      const { data, error } = await withTimeout(query, 2500, 'getBlogPosts');
       if (error || !data) {
         console.warn('Error fetching blog posts, using fallback data:', error);
         return fallbackBlogs;
@@ -36,18 +38,22 @@ export const blogService = {
       console.warn('Network error in blogService.getBlogPosts, using fallback:', err);
       return fallbackBlogs;
     }
-  },
+  }),
 
-  async getPostBySlug(slug: string): Promise<BlogPostData | null> {
+  getPostBySlug: cache(async (slug: string): Promise<BlogPostData | null> => {
     try {
-      const { data, error } = await supabase
-        .from('blogs')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_draft', false)
-        .eq('status', 'active')
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await withTimeout(
+        supabase
+          .from('blogs')
+          .select('*')
+          .eq('slug', slug)
+          .eq('is_draft', false)
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle(),
+        2500,
+        'getPostBySlug'
+      );
 
       if (error || !data) {
         // Fallback search
@@ -72,5 +78,6 @@ export const blogService = {
       const found = fallbackBlogs.find(p => p.slug === slug);
       return found || null;
     }
-  },
+  }),
 };
+

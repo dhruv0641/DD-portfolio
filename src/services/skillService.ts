@@ -1,5 +1,7 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fallbackSkills } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export interface SkillItem {
   id: string;
@@ -14,14 +16,18 @@ export interface SkillCategory {
 }
 
 export const skillService = {
-  async getSkillsWithCategories(): Promise<SkillCategory[]> {
+  getSkillsWithCategories: cache(async (): Promise<SkillCategory[]> => {
     try {
       // 1. Fetch categories
-      const { data: categories, error: catError } = await supabase
-        .from('skill_categories')
-        .select('*')
-        .eq('status', 'active')
-        .order('position', { ascending: true });
+      const { data: categories, error: catError } = await withTimeout(
+        supabase
+          .from('skill_categories')
+          .select('*')
+          .eq('status', 'active')
+          .order('position', { ascending: true }),
+        2500,
+        'getSkillsWithCategories (categories)'
+      );
 
       if (catError || !categories) {
         console.warn('Error fetching skill categories, using fallback data:', catError);
@@ -29,11 +35,15 @@ export const skillService = {
       }
 
       // 2. Fetch skills
-      const { data: skills, error: skillError } = await supabase
-        .from('skills')
-        .select('*')
-        .eq('status', 'active')
-        .order('position', { ascending: true });
+      const { data: skills, error: skillError } = await withTimeout(
+        supabase
+          .from('skills')
+          .select('*')
+          .eq('status', 'active')
+          .order('position', { ascending: true }),
+        2500,
+        'getSkillsWithCategories (skills)'
+      );
 
       if (skillError) {
         console.warn('Error fetching skills, using fallback data:', skillError);
@@ -60,15 +70,19 @@ export const skillService = {
       console.warn('Network error in skillService.getSkillsWithCategories, using fallback:', err);
       return fallbackSkills;
     }
-  },
+  }),
 
-  async getCategories(): Promise<any[]> {
+  getCategories: cache(async (): Promise<any[]> => {
     try {
-      const { data, error } = await supabase
-        .from('skill_categories')
-        .select('*')
-        .eq('status', 'active')
-        .order('position', { ascending: true });
+      const { data, error } = await withTimeout(
+        supabase
+          .from('skill_categories')
+          .select('*')
+          .eq('status', 'active')
+          .order('position', { ascending: true }),
+        2500,
+        'getCategories'
+      );
       if (error || !data) {
         return fallbackSkills.map(c => ({ id: c.id, name: c.name, status: 'active', position: 0 }));
       }
@@ -76,5 +90,6 @@ export const skillService = {
     } catch (err) {
       return fallbackSkills.map(c => ({ id: c.id, name: c.name, status: 'active', position: 0 }));
     }
-  },
+  }),
 };
+

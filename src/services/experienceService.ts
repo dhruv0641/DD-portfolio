@@ -1,5 +1,7 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fallbackExperience } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export interface ExperienceData {
   id?: string;
@@ -12,13 +14,17 @@ export interface ExperienceData {
 }
 
 export const experienceService = {
-  async getExperience(): Promise<ExperienceData[]> {
+  getExperience: cache(async (): Promise<ExperienceData[]> => {
     try {
-      const { data, error } = await supabase
-        .from('experience')
-        .select('*')
-        .eq('status', 'active')
-        .order('position', { ascending: true });
+      const { data, error } = await withTimeout(
+        supabase
+          .from('experience')
+          .select('*')
+          .eq('status', 'active')
+          .order('position', { ascending: true }),
+        2500,
+        'getExperience'
+      );
 
       if (error || !data) {
         console.warn('Error fetching experience, using fallback data:', error);
@@ -38,5 +44,6 @@ export const experienceService = {
       console.warn('Network error in experienceService.getExperience, using fallback:', err);
       return fallbackExperience;
     }
-  },
+  }),
 };
+

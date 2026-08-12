@@ -14,6 +14,7 @@ const fontSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
   weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
 });
 
 const fontSerif = Instrument_Serif({
@@ -21,13 +22,16 @@ const fontSerif = Instrument_Serif({
   variable: '--font-serif',
   weight: ['400'],
   style: ['normal', 'italic'],
+  display: 'swap',
 });
 
 const fontMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
   weight: ['400', '500'],
+  display: 'swap',
 });
+
 
 export async function generateMetadata(): Promise<Metadata> {
   // Query SEO parameters from database dynamically
@@ -104,7 +108,12 @@ export default async function RootLayout({
       lang="en"
       className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} scroll-smooth`}
     >
+      <head>
+        <link rel="preconnect" href="https://wayngkrsvlygkmktracr.supabase.co" />
+        <link rel="dns-prefetch" href="https://wayngkrsvlygkmktracr.supabase.co" />
+      </head>
       <body className="bg-[#090909] text-[var(--text)] font-sans antialiased relative min-h-screen">
+
         <ThemeProvider initialSettings={mergedSettings}>
           <LenisProvider>
             <BackgroundLayer />

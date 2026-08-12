@@ -1,5 +1,7 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fallbackServices } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export interface ServiceData {
   id?: string;
@@ -11,7 +13,7 @@ export interface ServiceData {
 }
 
 export const coreService = {
-  async getServices(includeInactive = false): Promise<ServiceData[]> {
+  getServices: cache(async (includeInactive = false): Promise<ServiceData[]> => {
     try {
       let query = supabase
         .from('services')
@@ -22,7 +24,7 @@ export const coreService = {
         query = query.eq('status', 'active');
       }
 
-      const { data, error } = await query;
+      const { data, error } = await withTimeout(query, 2500, 'getServices');
       if (error || !data) {
         console.warn('Error fetching services, using fallback data:', error);
         return fallbackServices;
@@ -40,5 +42,6 @@ export const coreService = {
       console.warn('Network error in coreService.getServices, using fallback:', err);
       return fallbackServices;
     }
-  },
+  }),
 };
+

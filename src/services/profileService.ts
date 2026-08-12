@@ -1,5 +1,7 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fallbackProfile } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export interface ProfileData {
   id?: string;
@@ -13,14 +15,18 @@ export interface ProfileData {
 }
 
 export const profileService = {
-  async getProfile(): Promise<any | null> {
+  getProfile: cache(async (): Promise<any | null> => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('status', 'active')
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await withTimeout(
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle(),
+        2500,
+        'getProfile'
+      );
 
       if (error || !data) {
         console.warn('Error fetching profile, using fallback data:', error);
@@ -41,5 +47,6 @@ export const profileService = {
       console.warn('Network error in profileService.getProfile, using fallback:', err);
       return fallbackProfile;
     }
-  },
+  }),
 };
+

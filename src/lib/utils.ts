@@ -20,3 +20,22 @@ export function getReadingTime(text: string): number {
   const minutes = noOfWords / wordsPerMinute
   return Math.ceil(minutes)
 }
+
+export function withTimeout<T>(promiseLike: PromiseLike<T>, ms = 2500, fallbackName = 'operation'): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Timeout of ${ms}ms exceeded for ${fallbackName}`));
+    }, ms);
+
+    Promise.resolve(promiseLike)
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+

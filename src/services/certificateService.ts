@@ -1,5 +1,7 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fallbackCertificates } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export interface CertificateData {
   id?: string;
@@ -13,13 +15,17 @@ export interface CertificateData {
 }
 
 export const certificateService = {
-  async getCertificates(): Promise<CertificateData[]> {
+  getCertificates: cache(async (): Promise<CertificateData[]> => {
     try {
-      const { data, error } = await supabase
-        .from('certificates')
-        .select('*')
-        .eq('status', 'active')
-        .order('position', { ascending: true });
+      const { data, error } = await withTimeout(
+        supabase
+          .from('certificates')
+          .select('*')
+          .eq('status', 'active')
+          .order('position', { ascending: true }),
+        2500,
+        'getCertificates'
+      );
 
       if (error || !data) {
         console.warn('Error fetching certificates, using fallback data:', error);
@@ -40,5 +46,6 @@ export const certificateService = {
       console.warn('Network error in certificateService.getCertificates, using fallback:', err);
       return fallbackCertificates;
     }
-  },
+  }),
 };
+
