@@ -2,7 +2,7 @@ import React from 'react';
 import { blogService } from '@/services/blogService';
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function BlogIndex() {
   const dbPosts = await blogService.getBlogPosts(false);

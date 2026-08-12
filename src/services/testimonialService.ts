@@ -1,5 +1,7 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fallbackTestimonials } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export interface TestimonialData {
   id?: string;
@@ -13,7 +15,7 @@ export interface TestimonialData {
 }
 
 export const testimonialService = {
-  async getTestimonials(includeInactive = false): Promise<TestimonialData[]> {
+  getTestimonials: cache(async (includeInactive = false): Promise<TestimonialData[]> => {
     try {
       let query = supabase
         .from('testimonials')
@@ -24,7 +26,7 @@ export const testimonialService = {
         query = query.eq('status', 'active');
       }
 
-      const { data, error } = await query;
+      const { data, error } = await withTimeout(query, 2500, 'getTestimonials');
       if (error || !data) {
         console.warn('Error fetching testimonials, using fallback data:', error);
         return fallbackTestimonials;
@@ -44,5 +46,6 @@ export const testimonialService = {
       console.warn('Network error in testimonialService.getTestimonials, using fallback:', err);
       return fallbackTestimonials;
     }
-  },
+  }),
 };
+

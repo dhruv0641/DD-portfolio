@@ -172,6 +172,8 @@ export default async function Page() {
                       <img
                         src={projectImg}
                         alt={project.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover opacity-80 group-hover:scale-102 group-hover:opacity-100 transition-all duration-700 ease-out"
                       />
                     </div>
@@ -203,6 +205,8 @@ export default async function Page() {
                       <img
                         src={projectImg}
                         alt={project.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover opacity-80 group-hover:scale-102 group-hover:opacity-100 transition-all duration-700 ease-out"
                       />
                     </div>
@@ -394,7 +398,7 @@ export default async function Page() {
                   </p>
                   <div className="flex items-center gap-3">
                     {t.avatarUrl ? (
-                      <img src={t.avatarUrl} alt={t.clientName} className="w-10 h-10 rounded-full object-cover bg-zinc-800" />
+                      <img src={t.avatarUrl} alt={t.clientName} loading="lazy" decoding="async" className="w-10 h-10 rounded-full object-cover bg-zinc-800" />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-mono text-[10px] text-gray-500">C</div>
                     )}

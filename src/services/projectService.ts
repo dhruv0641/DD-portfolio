@@ -1,9 +1,11 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { ProjectData } from '@/types';
 import { fallbackProjects } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export const projectService = {
-  async getProjects(includeDrafts = false): Promise<ProjectData[]> {
+  getProjects: cache(async (includeDrafts = false): Promise<ProjectData[]> => {
     try {
       let query = supabase
         .from('projects')
@@ -14,7 +16,7 @@ export const projectService = {
         query = query.eq('is_draft', false).eq('status', 'active');
       }
 
-      const { data, error } = await query;
+      const { data, error } = await withTimeout(query, 2500, 'getProjects');
       if (error || !data) {
         console.warn('Error fetching projects, using fallback data:', error);
         return fallbackProjects;
@@ -45,5 +47,6 @@ export const projectService = {
       console.warn('Network error in projectService.getProjects, using fallback:', err);
       return fallbackProjects;
     }
-  },
+  }),
 };
+

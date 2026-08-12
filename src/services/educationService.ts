@@ -1,5 +1,7 @@
+import { cache } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fallbackEducation } from '@/lib/fallbackData';
+import { withTimeout } from '@/lib/utils';
 
 export interface EducationData {
   id?: string;
@@ -12,13 +14,17 @@ export interface EducationData {
 }
 
 export const educationService = {
-  async getEducation(): Promise<EducationData[]> {
+  getEducation: cache(async (): Promise<EducationData[]> => {
     try {
-      const { data, error } = await supabase
-        .from('education')
-        .select('*')
-        .eq('status', 'active')
-        .order('position', { ascending: true });
+      const { data, error } = await withTimeout(
+        supabase
+          .from('education')
+          .select('*')
+          .eq('status', 'active')
+          .order('position', { ascending: true }),
+        2500,
+        'getEducation'
+      );
 
       if (error || !data) {
         console.warn('Error fetching education records, using fallback data:', error);
@@ -38,5 +44,6 @@ export const educationService = {
       console.warn('Network error in educationService.getEducation, using fallback:', err);
       return fallbackEducation;
     }
-  },
+  }),
 };
+
