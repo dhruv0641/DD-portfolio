@@ -37,7 +37,8 @@ import {
   clearAllMessagesAction,
   emptyTrashAction,
   uploadResumeAction,
-  deleteResumeAction
+  deleteResumeAction,
+  initializeDatabaseAction
 } from './actions';
 
 type ModalType = 'profile' | 'hero' | 'about' | 'contact' | 'project' | 'blog' | 'skill' | 'testimonial' | 'service' | 'experience' | 'education' | 'certificate' | 'seo' | 'messages';
@@ -230,6 +231,27 @@ export default function EditorClient({
         window.location.reload();
       } else {
         triggerToast('Failed to log out.', false);
+      }
+    });
+  };
+
+  const handleInitializeDatabase = () => {
+    const confirmed = confirm(
+      '⚠️ RESET DATABASE TO DEFAULT CONTENT?\n\n' +
+      'This will DELETE all projects, blogs, skills, skill groups, testimonials, services, ' +
+      'experience, education, certificates, profile, SEO metadata and site settings, then ' +
+      're-insert the default sample content.\n\n' +
+      'Your messages inbox and uploaded resume file will be KEPT.\n\n' +
+      'Proceed?'
+    );
+    if (!confirmed) return;
+    startTransition(async () => {
+      const res = await initializeDatabaseAction();
+      if (res.success) {
+        triggerToast('Database reset to default content! Reloading...', true);
+        setTimeout(() => window.location.reload(), 1200);
+      } else {
+        triggerToast(res.error || 'Failed to reset database.', false);
       }
     });
   };
@@ -838,10 +860,9 @@ export default function EditorClient({
     id: '',
     institution: '',
     degree: '',
-    fieldOfStudy: '',
     period: '',
+    location: '',
     description: '',
-    gpa: '',
     position: '0',
   });
 
@@ -850,10 +871,9 @@ export default function EditorClient({
       id: '',
       institution: '',
       degree: '',
-      fieldOfStudy: '',
       period: '',
+      location: '',
       description: '',
-      gpa: '',
       position: '0',
     });
   };
@@ -863,10 +883,9 @@ export default function EditorClient({
       id: edu.id,
       institution: edu.institution || '',
       degree: edu.degree || '',
-      fieldOfStudy: edu.fieldOfStudy || '',
-      period: edu.period || '',
+      period: edu.period || edu.timeline || '',
+      location: edu.location || '',
       description: edu.description || '',
-      gpa: edu.gpa || '',
       position: String(edu.position || '0'),
     });
   };
@@ -1128,6 +1147,13 @@ export default function EditorClient({
             >
               🚪 Sign Out
             </button>
+            <button 
+              onClick={handleInitializeDatabase}
+              className="snap-start shrink-0 border border-amber-500/20 bg-amber-950/10 hover:border-amber-500 hover:bg-amber-950/30 hover:-translate-y-[1px] active:scale-95 text-amber-400 hover:text-white px-3.5 py-2 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all duration-200 ease-out min-h-[36px] flex items-center shadow-sm"
+              title="Reset & seed all content tables with default sample data"
+            >
+              ⚠️ Sync DB
+            </button>
           </div>
         </div>
       </div>
@@ -1257,7 +1283,13 @@ export default function EditorClient({
             </div>
           </div>
 
-          <div className="pt-8 border-t border-white/10 mt-8">
+          <div className="pt-8 border-t border-white/10 mt-8 flex flex-col gap-3">
+            <button
+              onClick={() => { handleInitializeDatabase(); setMobileMenuOpen(false); }}
+              className="w-full bg-amber-950/30 border border-amber-500/30 text-amber-400 py-3.5 rounded-xl font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 active:scale-98 transition-all min-h-[48px]"
+            >
+              <span>⚠️ Sync Database</span>
+            </button>
             <button
               onClick={handleLogout}
               className="w-full bg-red-950/30 border border-red-500/30 text-red-400 py-3.5 rounded-xl font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 active:scale-98 transition-all min-h-[48px]"
@@ -2749,8 +2781,8 @@ export default function EditorClient({
                 <input type="text" value={educationForm.period} onChange={(e) => setEducationForm({ ...educationForm, period: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div>
-                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Field of Study</label>
-                <input type="text" value={educationForm.fieldOfStudy} onChange={(e) => setEducationForm({ ...educationForm, fieldOfStudy: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
+                <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Location</label>
+                <input type="text" value={educationForm.location} onChange={(e) => setEducationForm({ ...educationForm, location: e.target.value })} className="w-full bg-[#09090b] border border-white/5 rounded-lg p-3 text-xs text-white" />
               </div>
               <div className="md:col-span-2">
                 <label className="block font-mono text-[9px] text-zinc-500 uppercase mb-2">Short Description</label>

@@ -52,13 +52,6 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
   const instagram = settings.instagramUrl || "https://instagram.com";
   const resume = settings.resumeUrl || "/resume.pdf";
 
-  if (
-    pathname.startsWith('/editor') || 
-    (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))
-  ) {
-    return null;
-  }
-
   const handleBackToTop = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -73,6 +66,13 @@ export const Footer = memo(function Footer({ name, email }: { name: string; emai
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [email]);
+
+  if (
+    pathname.startsWith('/editor') || 
+    (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))
+  ) {
+    return null;
+  }
 
   return (
     <footer className="w-full border-t border-white/[0.04] bg-[#09090b]/40 backdrop-blur-md relative overflow-hidden py-16 px-[8%] select-none">

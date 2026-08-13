@@ -236,13 +236,6 @@ export default function Header({ name }: { name: string }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (
-    pathname.startsWith('/editor') || 
-    (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))
-  ) {
-    return null;
-  }
-
   const pendingScrollRef = useRef<string | null>(null);
 
   // ── Scroll lock: suppresses IntersectionObserver during programmatic scrolling ──
@@ -439,6 +432,13 @@ export default function Header({ name }: { name: string }) {
   const getIsActive = useCallback((item: NavItem): boolean => {
     return activeHref === item.href;
   }, [activeHref]);
+
+  if (
+    pathname.startsWith('/editor') || 
+    (typeof window !== 'undefined' && window.location.hostname.startsWith('admin.'))
+  ) {
+    return null;
+  }
 
   return (
     <>
