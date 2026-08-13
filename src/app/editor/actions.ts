@@ -436,10 +436,9 @@ export async function saveEducationAction(edu: any) {
     const payload = {
       institution: edu.institution,
       degree: edu.degree,
-      field_of_study: edu.fieldOfStudy,
-      period: edu.period,
+      timeline: edu.period || edu.timeline || '',
+      location: edu.location || null,
       description: edu.description,
-      gpa: edu.gpa || null,
       position: parseInt(edu.position || '0', 10),
       status: 'active',
       updated_at: new Date().toISOString()

@@ -344,7 +344,7 @@ export default async function Page() {
                     </div>
                     <span className="font-mono text-[10px] text-gray-500 uppercase">{edu.timeline}</span>
                     <h3 className="text-lg font-medium text-white">{edu.degree}</h3>
-                    <span className="text-xs text-[var(--text-muted)] font-mono uppercase">{edu.institution}</span>
+                    <span className="text-xs text-[var(--text-muted)] font-mono uppercase">{edu.institution}{edu.location ? ` · ${edu.location}` : ''}</span>
                     <p className="text-xs text-[var(--text-muted)] leading-relaxed font-light mt-2">{edu.description}</p>
                   </div>
                 ))}
